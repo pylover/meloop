@@ -1,3 +1,5 @@
+#include "io.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,66 +8,52 @@
 #include <err.h>
 
 
-#define BUFFSIZE    1024
-
-
-typedef void (*io_callback) (void *);
-
-
 struct packet {
-  char *value;
-  size_t len;
+    size_t size;
+    char *data;
 };
 
 
-typedef struct IO {
-  struct packet *packet;
-} IO;
+void readit (IO *io, struct packet *p) {
 
-
-typedef IO * (*doIO) (struct packet *);
-
-
-IO * returnIO (struct packet *p) {
-    IO * m = malloc(sizeof(IO));
-    m->packet = p;
-    return m;
+    p->size = 0;
+    p->data = NULL;
+    // TODO: free
+    ssize_t size = getline(&(p->data), &(p->size), stdin);
+    if (size < 0) {
+        io_failed(io, "getline");
+        return;
+    }
+    p->size = size;
+    io_succeeded(io, p);
 }
 
 
-IO * readlineIO () {
-    struct packet * p = malloc(sizeof(struct packet));
-    p->value = NULL;
-    p->len = 0;
-
-    ssize_t res = getline(&(p->value), &(p->len), stdin);
-    if (res < 0) {
-        err(1, "getline(stdin)");
+void writeit (IO *io, struct packet *p) {
+    ssize_t size = write(STDOUT_FILENO, p->data, p->size);
+    if (size < 0) {
+        io_failed(io, "write");
+        return;
     }
-    p->len = res;
-    return returnIO(p);
+    io_succeeded(io, p);
 }
 
 
-IO * writeIO (struct packet *p) {
-    if (write(STDOUT_FILENO, p->value, p->len) < 0) {
-        err(1, "write(stdout)");
-    }
-    return returnIO(NULL);
+void ok(void *) {
+    printf("Succeeded\n");
 }
 
 
-IO * bind(IO *a, doIO b) {
-    if (a->packet == NULL) {
-        return returnIO(NULL);
-    }
-
-    return b(a->packet);
+void failed(const char *reason) {
+    printf("Failed: %s\n", reason);
 }
 
 
 int main() {
-    IO * in = readlineIO();
-    IO * m = bind(in, writeIO);
+    IOMonad *m = io_new((io_task)readit);
+    io_append(m, (io_task)writeit);
+    
+    struct packet p = {0, NULL};
+    io_run(m, &p, ok, failed);
     return 0;
 }
