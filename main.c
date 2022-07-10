@@ -96,12 +96,11 @@ void failed(IO *io, const char *reason) {
 int main() {
     struct packet p = {0, NULL};
 
-    IOMonad *m = io_new();
-    io_append(m, (io_task) prompt);
-    io_append(m, (io_task) readit);
-    io_append(m, (io_task) caseit);
-    io_append(m, (io_task) writeit);
-    io_append(m, (io_task) cleanit);
+    IOMonad *m = IO_RETURN(prompt);
+    IO_APPEND(m, readit);
+    IO_APPEND(m, caseit);
+    IO_APPEND(m, writeit);
+    IO_APPEND(m, cleanit);
     
     while (status == WORKING) {
         io_run(m, &p, NULL, (io_task)failed);

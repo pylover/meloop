@@ -22,4 +22,6 @@ void io_append(IOMonad*, io_task);
 void io_run(IOMonad*, void *input, io_task success, io_task fail);
 
 
+#define IO_RETURN(t) io_return((io_task)(t))
+#define IO_APPEND(m, t) io_append(m, (io_task)(t))
 #endif
