@@ -7,8 +7,8 @@
 
 struct io {
     struct io_monad *monad;
-    io_success_callback success;
-    io_fail_callback fail;
+    io_task success;
+    io_task fail;
 };
 
 
@@ -18,9 +18,12 @@ struct io_monad {
 };
 
 
-void io_run(struct io_monad *m, void *input, io_success_callback success,
-        io_fail_callback fail) {
-    // TODO: free
+static void io_free(struct io *io) {
+    free(io);
+}
+
+
+void io_run(struct io_monad *m, void *input, io_task success, io_task fail) {
     struct io *io = malloc(sizeof(struct io));
     io->monad = m;
     io->success = success;
@@ -38,20 +41,26 @@ void io_bind(struct io_monad *m1, struct io_monad *m2) {
 }
 
 
-void io_append(struct io_monad *m1, io_task task) {
-    io_bind(m1, io_new(task));
+void io_append(struct io_monad *m, io_task task) {
+    io_bind(m, io_return(task));
 }
 
 
 void io_failed(IO* io, const char *reason) {
-    io->fail(reason);
+    if (io->fail != NULL) {
+        io->fail(io, reason);
+    }
+    io_free(io);
 }
 
 
 void io_succeeded(IO* io, void *result) {
     struct io_monad *next = io->monad->next;
     if (next == NULL) {
-        io->success(result);
+        if (io->success != NULL) {
+            io->success(io, result);
+        }
+        io_free(io);
         return;
     }
 
@@ -60,10 +69,20 @@ void io_succeeded(IO* io, void *result) {
 }
 
 
-IOMonad * io_new(io_task task) {
+void io_pass(IO *io, void *a) {
+    io_succeeded(io, a);
+}
+
+
+struct io_monad * io_return(io_task task) {
     // TODO: free
     struct io_monad *m = malloc(sizeof(struct io_monad));
     m->run = task;
     m->next = NULL;
     return m;
+};
+
+
+struct io_monad * io_new() {
+    return io_return(io_pass); 
 };

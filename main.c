@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include <err.h>
+#include <errno.h>
 
 
 struct packet {
@@ -14,13 +15,15 @@ struct packet {
 };
 
 
-void readit (IO *io, struct packet *p) {
+void prompt (IO *io, void *p) {
+    printf(">>> ");
+    io_succeeded(io, p);
+}
 
-    p->size = 0;
-    p->data = NULL;
-    // TODO: free
+
+void readit (IO *io, struct packet *p) {
     ssize_t size = getline(&(p->data), &(p->size), stdin);
-    if (size < 0) {
+    if (size <= 0) {
         io_failed(io, "getline");
         return;
     }
@@ -30,6 +33,11 @@ void readit (IO *io, struct packet *p) {
 
 
 void writeit (IO *io, struct packet *p) {
+    /* Empty line */
+    if (p->size == 1) {
+        io_succeeded(io, p);
+        return;
+    }
     ssize_t size = write(STDOUT_FILENO, p->data, p->size);
     if (size < 0) {
         io_failed(io, "write");
@@ -39,21 +47,41 @@ void writeit (IO *io, struct packet *p) {
 }
 
 
-void ok(void *) {
+void cleanit (IO *io, struct packet *p) {
+    p->size = 0;
+    if (p->data != NULL) {
+        free(p->data);
+    }
+    p->data = NULL;
+    io_succeeded(io, p);
+}
+
+
+void ok(IO *io, void *) {
     printf("Succeeded\n");
 }
 
 
-void failed(const char *reason) {
-    printf("Failed: %s\n", reason);
+void failed(IO *io, const char *reason) {
+    if (errno) {
+        err(1, "Failed: %s\n", reason);
+    }
+    printf("\n");
+    exit(0);
 }
 
 
 int main() {
-    IOMonad *m = io_new((io_task)readit);
-    io_append(m, (io_task)writeit);
-    
     struct packet p = {0, NULL};
-    io_run(m, &p, ok, failed);
+
+    IOMonad *m = io_new();
+    io_append(m, (io_task) prompt);
+    io_append(m, (io_task) readit);
+    io_append(m, (io_task) writeit);
+    io_append(m, (io_task) cleanit);
+    
+    while (true) {
+        io_run(m, &p, NULL, (io_task)failed);
+    }
     return 0;
 }
