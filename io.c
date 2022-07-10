@@ -18,11 +18,6 @@ struct io_monad {
 };
 
 
-static void io_free(struct io *io) {
-    free(io);
-}
-
-
 void io_run(struct io_monad *m, void *input, io_task success, io_task fail) {
     struct io *io = malloc(sizeof(struct io));
     io->monad = m;
@@ -48,9 +43,9 @@ void io_append(struct io_monad *m, io_task task) {
 
 void io_failed(IO* io, const char *reason) {
     if (io->fail != NULL) {
-        io->fail(io, reason);
+        io->fail(io, (char *)reason);
     }
-    io_free(io);
+    free(io);
 }
 
 
@@ -60,7 +55,7 @@ void io_succeeded(IO* io, void *result) {
         if (io->success != NULL) {
             io->success(io, result);
         }
-        io_free(io);
+        free(io);
         return;
     }
 
@@ -75,7 +70,6 @@ void io_pass(IO *io, void *a) {
 
 
 struct io_monad * io_return(io_task task) {
-    // TODO: free
     struct io_monad *m = malloc(sizeof(struct io_monad));
     m->run = task;
     m->next = NULL;
@@ -86,3 +80,12 @@ struct io_monad * io_return(io_task task) {
 struct io_monad * io_new() {
     return io_return(io_pass); 
 };
+
+
+void io_free(struct io_monad *m) {
+    if (m == NULL) {
+        return;
+    }
+    io_free(m->next);
+    free(m);
+}

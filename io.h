@@ -9,6 +9,7 @@ typedef struct io_monad IOMonad;
 typedef void (*io_task) (IO*, void *);
 
 
+void io_free(IOMonad *);
 IOMonad * io_new();
 IOMonad * io_return(io_task);
 void io_pass(IO *io, void *a);
