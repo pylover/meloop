@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 
 struct monad_context {
@@ -35,15 +36,28 @@ void monad_run(struct monad *m, void *data, monad_success success,
 
 void monad_bind(struct monad *m1, struct monad *m2) {
     struct monad *last = m1;
-    while (last->next != NULL) {
+    while (true) {
+        if (last->next == NULL) {
+            /* Last element */
+            last->next = m2;
+            return;
+        }
+
+        if (last->next == m1) {
+            /* It's a closed loop, Inserting m2 before the first eelement. */
+            last->next = m2;
+            m2->next = m1;
+            return;
+        }
         last = last->next;
     }
-    last->next = m2;
 }
 
 
-void monad_append(struct monad *m, monad_task task, void* args) {
-    monad_bind(m, monad_return(task, args));
+struct monad * monad_append(struct monad *m, monad_task task, void* args) {
+    struct monad *newmonad = monad_return(task, args);
+    monad_bind(m, newmonad);
+    return newmonad;
 }
 
 

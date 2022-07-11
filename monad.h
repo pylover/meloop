@@ -19,11 +19,14 @@ void monad_succeeded(MonadContext*, void *data);
 void monad_failed(MonadContext*, const char *);
 
 
+struct monad * monad_append(struct monad *, monad_task , void* );
 void monad_bind(Monad*, Monad*);
-void monad_append(Monad*, monad_task, void*);
 void monad_run(Monad*, void *input, monad_success, monad_failure);
 
 
 #define MONAD_RETURN(t, a) monad_return((monad_task)(t), a)
 #define MONAD_APPEND(m, t, a) monad_append(m, (monad_task)(t), a)
+#define MONAD_BIND(m1, m2) monad_bind((m1), (m2))
+
+
 #endif

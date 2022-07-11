@@ -7,7 +7,6 @@ LDFLAGS =
 
 
 # Internal variables
-common_headers = 
 objects = $(patsubst %.c,%.o,$(wildcard *.c))
 
 
@@ -16,12 +15,12 @@ shell: shell.o $(objects)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 
-shell.o: shell.c $(common_headers)
+shell.o: shell.c monad.h monad_io.h
 	$(CC) -c $(CFLAGS) $< -o $@ 
 
 
 # Implicit rule for other modules
-%.o: %.c %.h $(common_headers)
+%.o: %.c %.h
 	$(CC) -c $(CFLAGS) $< -o $@ 
 
 

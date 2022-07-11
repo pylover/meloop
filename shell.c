@@ -31,7 +31,12 @@ void prompt (MonadContext *ctx, struct device *dev, void *p) {
 
 void readit (MonadContext *ctx, struct device *dev, struct packet *p) {
     ssize_t size = read(dev->fd, p->data, CHUNK_SIZE);
-    if (size <= 0) {
+    if (size == 0) {
+        /* CTRL+D */
+        monad_failed(ctx, "EOF");
+        return;
+    }
+    else if (size < 0) {
         monad_failed(ctx, "read");
         return;
     }
@@ -81,13 +86,17 @@ void caseit (MonadContext *ctx, void *, struct packet *p) {
 
 
 void failed(MonadContext *ctx, const char *reason) {
-    if (errno) {
-        /* CTRL+D */
-        if (errno != ENOENT) {
-            perror(reason);
-            status = ERROR;
-        }
+    /* CTRL+D */
+    if (strstr(reason, "EOF")) {
+        printf("%s\n", reason);
+        status = OK;
+        return;
     }
+    else {
+        perror(reason);
+        status = ERROR;
+    }
+    
     printf("\n");
     status = OK;
 }
@@ -100,15 +109,19 @@ int main() {
     struct device input = {STDIN_FILENO};
     struct device output = {STDOUT_FILENO};
 
-    Monad *m = MONAD_RETURN( mio_waitw,   &output );
-    MONAD_APPEND(m,          prompt,      &output );
-    MONAD_APPEND(m,          mio_waitr,   &input  );
-    MONAD_APPEND(m,          readit,      &input  );
-    MONAD_APPEND(m,          caseit,      NULL    );
-    MONAD_APPEND(m,          mio_waitw,   &input  );
-    MONAD_APPEND(m,          writeit,     &output );
-    MONAD_APPEND(m,          cleanit,     NULL    );
-    
+    /* Draw circut */
+    Monad *m = MONAD_RETURN(   mio_waitw, &output );
+               MONAD_APPEND(m, prompt,    &output );
+               MONAD_APPEND(m, mio_waitr, &input  );
+               MONAD_APPEND(m, readit,    &input  );
+               MONAD_APPEND(m, caseit,    NULL    );
+               MONAD_APPEND(m, mio_waitw, &input  );
+               MONAD_APPEND(m, writeit,   &output );
+    Monad *z = MONAD_APPEND(m, cleanit,   NULL    );
+
+    /* Loop/Close it */
+    MONAD_BIND(z, m);
+
     while (status == WORKING) {
         if (mio_run(m, &p, NULL, failed)) {
             err(1, "mio_run");
