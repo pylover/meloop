@@ -32,7 +32,7 @@ void prompt (MonadContext *ctx, struct device *dev, void *p) {
 void readit (MonadContext *ctx, struct device *dev, struct packet *p) {
     ssize_t size = read(dev->fd, p->data, CHUNK_SIZE);
     if (size <= 0) {
-        monad_failed(ctx, "getline");
+        monad_failed(ctx, "read");
         return;
     }
     p->size = size;
@@ -82,8 +82,11 @@ void caseit (MonadContext *ctx, void *, struct packet *p) {
 
 void failed(MonadContext *ctx, const char *reason) {
     if (errno) {
-        perror(reason);
-        status = ERROR;
+        /* CTRL+D */
+        if (errno != ENOENT) {
+            perror(reason);
+            status = ERROR;
+        }
     }
     printf("\n");
     status = OK;

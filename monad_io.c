@@ -132,6 +132,10 @@ int mio_run(struct monad *m, void *data, monad_success success,
 
 
 void mio_init(int flags) {
+    if (_epfd != -1) {
+        return;
+    }
+    _waitfds = 0;
     _epflags |= flags;
     _epfd = epoll_create1(0);
     if (_epfd < 0) {
