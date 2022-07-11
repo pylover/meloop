@@ -1,4 +1,5 @@
 #include "monad.h"
+#include "monad_io.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,16 +18,6 @@
 #define OK 0
 static volatile int status = WORKING;
 
-
-struct packet {
-    size_t size;
-    char *data;
-};
-
-
-struct device {
-    int fd;
-};
 
 
 void prompt (MonadContext *ctx, struct device *dev, void *p) {
