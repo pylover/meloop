@@ -21,6 +21,8 @@ void monad_failed(MonadContext*, const char *);
 
 struct monad * monad_append(struct monad *, monad_task , void* );
 void monad_bind(Monad*, Monad*);
+int monad_loop(struct monad *m1);
+
 void monad_run(Monad*, void *input, monad_success, monad_failure);
 
 

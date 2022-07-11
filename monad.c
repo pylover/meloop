@@ -40,25 +40,53 @@ void monad_run(struct monad *m, void *data, monad_success success,
 
 
 /** 
-  Bind m2 at the end of m1, If m1 is a closed (looped) monad chain, 
-  then m2 will be inserted before m1.
+  Bind two monads:
+
+  m1    m2     result
+
+  o-o   O-O    o-o-O-O 
+
+  o-o   O-O    o-o-O-O 
+        |_|        |_|
+
+  o-o   O-O    o-o-O-O
+  |_|          |_____|
+
+  o-o   O-O    o-o-O-O
+  |_|   |_|    |_____|
+
 */
 void monad_bind(struct monad *m1, struct monad *m2) {
-    struct monad *last = m1;
+    struct monad *m1last = m1;
+    struct monad *m2last = m2;
+
     while (true) {
-        if (last->next == NULL) {
-            /* Last element */
-            last->next = m2;
+        /* Open cicuit */
+        if (m1last->next == NULL) {
+            /* m1 Last element */
+            m1last->next = m2;
             return;
         }
 
-        if (last->next == m1) {
+        /* Closed cicuit */
+        if (m1last->next == m1) {
             /* It's a closed loop, Inserting m2 before the first element. */
-            last->next = m2;
-            m2->next = m1;
+            m1last->next = m2;
+            while (true) {
+                /* m2 Last element */
+                if ((m2last->next == NULL) || (m2last->next == m2)) {
+                    m2last->next = m1;
+                    return;
+                }
+            
+                /* Navigate forward */
+                m2last = m2last->next;
+            }
             return;
         }
-        last = last->next;
+        
+        /* Try next monad */
+        m1last = m1last->next;
     }
 }
 
@@ -91,6 +119,17 @@ int monad_loop(struct monad *m1) {
 }
 
 
+/** 
+  Make monad from task and bind it to m1.
+
+  m1    task   result
+
+  o-o   O      o-o-O 
+
+  o-o   O      o-o-O
+  |_|          |___|
+
+*/
 struct monad * monad_append(struct monad *m, monad_task task, void* args) {
     struct monad *newmonad = monad_return(task, args);
     monad_bind(m, newmonad);

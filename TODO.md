@@ -1,1 +1,2 @@
 - Monad loop
+- Test for all functions
