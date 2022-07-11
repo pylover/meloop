@@ -12,6 +12,7 @@ static int _epfd = -1;
 static int _epflags = EPOLLONESHOT | EPOLLRDHUP | EPOLLERR;
 static volatile int _waitfds = 0;
 
+
 #define MAX_EVENTS  16
 #define ERR -1
 #define OK 0
@@ -54,7 +55,7 @@ static int _dearm(int fd) {
 }
 
 
-void mio_waitw (MonadContext *ctx, struct device *dev, void *data) {
+void mio_waitw(MonadContext *ctx, struct device *dev, void *data) {
     struct bag *bag = malloc(sizeof(bag));
     bag->ctx = ctx;
     bag->data = data;
@@ -67,7 +68,7 @@ void mio_waitw (MonadContext *ctx, struct device *dev, void *data) {
 }
 
 
-void mio_waitr (MonadContext *ctx, struct device *dev, void *data) {
+void mio_waitr(MonadContext *ctx, struct device *dev, void *data) {
     struct bag *bag = malloc(sizeof(bag));
     bag->ctx = ctx;
     bag->data = data;
