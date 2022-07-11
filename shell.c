@@ -117,15 +117,13 @@ int main() {
                MONAD_APPEND(m, caseit,    NULL    );
                MONAD_APPEND(m, mio_waitw, &input  );
                MONAD_APPEND(m, writeit,   &output );
-    Monad *z = MONAD_APPEND(m, cleanit,   NULL    );
+               MONAD_APPEND(m, cleanit,   NULL    );
 
     /* Loop/Close it */
-    MONAD_BIND(z, m);
+    monad_loop(m);
 
-    while (status == WORKING) {
-        if (mio_run(m, &p, NULL, failed)) {
-            err(1, "mio_run");
-        }
+    if (mio_run(m, &p, NULL, failed)) {
+        err(1, "mio_run");
     }
    
     if (p.data != NULL) {

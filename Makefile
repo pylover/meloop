@@ -6,6 +6,10 @@ CFLAGS = \
 LDFLAGS =
 
 
+# Uncomment for production
+CFLAGS += -g
+
+
 # Internal variables
 objects = $(patsubst %.c,%.o,$(wildcard *.c))
 
@@ -33,3 +37,8 @@ clean::
 .PHONY: run-shell
 run-shell: shell
 	./shell
+
+
+.PHONY: debug-shell
+debug-shell: shell
+	gdb ./shell
