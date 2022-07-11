@@ -91,23 +91,32 @@ void failed(MonadContext *ctx, const char *reason) {
 
 
 int main() {
+    mio_init(0);
+
     struct packet p = {0, malloc(CHUNK_SIZE)};
     struct device input = {STDIN_FILENO};
     struct device output = {STDOUT_FILENO};
 
-    Monad *m = MONAD_RETURN(prompt, &output);
+    Monad *m = MONAD_RETURN(mio_waitforwrite, &output);
+    MONAD_APPEND(m, prompt, &output);
     MONAD_APPEND(m, readit, &input);
     MONAD_APPEND(m, caseit, NULL);
     MONAD_APPEND(m, writeit, &output);
     MONAD_APPEND(m, cleanit, NULL);
     
     while (status == WORKING) {
-        monad_run(m, &p, NULL, failed);
+        if (mio_run(m, &p, NULL, failed)) {
+            err(1, "mio_run");
+        }
     }
+    // while (status == WORKING) {
+    //     monad_run(m, &p, NULL, failed);
+    // }
    
     if (p.data != NULL) {
         free(p.data);
     }
     monad_free(m);
+    mio_deinit();
     return status;
 }

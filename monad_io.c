@@ -10,7 +10,7 @@
 
 static int _epfd = -1;
 static int _epflags = EPOLLONESHOT | EPOLLRDHUP | EPOLLERR;
-
+static volatile int _waitfds = 0;
 
 #define MAX_EVENTS  16
 #define ERR -1
@@ -41,6 +41,7 @@ static int _arm(int fd, int op, struct bag *bag) {
         }
     }
     
+    _waitfds++;
     return OK;
 }
 
@@ -79,8 +80,8 @@ int mio_run(struct monad *m, void *data, monad_success success,
 
     // TODO: run multiple monads, then wait
     monad_run(m, data, success, fail);
-
-    while (true) {
+    
+    while (_waitfds) {
         nfds = epoll_wait(_epfd, events, MAX_EVENTS, -1);
         if (nfds < 0) {
             return ERR;
@@ -91,6 +92,7 @@ int mio_run(struct monad *m, void *data, monad_success success,
         }
         
         for (i = 0; i < nfds; i++) {
+            _waitfds--;
             ev = events[i];
             bag = (struct bag *) ev.data.ptr;
             ctx = bag->ctx;
