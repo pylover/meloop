@@ -6,6 +6,10 @@ echo_shell: echo_shell.c $(objects)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 
+echo_server: echo_server.c $(objects)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+
 .PHONY: clean
 clean:: 
 	- rm echo_shell 

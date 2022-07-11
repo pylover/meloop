@@ -22,6 +22,7 @@ void prompt(MonadContext *ctx, struct device *dev, void *p) {
     ssize_t size = write(dev->fd, ">>> ", 4);
     if (size < 4) {
         monad_failed(ctx, "write");
+        return;
     }
     monad_succeeded(ctx, p);
 }

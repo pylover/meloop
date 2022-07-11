@@ -2,9 +2,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <stdbool.h>
 
 
+#define MONAM_REASON_BUFFSIZE   256
 #define ERR -1
 #define OK 0
 
@@ -146,9 +148,17 @@ struct monad * monad_append(struct monad *m, monad_task task, void* args) {
 }
 
 
-void monad_failed(struct monad_context* ctx, const char *reason) {
+void monad_failed(struct monad_context* ctx, const char *format, ...) {
+    char reason[MONAM_REASON_BUFFSIZE];  // TODO: Use macro
+    va_list args;
+
+    /* var args */
+    va_start(args, format);
+    snprintf(reason, MONAM_REASON_BUFFSIZE, format, args);
+    va_end(args);
+
     if (ctx->fail != NULL) {
-        ctx->fail(ctx, (char *)reason);
+        ctx->fail(ctx, reason);
     }
     free(ctx);
 }
