@@ -1,13 +1,22 @@
 
 
-## Build & Run
+## Build
 
 
 ```bash
 make clean
-make run-shell
+make all
+make clean all
 ```
 
+
+### Examples
+
+```bash
+cd examples
+make echo_shell
+./echo_shell
+```
 
 ## Coding Convention
 
