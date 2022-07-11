@@ -29,12 +29,16 @@ void prompt(MonadContext *ctx, struct device *dev, void *p) {
 
 void readit(MonadContext *ctx, struct device *dev, struct packet *p) {
     ssize_t size = read(dev->fd, p->data, CHUNK_SIZE);
+
+    /* Check for EOF */
     if (size == 0) {
         /* CTRL+D */
         monad_failed(ctx, "EOF");
         return;
     }
-    else if (size < 0) {
+    
+    /* Check for error */
+    if (size < 0) {
         monad_failed(ctx, "read");
         return;
     }
