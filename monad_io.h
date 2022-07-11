@@ -21,6 +21,9 @@ struct conn {
     /* Buffer */
     size_t size;
     char *data;
+
+    /* user void ptr */
+    void *ptr;
 };
 
 

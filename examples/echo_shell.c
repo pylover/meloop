@@ -108,7 +108,13 @@ void failed(MonadContext *ctx, const char *reason) {
 int main() {
     mio_init(0);
 
-    struct conn c = {STDIN_FILENO, STDOUT_FILENO, 0, malloc(CHUNK_SIZE)};
+    struct conn c = {
+        .rfd = STDIN_FILENO, 
+        .wfd = STDOUT_FILENO, 
+        .size = 0, 
+        .data = malloc(CHUNK_SIZE), 
+        .ptr = NULL
+    };
     struct device dev = {false, CHUNK_SIZE};
 
     /* Draw circut */
