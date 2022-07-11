@@ -13,8 +13,7 @@
 
 struct monad_context {
     struct monad *monad;
-    monad_success success;
-    monad_failure fail;
+    monad_finish finish;
 };
 
 
@@ -31,12 +30,10 @@ static void _run(struct monad_context *ctx, struct monad *m, void *data) {
 }
 
 
-void monad_run(struct monad *m, void *data, monad_success success, 
-        monad_failure fail) {
+void monad_run(struct monad *m, void *data, monad_finish finish) {
     struct monad_context *ctx = malloc(sizeof(struct monad_context));
     ctx->monad = m;
-    ctx->success = success;
-    ctx->fail = fail;
+    ctx->finish = finish;
     _run(ctx, m, data);
 }
 
@@ -148,7 +145,8 @@ struct monad * monad_append(struct monad *m, monad_task task, void* args) {
 }
 
 
-void monad_failed(struct monad_context* ctx, const char *format, ...) {
+void monad_failed(struct monad_context* ctx, void *data, 
+        const char *format, ...) {
     char reason[MONAM_REASON_BUFFSIZE];  // TODO: Use macro
     va_list args;
 
@@ -157,8 +155,8 @@ void monad_failed(struct monad_context* ctx, const char *format, ...) {
     snprintf(reason, MONAM_REASON_BUFFSIZE, format, args);
     va_end(args);
 
-    if (ctx->fail != NULL) {
-        ctx->fail(ctx, reason);
+    if (ctx->finish != NULL) {
+        ctx->finish(ctx, data, reason);
     }
     free(ctx);
 }
@@ -167,8 +165,8 @@ void monad_failed(struct monad_context* ctx, const char *format, ...) {
 void monad_succeeded(struct monad_context* ctx, void *result) {
     struct monad *next = ctx->monad->next;
     if (next == NULL) {
-        if (ctx->success != NULL) {
-            ctx->success(ctx, result);
+        if (ctx->finish != NULL) {
+            ctx->finish(ctx, result, NULL);
         }
         free(ctx);
         return;

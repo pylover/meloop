@@ -65,20 +65,22 @@ static void _wait(MonadContext *ctx, struct device *dev, struct conn *c,
     bag->conn = c;
     bag->dev = dev;
 
-    if (_arm(fd, EPOLLOUT, bag)) {
-        monad_failed(ctx, "_arm");
+    if (_arm(fd, op, bag)) {
+        monad_failed(ctx, c, "_arm");
         return;
     }
 }
 
 
+// TODO: Use macro instead
 void mio_waitw(MonadContext *ctx, struct device *dev, struct conn *c) {
-     _wait(ctx, dev, c, EPOLLOUT);
+    _wait(ctx, dev, c, EPOLLOUT);
 }
 
 
+// TODO: Use macro instead
 void mio_waitr(MonadContext *ctx, struct device *dev, struct conn *c) {
-     _wait(ctx, dev, c, EPOLLIN);
+    _wait(ctx, dev, c, EPOLLIN);
 }
 
 
@@ -87,13 +89,13 @@ void mio_read(MonadContext *ctx, struct device *dev, struct conn *c) {
 
     /* Check for EOF */
     if (size == 0) {
-        monad_failed(ctx, "EOF");
+        monad_failed(ctx, c, "EOF");
         return;
     }
     
     /* Check for error */
     if (size < 0) {
-        monad_failed(ctx, "read");
+        monad_failed(ctx, c, "read");
         return;
     }
     c->size = size;
@@ -110,15 +112,14 @@ void mio_write(MonadContext *ctx, struct device *dev, struct conn *c) {
 
     ssize_t size = write(c->wfd, c->data, c->size);
     if (size < 0) {
-        monad_failed(ctx, "write");
+        monad_failed(ctx, c, "write");
         return;
     }
     monad_succeeded(ctx, c);
 }
 
 
-int mio_run(struct monad *m, struct conn *conn, monad_success success, 
-        monad_failure fail) {
+int mio_run(struct monad *m, struct conn *conn, monad_finish finish) {
 
     struct epoll_event events[MAX_EVENTS];
     struct epoll_event ev;
@@ -130,7 +131,7 @@ int mio_run(struct monad *m, struct conn *conn, monad_success success,
     struct device *dev;
 
     // TODO: run multiple monads, then wait
-    monad_run(m, conn, success, fail);
+    monad_run(m, conn, finish);
     
     while (_waitfds) {
         nfds = epoll_wait(_epfd, events, MAX_EVENTS, -1);
@@ -154,11 +155,11 @@ int mio_run(struct monad *m, struct conn *conn, monad_success success,
 
             if (ev.events & EPOLLRDHUP) {
                 _dearm(fd);
-                monad_failed(ctx, "Remote hanged up");
+                monad_failed(ctx, conn, "Remote hanged up");
             }
             else if (ev.events & EPOLLERR) {
                 _dearm(fd);
-                monad_failed(ctx, "Connection Error");
+                monad_failed(ctx, conn, "Connection Error");
             }
             else {
                 monad_succeeded(ctx, conn);

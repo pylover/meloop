@@ -15,6 +15,7 @@
 #define ERROR -1
 #define OK 0
 static volatile int status = WORKING;
+static Monad * client_monad;
 
 
 // TODO: SOCK_NONBLOCK
@@ -50,7 +51,7 @@ void listenM(MonadContext *ctx, struct device *dev, struct conn *c) {
         addr->sin_addr.s_addr = htonl(INADDR_ANY);
     } 
     else if(inet_pton(AF_INET, info->host, &addr->sin_addr) <= 0 ) {
-        monad_failed(ctx, "inet_pton");
+        monad_failed(ctx, c, "inet_pton");
         return;
     }
     addr->sin_port = htons(info->port); 
@@ -58,28 +59,27 @@ void listenM(MonadContext *ctx, struct device *dev, struct conn *c) {
     /* Bind to tcp port */
     err = bind(fd, (struct sockaddr*)addr, sizeof(*addr)); 
     if (err) {
-        monad_failed(ctx, "Cannot bind on: %s", inet_ntoa(addr->sin_addr));
+        monad_failed(ctx, c, "Cannot bind on: %s", inet_ntoa(addr->sin_addr));
         return;
     }
     
     /* Listen */
     err = listen(fd, info->backlog); 
     if (err) {
-        monad_failed(ctx, "Cannot listen on: %s", inet_ntoa(addr->sin_addr));
+        monad_failed(ctx, c, "Cannot listen on: %s", 
+                inet_ntoa(addr->sin_addr));
         return;
     }
     c->rfd = fd;
-    c->wfd = fd;
     monad_succeeded(ctx, c);
 }
 
     
-void failed(MonadContext *ctx, const char *reason) {
+void finish(MonadContext *ctx, struct conn *c, const char *reason) {
     if (reason != NULL) {
         perror(reason);
         status = ERROR;
     }
-    
     status = OK;
 }
 
@@ -95,6 +95,25 @@ Monad * create_readWriteM(struct device *dev) {
 }
 
 
+static void client_free(struct conn *c) {
+    if (c->data != NULL) {
+        free(c->data);
+    }
+}
+
+
+static void client_closed(MonadContext *ctx, struct conn *c, 
+        const char *reason) {
+    if (reason == NULL) {
+        printf("client error: %s\n", reason);
+    }
+    else {
+        printf("client closed: %d\n", c->rfd);
+    }
+    client_free(c);
+}
+
+
 void acceptM(MonadContext *ctx, struct device *dev, struct conn *c) {
 	int fd;
 	socklen_t addrlen = sizeof(struct sockaddr);
@@ -102,20 +121,25 @@ void acceptM(MonadContext *ctx, struct device *dev, struct conn *c) {
 
 	fd = accept(c->rfd, &addr, &addrlen);
 	if (fd == -1) {
-        monad_failed(ctx, "accept");
+        monad_failed(ctx, c, "accept");
         return;
 	}
     
     // printf("Client connected: %s\n", inet_ntoa(addr.sin_addr));
-    // // TODO: free
-    // struct device *cdev = malloc(sizeof(struct device));
-    // if (cdev == NULL) {
-    //     monad_failed(ctx, "malloc");
-    //     return;
-    // }
-    // Monad * client_monad = createReadWriteM(cdev);
-    // io_run(
+    printf("Client connected: %d\n", fd);
 
+    // TODO: free
+    struct conn *cc = malloc(sizeof(struct conn));
+    if (cc == NULL) {
+        monad_failed(ctx, c, "malloc");
+        return;
+    }
+    cc->rfd = fd, 
+    cc->wfd = fd, 
+    cc->size = 0, 
+    cc->data = malloc(CHUNK_SIZE), 
+
+    MONAD_RUN(client_monad, cc, client_closed);
     monad_succeeded(ctx, c);
 }
 
@@ -140,23 +164,24 @@ int main() {
         .backlog = 2
     };
 
-    struct conn c = {
-        .rfd = 0, 
-        .wfd = 0, 
+    struct device clientdev = {false, CHUNK_SIZE};
+    client_monad = create_readWriteM(&clientdev);
+
+    struct conn listenc = {
+        .rfd = -1, 
+        .wfd = -1, 
         .size = 0, 
-        .data = malloc(CHUNK_SIZE), 
+        .data = NULL, 
         .ptr = &bindinfo
     };
-    struct device listendev = {false, CHUNK_SIZE};
+    struct device listendev = {false, 0};
     Monad *listen_monad = create_listenAcceptM(&listendev);
 
-    if (mio_run(listen_monad, &c, NULL, failed)) {
+    if (MIO_RUN(listen_monad, &listenc, finish)) {
         err(1, "mio_run");
     }
-   
-    if (c.data != NULL) {
-        free(c.data);
-    }
+    
+    monad_free(client_monad);
     monad_free(listen_monad);
     mio_deinit();
     return status;

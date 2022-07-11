@@ -32,9 +32,12 @@ void mio_waitw(MonadContext *ctx, struct device *dev, struct conn *c);
 void mio_write(MonadContext *ctx, struct device *dev, struct conn *c);
 void mio_read(MonadContext *ctx, struct device *dev, struct conn *c);
 
-int mio_run(struct monad *m, struct conn *conn, monad_success, monad_failure);
+int mio_run(struct monad *m, struct conn *conn, monad_finish);
 void mio_init(int flags);
 void mio_deinit();
+
+
+#define MIO_RUN(m, c, f) mio_run(m, c, (monad_finish)(f))
 
 
 #endif
