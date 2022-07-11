@@ -99,6 +99,15 @@ void monad_bind(struct monad *m1, struct monad *m2) {
     
   If the m1 is already a closed/looped monad chain, then 1 will be returned.
   Otherwise the returned value will be zero.
+
+  m1    result
+
+  o-o   o-o
+        |_|
+
+  o-o   err 
+  |_|   
+
 */
 int monad_loop(struct monad *m1) {
     struct monad *last = m1;
