@@ -18,18 +18,18 @@
 static volatile int status = WORKING;
 
 
-void prompt(MonadContext *ctx, struct device *dev, void *p) {
-    ssize_t size = write(dev->fd, ">>> ", 4);
+void prompt(MonadContext *ctx, struct device *dev, struct conn *c) {
+    ssize_t size = write(c->wfd, ">>> ", 4);
     if (size < 4) {
         monad_failed(ctx, "write");
         return;
     }
-    monad_succeeded(ctx, p);
+    monad_succeeded(ctx, c);
 }
 
 
-void readit(MonadContext *ctx, struct device *dev, struct packet *p) {
-    ssize_t size = read(dev->fd, p->data, CHUNK_SIZE);
+void readit(MonadContext *ctx, struct device *dev, struct conn *c) {
+    ssize_t size = read(c->rfd, c->data, CHUNK_SIZE);
 
     /* Check for EOF */
     if (size == 0) {
@@ -43,48 +43,48 @@ void readit(MonadContext *ctx, struct device *dev, struct packet *p) {
         monad_failed(ctx, "read");
         return;
     }
-    p->size = size;
-    monad_succeeded(ctx, p);
+    c->size = size;
+    monad_succeeded(ctx, c);
 }
 
 
-void writeit(MonadContext *ctx, struct device *dev, struct packet *p) {
+void writeit(MonadContext *ctx, struct device *dev, struct conn *c) {
     /* Empty line */
-    if (p->size == 1) {
-        monad_succeeded(ctx, p);
+    if (c->size == 1) {
+        monad_succeeded(ctx, c);
         return;
     }
 
-    ssize_t size = write(dev->fd, "... ", 4);
+    ssize_t size = write(c->wfd, "... ", 4);
     if (size < 0) {
         monad_failed(ctx, "write");
         return;
     }
 
-    size = write(dev->fd, p->data, p->size);
+    size = write(c->wfd, c->data, c->size);
     if (size < 0) {
         monad_failed(ctx, "write");
         return;
     }
-    monad_succeeded(ctx, p);
+    monad_succeeded(ctx, c);
 }
 
 
-void cleanit(MonadContext *ctx, void *, struct packet *p) {
-    p->size = 0;
-    monad_succeeded(ctx, p);
+void cleanit(MonadContext *ctx, void *, struct conn *c) {
+    c->size = 0;
+    monad_succeeded(ctx, c);
 }
 
 
-void caseit(MonadContext *ctx, void *, struct packet *p) {
-    char *s = p->data;
-    size_t l = p->size;
+void caseit(MonadContext *ctx, void *, struct conn *c) {
+    char *s = c->data;
+    size_t l = c->size;
     while (l) {
         *s = toupper((unsigned char) *s);
         s++;
         l--; 
     } 
-    monad_succeeded(ctx, p);
+    monad_succeeded(ctx, c);
 }
 
 
@@ -108,29 +108,28 @@ void failed(MonadContext *ctx, const char *reason) {
 int main() {
     mio_init(0);
 
-    struct packet p = {0, malloc(CHUNK_SIZE)};
-    struct device input = {STDIN_FILENO};
-    struct device output = {STDOUT_FILENO};
+    struct conn c = {STDIN_FILENO, STDOUT_FILENO, 0, malloc(CHUNK_SIZE)};
+    struct device dev = {false, CHUNK_SIZE};
 
     /* Draw circut */
-    Monad *m = MONAD_RETURN(   mio_waitw, &output );
-               MONAD_APPEND(m, prompt,    &output );
-               MONAD_APPEND(m, mio_waitr, &input  );
-               MONAD_APPEND(m, readit,    &input  );
-               MONAD_APPEND(m, caseit,    NULL    );
-               MONAD_APPEND(m, mio_waitw, &input  );
-               MONAD_APPEND(m, writeit,   &output );
-               MONAD_APPEND(m, cleanit,   NULL    );
+    Monad *m = MONAD_RETURN(   mio_waitw, &dev );
+               MONAD_APPEND(m, prompt,    &dev );
+               MONAD_APPEND(m, mio_waitr, &dev );
+               MONAD_APPEND(m, readit,    &dev );
+               MONAD_APPEND(m, caseit,    NULL );
+               MONAD_APPEND(m, mio_waitw, &dev );
+               MONAD_APPEND(m, writeit,   &dev );
+               MONAD_APPEND(m, cleanit,   NULL );
 
     /* Loop/Close it */
     monad_loop(m);
 
-    if (mio_run(m, &p, NULL, failed)) {
+    if (mio_run(m, &c, NULL, failed)) {
         err(1, "mio_run");
     }
    
-    if (p.data != NULL) {
-        free(p.data);
+    if (c.data != NULL) {
+        free(c.data);
     }
     monad_free(m);
     mio_deinit();

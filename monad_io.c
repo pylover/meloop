@@ -13,6 +13,8 @@ static int _epflags = EPOLLONESHOT | EPOLLRDHUP | EPOLLERR;
 static volatile int _waitfds = 0;
 
 
+
+// TODO: replace device Monad arg with 
 #define MAX_EVENTS  16
 #define ERR -1
 #define OK 0
@@ -21,7 +23,7 @@ static volatile int _waitfds = 0;
 struct bag {
     MonadContext *ctx;
     struct device *dev;
-    void *data;
+    struct conn *conn;
 };
 
 
@@ -55,33 +57,67 @@ static int _dearm(int fd) {
 }
 
 
-void mio_waitw(MonadContext *ctx, struct device *dev, void *data) {
+static void _wait(MonadContext *ctx, struct device *dev, struct conn *c,
+        int op) {
     struct bag *bag = malloc(sizeof(bag));
+    int fd = (op == EPOLLIN) ? c->rfd : c->wfd;
     bag->ctx = ctx;
-    bag->data = data;
+    bag->conn = c;
     bag->dev = dev;
 
-    if (_arm(dev->fd, EPOLLOUT, bag)) {
+    if (_arm(fd, EPOLLOUT, bag)) {
         monad_failed(ctx, "_arm");
         return;
     }
 }
 
 
-void mio_waitr(MonadContext *ctx, struct device *dev, void *data) {
-    struct bag *bag = malloc(sizeof(bag));
-    bag->ctx = ctx;
-    bag->data = data;
-    bag->dev = dev;
-
-    if (_arm(dev->fd, EPOLLIN, bag)) {
-        monad_failed(ctx, "_arm");
-        return;
-    }
+void mio_waitw(MonadContext *ctx, struct device *dev, struct conn *c) {
+     _wait(ctx, dev, c, EPOLLOUT);
 }
 
 
-int mio_run(struct monad *m, void *data, monad_success success, 
+void mio_waitr(MonadContext *ctx, struct device *dev, struct conn *c) {
+     _wait(ctx, dev, c, EPOLLIN);
+}
+
+
+void mio_read(MonadContext *ctx, struct device *dev, struct conn *c) {
+    ssize_t size = read(c->rfd, c->data, dev->readsize);
+
+    /* Check for EOF */
+    if (size == 0) {
+        monad_failed(ctx, "EOF");
+        return;
+    }
+    
+    /* Check for error */
+    if (size < 0) {
+        monad_failed(ctx, "read");
+        return;
+    }
+    c->size = size;
+    monad_succeeded(ctx, c);
+}
+
+
+void mio_write(MonadContext *ctx, struct device *dev, struct conn *c) {
+    /* Empty line */
+    if (c->size == 1) {
+        monad_succeeded(ctx, c);
+        return;
+    }
+
+    ssize_t size = write(c->wfd, c->data, c->size);
+    if (size < 0) {
+        monad_failed(ctx, "write");
+        return;
+    }
+    monad_succeeded(ctx, c);
+}
+
+
+int mio_run(struct monad *m, struct conn *conn, monad_success success, 
         monad_failure fail) {
 
     struct epoll_event events[MAX_EVENTS];
@@ -89,11 +125,12 @@ int mio_run(struct monad *m, void *data, monad_success success,
     struct bag *bag;
     int i;
     int nfds;
+    int fd;
     MonadContext *ctx;
     struct device *dev;
 
     // TODO: run multiple monads, then wait
-    monad_run(m, data, success, fail);
+    monad_run(m, conn, success, fail);
     
     while (_waitfds) {
         nfds = epoll_wait(_epfd, events, MAX_EVENTS, -1);
@@ -111,19 +148,20 @@ int mio_run(struct monad *m, void *data, monad_success success,
             bag = (struct bag *) ev.data.ptr;
             ctx = bag->ctx;
             dev = bag->dev;
-            data = bag->data;
+            conn = bag->conn;
+            fd = (ev.events && EPOLLIN) ? conn->rfd : conn->wfd;
             free(bag);
 
             if (ev.events & EPOLLRDHUP) {
-                _dearm(dev->fd);
+                _dearm(fd);
                 monad_failed(ctx, "Remote hanged up");
             }
             else if (ev.events & EPOLLERR) {
-                _dearm(dev->fd);
+                _dearm(fd);
                 monad_failed(ctx, "Connection Error");
             }
             else {
-                monad_succeeded(ctx, data);
+                monad_succeeded(ctx, conn);
             }
         }
     }
