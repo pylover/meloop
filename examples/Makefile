@@ -2,15 +2,14 @@ CFLAGS = -I..
 objects = $(patsubst %.c,%.o,$(wildcard ../*.c))
 
 
-# Executables
-%: %.c $(objects)
+echo_shell: echo_shell.c $(objects)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 
 .PHONY: clean
 clean:: 
 	- rm echo_shell 
-	- rm *.o
+	cd ..; make clean
 
 
 .PHONY: debug-echo_shell
