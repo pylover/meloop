@@ -54,14 +54,27 @@ static int _dearm(int fd) {
 }
 
 
-void mio_waitforwrite (MonadContext *ctx, struct device *dev, void *data) {
+void mio_waitw (MonadContext *ctx, struct device *dev, void *data) {
     struct bag *bag = malloc(sizeof(bag));
     bag->ctx = ctx;
     bag->data = data;
     bag->dev = dev;
 
     if (_arm(dev->fd, EPOLLOUT, bag)) {
-        monad_failed(ctx, "EPOLL_CTL_ADD");
+        monad_failed(ctx, "_arm");
+        return;
+    }
+}
+
+
+void mio_waitr (MonadContext *ctx, struct device *dev, void *data) {
+    struct bag *bag = malloc(sizeof(bag));
+    bag->ctx = ctx;
+    bag->data = data;
+    bag->dev = dev;
+
+    if (_arm(dev->fd, EPOLLIN, bag)) {
+        monad_failed(ctx, "_arm");
         return;
     }
 }

@@ -97,21 +97,19 @@ int main() {
     struct device input = {STDIN_FILENO};
     struct device output = {STDOUT_FILENO};
 
-    Monad *m = MONAD_RETURN(mio_waitforwrite, &output);
-    MONAD_APPEND(m, prompt, &output);
-    MONAD_APPEND(m, readit, &input);
-    MONAD_APPEND(m, caseit, NULL);
-    MONAD_APPEND(m, writeit, &output);
-    MONAD_APPEND(m, cleanit, NULL);
+    Monad *m = MONAD_RETURN(mio_waitw, &output);
+    MONAD_APPEND(m,         prompt,    &output);
+    MONAD_APPEND(m,         mio_waitr, &input);
+    MONAD_APPEND(m,         readit,    &input);
+    MONAD_APPEND(m,         caseit,    NULL);
+    MONAD_APPEND(m,         writeit,   &output);
+    MONAD_APPEND(m,         cleanit,   NULL);
     
     while (status == WORKING) {
         if (mio_run(m, &p, NULL, failed)) {
             err(1, "mio_run");
         }
     }
-    // while (status == WORKING) {
-    //     monad_run(m, &p, NULL, failed);
-    // }
    
     if (p.data != NULL) {
         free(p.data);

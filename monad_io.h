@@ -17,7 +17,8 @@ struct packet {
 };
 
 
-void mio_waitforwrite (MonadContext *ctx, struct device *, void *);
+void mio_waitw (MonadContext *ctx, struct device *, void *);
+void mio_waitr (MonadContext *ctx, struct device *, void *);
 int mio_run(struct monad *m, void *data, monad_success, monad_failure);
 void mio_init(int flags);
 void mio_deinit();
