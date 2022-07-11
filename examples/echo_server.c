@@ -67,12 +67,14 @@ void listenM(MonadContext *ctx, struct device *dev, struct bind *info) {
     }
     addr->sin_port = htons(info->port); 
 
+    /* Bind to tcp port */
     err = bind(fd, (struct sockaddr*)addr, sizeof(*addr)); 
     if (err) {
         monad_failed(ctx, "Cannot bind on: %s", inet_ntoa(addr->sin_addr));
         return;
     }
     
+    /* Listen */
     err = listen(fd, info->backlog); 
     if (err) {
         monad_failed(ctx, "Cannot listen on: %s", inet_ntoa(addr->sin_addr));
