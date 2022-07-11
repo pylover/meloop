@@ -12,11 +12,11 @@ objects = $(patsubst %.c,%.o,$(wildcard *.c))
 
 
 # Executable
-main: main.o $(objects)
+shell: shell.o $(objects)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 
-main.o: main.c $(common_headers)
+shell.o: shell.c $(common_headers)
 	$(CC) -c $(CFLAGS) $< -o $@ 
 
 
@@ -27,10 +27,10 @@ main.o: main.c $(common_headers)
 
 .PHONY: clean
 clean:: 
-	- rm main 
+	- rm shell 
 	- rm *.o
 
 
-.PHONY: run
-run: main
-	./main
+.PHONY: run-shell
+run-shell: shell
+	./shell

@@ -1,5 +1,14 @@
 
 
+## Build & Run
+
+
+```bash
+make clean
+make run-shell
+```
+
+
 ## Coding Convention
 
 - Opaque objects: PascalCase
