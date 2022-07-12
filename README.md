@@ -12,8 +12,13 @@ make clean all
 
 ```bash
 cd examples
+
 make echo_shell
 ./echo_shell
+
+
+make echo_server
+./echo_server
 ```
 
 ## Coding Convention
