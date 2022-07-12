@@ -12,7 +12,7 @@ typedef void (*monad_tcp_finish) (MonadContext*, struct conn *,
 struct bind {
     const char *host;
     const int port;
-    const int backlog;
+    int backlog;
     struct sockaddr_in addr;
     Monad * client_monad;
     monad_tcp_finish client_connected;

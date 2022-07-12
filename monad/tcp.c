@@ -13,6 +13,9 @@
 #include <err.h>
 
 
+#define TCP_BACKLOG_DEFAULT 2
+
+
 void listenM(MonadContext *ctx, struct device *dev, struct conn *c) {
     int fd;
     int option = 1;
@@ -70,7 +73,10 @@ static void client_closed(MonadContext *ctx, struct conn *c,
     
     close(c->rfd);
     close(c->wfd);
-    info->client_closed(ctx, c, reason);
+
+    if (info->client_closed != NULL) {
+        info->client_closed(ctx, c, reason);
+    }
     client_free(c);
 }
 
@@ -101,7 +107,9 @@ void acceptM(MonadContext *ctx, struct device *dev, struct conn *c) {
     cc->data = malloc(dev->readsize), 
     cc->ptr = info;
 
-    info->client_connected(ctx, cc, NULL);
+    if (info->client_connected != NULL) {
+        info->client_connected(ctx, cc, NULL);
+    }
     MONAD_RUN(info->client_monad, cc, client_closed);
     monad_succeeded(ctx, c);
 }
@@ -112,6 +120,11 @@ void monad_tcp_runserver(struct bind *info, monad_tcp_finish finish) {
         .ptr = info
     };
     struct device dev = {false, 0};
+    
+    if (info->backlog == 0) {
+        info->backlog = TCP_BACKLOG_DEFAULT;
+    }
+
     Monad *listen_m = MONAD_RETURN(          listenM,   &dev);
     Monad *accept_m = MONAD_RETURN(          mio_waitr, &dev);
                       MONAD_APPEND(accept_m, acceptM,   &dev);

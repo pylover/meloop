@@ -10,10 +10,15 @@ echo_server: echo_server.c $(objects)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 
+echo_miniserver: echo_miniserver.c $(objects)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+
 .PHONY: clean
 clean:: 
 	- rm echo_shell 
 	- rm echo_server 
+	- rm echo_miniserver 
 	cd ..; make clean
 
 
