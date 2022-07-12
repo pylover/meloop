@@ -1,3 +1,7 @@
+- naming: monad: fooM, monad factory: fooF
+- SOCK_NONBLOCK
+- EPOLLET
+- EAGAIN
 - Better naming 
 - Null error handler for all mallocs
 - Monad loop

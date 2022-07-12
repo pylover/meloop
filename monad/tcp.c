@@ -10,6 +10,7 @@
 #include <netdb.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <err.h>
 
 
 void listenM(MonadContext *ctx, struct device *dev, struct conn *c) {
@@ -103,4 +104,25 @@ void acceptM(MonadContext *ctx, struct device *dev, struct conn *c) {
     info->client_connected(ctx, cc, NULL);
     MONAD_RUN(info->client_monad, cc, client_closed);
     monad_succeeded(ctx, c);
+}
+
+
+void monad_tcp_runserver(struct bind *info, monad_tcp_finish finish) {
+    struct conn listenc = {
+        .ptr = info
+    };
+    struct device dev = {false, 0};
+    Monad *listen_m = MONAD_RETURN(          listenM,   &dev);
+    Monad *accept_m = MONAD_RETURN(          mio_waitr, &dev);
+                      MONAD_APPEND(accept_m, acceptM,   &dev);
+    
+    monad_loop(accept_m);
+    monad_bind(listen_m, accept_m);
+
+
+    if (MIO_RUN(listen_m, &listenc, (monad_finish)finish)) {
+        err(1, "mio_run");
+    }
+    
+    monad_free(listen_m);
 }

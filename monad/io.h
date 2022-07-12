@@ -27,10 +27,14 @@ struct conn {
 };
 
 
+/* Monads */
 void mio_waitr(MonadContext *ctx, struct device *dev, struct conn *c); 
 void mio_waitw(MonadContext *ctx, struct device *dev, struct conn *c);
 void mio_write(MonadContext *ctx, struct device *dev, struct conn *c);
 void mio_read(MonadContext *ctx, struct device *dev, struct conn *c);
+
+/* Monad Factories */
+Monad * echoF(struct device *dev);
 
 int mio_run(struct monad *m, struct conn *conn, monad_finish);
 void mio_init(int flags);

@@ -119,8 +119,18 @@ void mio_write(MonadContext *ctx, struct device *dev, struct conn *c) {
 }
 
 
-int mio_run(struct monad *m, struct conn *conn, monad_finish finish) {
+struct monad * echoF(struct device *dev) {
+    Monad *echo = MONAD_RETURN(      mio_waitr, &dev);
+                  MONAD_APPEND(echo, mio_read,  &dev);
+                  MONAD_APPEND(echo, mio_waitw, &dev);
+                  MONAD_APPEND(echo, mio_write, &dev);
+   
+    monad_loop(echo);
+    return echo;
+}
 
+
+int mio_run(struct monad *m, struct conn *conn, monad_finish finish) {
     struct epoll_event events[MAX_EVENTS];
     struct epoll_event ev;
     struct bag *bag;
