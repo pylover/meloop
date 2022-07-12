@@ -47,8 +47,8 @@ int main() {
         .port = 9090,
         .backlog = 2,
         .client_monad = echoF(&clientdev),
-        //.client_connected = client_connected,
-        //.client_closed = client_closed
+        .client_connected = client_connected,
+        .client_closed = client_closed
     };
     
     monad_tcp_runserver(&bindinfo, finish);
