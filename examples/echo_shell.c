@@ -12,10 +12,9 @@
 
 #define CHUNK_SIZE  1024
 
-#define WORKING 9999
 #define ERROR -1
 #define OK 0
-static volatile int status = WORKING;
+static volatile int status = OK;
 
 
 void prompt(MonadContext *ctx, struct device *dev, struct conn *c) {
