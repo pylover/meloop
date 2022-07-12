@@ -1,3 +1,4 @@
+- Better naming 
 - Null error handler for all mallocs
 - Monad loop
 - Test for all functions
