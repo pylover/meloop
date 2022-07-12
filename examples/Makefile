@@ -1,5 +1,5 @@
 CFLAGS = -I..
-objects = $(patsubst %.c,%.o,$(wildcard ../*.c))
+objects = $(patsubst %.c,%.o,$(wildcard ../monad/*.c))
 
 
 echo_shell: echo_shell.c $(objects)
@@ -13,6 +13,7 @@ echo_server: echo_server.c $(objects)
 .PHONY: clean
 clean:: 
 	- rm echo_shell 
+	- rm echo_server 
 	cd ..; make clean
 
 

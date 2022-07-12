@@ -1,6 +1,6 @@
 #include "monad.h"
-#include "monad_io.h"
-#include "monad_tcp.h"
+#include "io.h"
+#include "tcp.h"
 
 #include <stdlib.h>
 #include <sys/types.h>

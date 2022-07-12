@@ -1,5 +1,5 @@
-#include "monad.h"
-#include "monad_io.h"
+#include "monad/monad.h"
+#include "monad/io.h"
 
 #include <stdio.h>
 #include <stdlib.h>
