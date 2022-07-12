@@ -25,4 +25,6 @@ make echo_server
 
 - Opaque objects: PascalCase
 - C Macros: UPPER_CASE
+- Monads: fooM
+- Monad factories: fooF
 - All others: lowercase
