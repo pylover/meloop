@@ -1,4 +1,3 @@
-- naming: monad: fooM, monad factory: fooF
 - SOCK_NONBLOCK
 - EPOLLET
 - EAGAIN

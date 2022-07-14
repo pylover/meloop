@@ -11,13 +11,11 @@ void passM(struct monad_context *ctx, void *args, void *data) {
 }
 
 
-// TODO: Use macro instead
 void awaitwM(MonadContext *ctx, struct device *dev, struct conn *c) {
     monad_io_wait(ctx, dev, c, EPOLLOUT);
 }
 
 
-// TODO: Use macro instead
 void awaitrM(MonadContext *ctx, struct device *dev, struct conn *c) {
     monad_io_wait(ctx, dev, c, EPOLLIN);
 }
