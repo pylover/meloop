@@ -63,7 +63,7 @@ void finish(MonadContext *ctx, struct conn *c, const char *reason) {
 
 
 int main() {
-    mio_init(0);
+    monad_io_init(0);
 
     struct conn c = {
         .rfd = STDIN_FILENO, 
@@ -75,26 +75,26 @@ int main() {
     struct device dev = {false, CHUNK_SIZE};
 
     /* Draw circut */
-    Monad *m = MONAD_RETURN(   mio_waitw, &dev );
-               MONAD_APPEND(m, prompt,    &dev );
-               MONAD_APPEND(m, mio_waitr, &dev );
-               MONAD_APPEND(m, mio_read,  &dev );
-               MONAD_APPEND(m, caseit,    NULL );
-               MONAD_APPEND(m, mio_waitw, &dev );
-               MONAD_APPEND(m, mio_write, &dev );
-               MONAD_APPEND(m, cleanit,   NULL );
+    Monad *m = MONAD_RETURN(   monad_io_waitw, &dev );
+               MONAD_APPEND(m, prompt,         &dev );
+               MONAD_APPEND(m, monad_io_waitr, &dev );
+               MONAD_APPEND(m, monad_io_read,  &dev );
+               MONAD_APPEND(m, caseit,         NULL );
+               MONAD_APPEND(m, monad_io_waitw, &dev );
+               MONAD_APPEND(m, monad_io_write, &dev );
+               MONAD_APPEND(m, cleanit,        NULL );
 
     /* Loop/Close it */
     monad_loop(m);
 
-    if (MIO_RUN(m, &c, finish)) {
-        err(1, "mio_run");
+    if (MONAD_IO_RUN(m, &c, finish)) {
+        err(1, "monad_io_run");
     }
    
     if (c.data != NULL) {
         free(c.data);
     }
     monad_free(m);
-    mio_deinit();
+    monad_io_deinit();
     return status;
 }

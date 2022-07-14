@@ -40,7 +40,7 @@ static void client_closed(MonadContext *ctx, struct conn *c,
 
 
 int main() {
-    mio_init(0);
+    monad_io_init(0);
     
     struct bind bindinfo = {
         .host = "127.0.0.1",
@@ -53,6 +53,6 @@ int main() {
     
     monad_tcp_runserver(&bindinfo, finish);
     monad_free(bindinfo.client_monad);
-    mio_deinit();
+    monad_io_deinit();
     return status;
 }

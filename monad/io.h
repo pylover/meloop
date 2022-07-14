@@ -28,20 +28,20 @@ struct conn {
 
 
 /* Monads */
-void mio_waitr(MonadContext *ctx, struct device *dev, struct conn *c); 
-void mio_waitw(MonadContext *ctx, struct device *dev, struct conn *c);
-void mio_write(MonadContext *ctx, struct device *dev, struct conn *c);
-void mio_read(MonadContext *ctx, struct device *dev, struct conn *c);
+void monad_io_waitr(MonadContext *ctx, struct device *dev, struct conn *c); 
+void monad_io_waitw(MonadContext *ctx, struct device *dev, struct conn *c);
+void monad_io_write(MonadContext *ctx, struct device *dev, struct conn *c);
+void monad_io_read(MonadContext *ctx, struct device *dev, struct conn *c);
 
 /* Monad Factories */
 Monad * echoF(struct device *dev);
 
-int mio_run(struct monad *m, struct conn *conn, monad_finish);
-void mio_init(int flags);
-void mio_deinit();
+int monad_io_run(struct monad *m, struct conn *conn, monad_finish);
+void monad_io_init(int flags);
+void monad_io_deinit();
 
 
-#define MIO_RUN(m, c, f) mio_run(m, c, (monad_finish)(f))
+#define MONAD_IO_RUN(m, c, f) monad_io_run(m, c, (monad_finish)(f))
 
 
 #endif

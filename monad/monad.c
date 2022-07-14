@@ -198,6 +198,7 @@ struct monad * monad_new() {
 
 static void _monad_free(struct monad *first, struct monad *m) {
     if (m == NULL) {
+        /* Disposition comppleted. */
         return;
     }
     

@@ -13,8 +13,6 @@ static int _epflags = EPOLLONESHOT | EPOLLRDHUP | EPOLLERR;
 static volatile int _waitfds = 0;
 
 
-
-// TODO: replace device Monad arg with 
 #define MAX_EVENTS  16
 #define ERR -1
 #define OK 0
@@ -73,18 +71,18 @@ static void _wait(MonadContext *ctx, struct device *dev, struct conn *c,
 
 
 // TODO: Use macro instead
-void mio_waitw(MonadContext *ctx, struct device *dev, struct conn *c) {
+void monad_io_waitw(MonadContext *ctx, struct device *dev, struct conn *c) {
     _wait(ctx, dev, c, EPOLLOUT);
 }
 
 
 // TODO: Use macro instead
-void mio_waitr(MonadContext *ctx, struct device *dev, struct conn *c) {
+void monad_io_waitr(MonadContext *ctx, struct device *dev, struct conn *c) {
     _wait(ctx, dev, c, EPOLLIN);
 }
 
 
-void mio_read(MonadContext *ctx, struct device *dev, struct conn *c) {
+void monad_io_read(MonadContext *ctx, struct device *dev, struct conn *c) {
     ssize_t size = read(c->rfd, c->data, dev->readsize);
 
     /* Check for EOF */
@@ -103,7 +101,7 @@ void mio_read(MonadContext *ctx, struct device *dev, struct conn *c) {
 }
 
 
-void mio_write(MonadContext *ctx, struct device *dev, struct conn *c) {
+void monad_io_write(MonadContext *ctx, struct device *dev, struct conn *c) {
     /* Empty line */
     if (c->size == 1) {
         monad_succeeded(ctx, c);
@@ -120,17 +118,17 @@ void mio_write(MonadContext *ctx, struct device *dev, struct conn *c) {
 
 
 struct monad * echoF(struct device *dev) {
-    Monad *echo = MONAD_RETURN(      mio_waitr, &dev);
-                  MONAD_APPEND(echo, mio_read,  &dev);
-                  MONAD_APPEND(echo, mio_waitw, &dev);
-                  MONAD_APPEND(echo, mio_write, &dev);
+    Monad *echo = MONAD_RETURN(      monad_io_waitr, &dev);
+                  MONAD_APPEND(echo, monad_io_read,  &dev);
+                  MONAD_APPEND(echo, monad_io_waitw, &dev);
+                  MONAD_APPEND(echo, monad_io_write, &dev);
    
     monad_loop(echo);
     return echo;
 }
 
 
-int mio_run(struct monad *m, struct conn *conn, monad_finish finish) {
+int monad_io_run(struct monad *m, struct conn *conn, monad_finish finish) {
     struct epoll_event events[MAX_EVENTS];
     struct epoll_event ev;
     struct bag *bag;
@@ -180,7 +178,7 @@ int mio_run(struct monad *m, struct conn *conn, monad_finish finish) {
 }
 
 
-void mio_init(int flags) {
+void monad_io_init(int flags) {
     if (_epfd != -1) {
         return;
     }
@@ -193,6 +191,6 @@ void mio_init(int flags) {
 }
 
 
-void mio_deinit() {
+void monad_io_deinit() {
     close(_epfd);
 }
