@@ -11,7 +11,7 @@
 #define TCP_BACKLOG_DEFAULT 2
 
 
-void monad_tcp_client_free(struct conn *c) {
+static void _client_free(struct conn *c) {
     if (c->data != NULL) {
         free(c->data);
     }
@@ -78,7 +78,7 @@ static void client_closed(MonadContext *ctx, struct conn *c,
     if (info->client_closed != NULL) {
         info->client_closed(ctx, c, reason);
     }
-    monad_tcp_client_free(c);
+    _client_free(c);
 }
 
 
@@ -87,8 +87,14 @@ void acceptM(MonadContext *ctx, struct device *dev, struct conn *c) {
 	socklen_t addrlen = sizeof(struct sockaddr);
     struct bind *info = (struct bind*) c->ptr;
 	struct sockaddr addr; 
+    int acceptflags = 0;
 
-	fd = accept(c->rfd, &addr, &addrlen);
+    /* Non blocking or not ? */
+    if (dev->nonblocking) {
+        acceptflags |= SOCK_NONBLOCK;
+    }
+
+	fd = accept4(c->rfd, &addr, &addrlen, acceptflags);
 	if (fd == -1) {
         monad_failed(ctx, c, "accept");
         return;
