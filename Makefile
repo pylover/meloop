@@ -1,5 +1,7 @@
 CC = gcc
-CFLAGS = -I.
+CFLAGS = \
+	-I. \
+	-D_GNU_SOURCE=1
 
 # Uncomment for production
 CFLAGS += -g

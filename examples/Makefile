@@ -1,4 +1,7 @@
-CFLAGS = -I..
+CFLAGS = \
+	-I.. \
+	-D_GNU_SOURCE=1
+
 objects = $(patsubst %.c,%.o,$(wildcard ../monad/*.c))
 
 

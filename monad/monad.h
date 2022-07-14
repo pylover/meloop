@@ -24,6 +24,10 @@ int monad_loop(struct monad *m1);
 void monad_run(Monad*, void *input, monad_finish);
 
 
+/* Monads */
+void passM(MonadContext *, void *args, void *data);
+
+
 #define MONAD_RUN(m, d, s) monad_run(m, d, (monad_finish)(s))
 #define MONAD_RETURN(t, a) monad_return((monad_task)(t), a)
 #define MONAD_APPEND(m, t, a) monad_append(m, (monad_task)(t), a)

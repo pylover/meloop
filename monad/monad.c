@@ -1,8 +1,9 @@
 #include "monad.h"
-#include "monads.h"
 
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdio.h>
+#include <stdbool.h>
 
 
 #define MONAM_REASON_BUFFSIZE   256
@@ -215,3 +216,10 @@ void monad_free(struct monad *m) {
 
     _monad_free(m, m);
 }
+
+
+void passM(struct monad_context *ctx, void *args, void *data) {
+    monad_succeeded(ctx, data);
+}
+
+
