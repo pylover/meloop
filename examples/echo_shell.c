@@ -1,13 +1,11 @@
 #include "monad/monad.h"
-#include "monad/io.h"
+#include "monad/monads.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <unistd.h>
 #include <err.h>
-#include <errno.h>
 
 
 #define CHUNK_SIZE  1024
@@ -75,14 +73,14 @@ int main() {
     struct device dev = {false, CHUNK_SIZE};
 
     /* Draw circut */
-    Monad *m = MONAD_RETURN(   monad_io_waitwM, &dev );
-               MONAD_APPEND(m, promptM,         &dev );
-               MONAD_APPEND(m, monad_io_waitrM, &dev );
-               MONAD_APPEND(m, monad_io_readM,  &dev );
-               MONAD_APPEND(m, caseitM,         NULL );
-               MONAD_APPEND(m, monad_io_waitwM, &dev );
-               MONAD_APPEND(m, monad_io_writeM, &dev );
-               MONAD_APPEND(m, cleanitM,        NULL );
+    Monad *m = MONAD_RETURN(   waitwM,   &dev );
+               MONAD_APPEND(m, promptM,  &dev );
+               MONAD_APPEND(m, waitrM,   &dev );
+               MONAD_APPEND(m, readM,    &dev );
+               MONAD_APPEND(m, caseitM,  NULL );
+               MONAD_APPEND(m, waitwM,   &dev );
+               MONAD_APPEND(m, writeM,   &dev );
+               MONAD_APPEND(m, cleanitM, NULL );
 
     /* Loop/Close it */
     monad_loop(m);

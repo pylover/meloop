@@ -4,7 +4,6 @@
 #include <errno.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <sys/epoll.h>
 
 
@@ -55,8 +54,8 @@ static int _dearm(int fd) {
 }
 
 
-static void _wait(MonadContext *ctx, struct device *dev, struct conn *c,
-        int op) {
+void monad_io_wait(MonadContext *ctx, struct device *dev, 
+        struct conn *c, int op) {
     struct bag *bag = malloc(sizeof(bag));
     int fd = (op == EPOLLIN) ? c->rfd : c->wfd;
     bag->ctx = ctx;
@@ -67,64 +66,6 @@ static void _wait(MonadContext *ctx, struct device *dev, struct conn *c,
         monad_failed(ctx, c, "_arm");
         return;
     }
-}
-
-
-// TODO: Use macro instead
-void monad_io_waitwM(MonadContext *ctx, struct device *dev, struct conn *c) {
-    _wait(ctx, dev, c, EPOLLOUT);
-}
-
-
-// TODO: Use macro instead
-void monad_io_waitrM(MonadContext *ctx, struct device *dev, struct conn *c) {
-    _wait(ctx, dev, c, EPOLLIN);
-}
-
-
-void monad_io_readM(MonadContext *ctx, struct device *dev, struct conn *c) {
-    ssize_t size = read(c->rfd, c->data, dev->readsize);
-
-    /* Check for EOF */
-    if (size == 0) {
-        monad_failed(ctx, c, "EOF");
-        return;
-    }
-    
-    /* Check for error */
-    if (size < 0) {
-        monad_failed(ctx, c, "read");
-        return;
-    }
-    c->size = size;
-    monad_succeeded(ctx, c);
-}
-
-
-void monad_io_writeM(MonadContext *ctx, struct device *dev, struct conn *c) {
-    /* Empty line */
-    if (c->size == 1) {
-        monad_succeeded(ctx, c);
-        return;
-    }
-
-    ssize_t size = write(c->wfd, c->data, c->size);
-    if (size < 0) {
-        monad_failed(ctx, c, "write");
-        return;
-    }
-    monad_succeeded(ctx, c);
-}
-
-
-struct monad * echoF(struct device *dev) {
-    Monad *echo = MONAD_RETURN(      monad_io_waitrM, &dev);
-                  MONAD_APPEND(echo, monad_io_readM,  &dev);
-                  MONAD_APPEND(echo, monad_io_waitwM, &dev);
-                  MONAD_APPEND(echo, monad_io_writeM, &dev);
-   
-    monad_loop(echo);
-    return echo;
 }
 
 
