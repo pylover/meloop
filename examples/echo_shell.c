@@ -73,14 +73,17 @@ int main() {
     struct device dev = {false, CHUNK_SIZE};
 
     /* Draw circut */
-    Monad *m = MONAD_RETURN(   waitwM,   &dev );
+    Monad *m = MONAD_RETURN(   awaitwM,  &dev );
                MONAD_APPEND(m, promptM,  &dev );
-               MONAD_APPEND(m, waitrM,   &dev );
-               MONAD_APPEND(m, readM,    &dev );
+               MONAD_BIND  (m, readerF  (&dev));
                MONAD_APPEND(m, caseitM,  NULL );
-               MONAD_APPEND(m, waitwM,   &dev );
-               MONAD_APPEND(m, writeM,   &dev );
+               MONAD_BIND  (m, writerF  (&dev));
                MONAD_APPEND(m, cleanitM, NULL );
+
+               // MONAD_APPEND(m, awaitrM,  &dev );
+               // MONAD_APPEND(m, readerM,  &dev );
+               // MONAD_APPEND(m, awaitwM,  &dev );
+               // MONAD_APPEND(m, writerM,  &dev );
 
     /* Loop/Close it */
     monad_loop(m);

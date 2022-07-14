@@ -12,18 +12,18 @@ void passM(struct monad_context *ctx, void *args, void *data) {
 
 
 // TODO: Use macro instead
-void waitwM(MonadContext *ctx, struct device *dev, struct conn *c) {
+void awaitwM(MonadContext *ctx, struct device *dev, struct conn *c) {
     monad_io_wait(ctx, dev, c, EPOLLOUT);
 }
 
 
 // TODO: Use macro instead
-void waitrM(MonadContext *ctx, struct device *dev, struct conn *c) {
+void awaitrM(MonadContext *ctx, struct device *dev, struct conn *c) {
     monad_io_wait(ctx, dev, c, EPOLLIN);
 }
 
 
-void readM(MonadContext *ctx, struct device *dev, struct conn *c) {
+void readerM(MonadContext *ctx, struct device *dev, struct conn *c) {
     ssize_t size = read(c->rfd, c->data, dev->readsize);
 
     /* Check for EOF */
@@ -42,7 +42,7 @@ void readM(MonadContext *ctx, struct device *dev, struct conn *c) {
 }
 
 
-void writeM(MonadContext *ctx, struct device *dev, struct conn *c) {
+void writerM(MonadContext *ctx, struct device *dev, struct conn *c) {
     /* Empty line */
     if (c->size == 1) {
         monad_succeeded(ctx, c);
@@ -55,17 +55,6 @@ void writeM(MonadContext *ctx, struct device *dev, struct conn *c) {
         return;
     }
     monad_succeeded(ctx, c);
-}
-
-
-struct monad * echoF(struct device *dev) {
-    Monad *echo = MONAD_RETURN(      waitrM, &dev);
-                  MONAD_APPEND(echo, readM,  &dev);
-                  MONAD_APPEND(echo, waitwM, &dev);
-                  MONAD_APPEND(echo, writeM, &dev);
-   
-    monad_loop(echo);
-    return echo;
 }
 
 
@@ -158,4 +147,28 @@ void acceptM(MonadContext *ctx, struct device *dev, struct conn *c) {
     }
     MONAD_RUN(info->client_monad, cc, client_closed);
     monad_succeeded(ctx, c);
+}
+
+
+struct monad * readerF(struct device *dev) {
+    Monad *echo = MONAD_RETURN(      awaitrM, &dev);
+                  MONAD_APPEND(echo, readerM, &dev);
+   
+    return echo;
+}
+
+
+struct monad * writerF(struct device *dev) {
+    Monad *echo = MONAD_RETURN(      awaitwM, &dev);
+                  MONAD_APPEND(echo, writerM, &dev);
+   
+    return echo;
+}
+
+
+struct monad * echoF(struct device *dev) {
+    Monad *echo = readerF(dev);
+    monad_bind(echo, writerF(dev));
+    monad_loop(echo);
+    return echo;
 }

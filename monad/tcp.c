@@ -32,8 +32,8 @@ void monad_tcp_runserver(struct bind *info, monad_tcp_finish finish) {
 
     /* Create a closed monad chain for accept a connection and wait for the
        next clinet. */
-    Monad *accept_m = MONAD_RETURN(          waitrM, &dev);
-                      MONAD_APPEND(accept_m, acceptM,         &dev);
+    Monad *accept_m = MONAD_RETURN(          awaitrM, &dev);
+                      MONAD_APPEND(accept_m, acceptM, &dev);
     monad_loop(accept_m);
     
     /* Bind them together */

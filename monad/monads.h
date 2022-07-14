@@ -12,10 +12,14 @@ void passM(MonadContext *, void *args, void *data);
 
 
 /* IO Monads */
-void waitrM(MonadContext *ctx, struct device *dev, struct conn *c); 
-void waitwM(MonadContext *ctx, struct device *dev, struct conn *c);
-void writeM(MonadContext *ctx, struct device *dev, struct conn *c);
-void readM(MonadContext *ctx, struct device *dev, struct conn *c);
+void awaitrM(MonadContext *ctx, struct device *dev, struct conn *c); 
+void awaitwM(MonadContext *ctx, struct device *dev, struct conn *c);
+
+void writerM(MonadContext *ctx, struct device *dev, struct conn *c);
+void readerM(MonadContext *ctx, struct device *dev, struct conn *c);
+
+struct monad * readerF(struct device *dev);
+struct monad * writerF(struct device *dev); 
 
 
 /* TCP Server Monads */
