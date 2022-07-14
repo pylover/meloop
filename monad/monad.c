@@ -177,7 +177,7 @@ void monad_succeeded(struct monad_context* ctx, void *result) {
 }
 
 
-void monad_pass(struct monad_context *ctx, void *args, void *data) {
+void passM(struct monad_context *ctx, void *args, void *data) {
     monad_succeeded(ctx, data);
 }
 
@@ -192,7 +192,7 @@ struct monad * monad_return(monad_task task, void *args) {
 
 
 struct monad * monad_new() {
-    return monad_return(monad_pass, NULL); 
+    return monad_return(passM, NULL); 
 };
 
 

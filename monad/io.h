@@ -28,10 +28,10 @@ struct conn {
 
 
 /* Monads */
-void monad_io_waitr(MonadContext *ctx, struct device *dev, struct conn *c); 
-void monad_io_waitw(MonadContext *ctx, struct device *dev, struct conn *c);
-void monad_io_write(MonadContext *ctx, struct device *dev, struct conn *c);
-void monad_io_read(MonadContext *ctx, struct device *dev, struct conn *c);
+void monad_io_waitrM(MonadContext *ctx, struct device *dev, struct conn *c); 
+void monad_io_waitwM(MonadContext *ctx, struct device *dev, struct conn *c);
+void monad_io_writeM(MonadContext *ctx, struct device *dev, struct conn *c);
+void monad_io_readM(MonadContext *ctx, struct device *dev, struct conn *c);
 
 /* Monad Factories */
 Monad * echoF(struct device *dev);

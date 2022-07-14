@@ -13,7 +13,7 @@ typedef void (*monad_finish) (MonadContext*, void *data, const char *reason);
 void monad_free(Monad *);
 Monad * monad_new();
 Monad * monad_return(monad_task, void*);
-void monad_pass(MonadContext *, void *args, void *data);
+void passM(MonadContext *, void *args, void *data);
 void monad_succeeded(MonadContext*, void *data);
 void monad_failed(struct monad_context* ctx, void *data, 
         const char *format, ...);

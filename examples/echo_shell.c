@@ -17,7 +17,7 @@
 static volatile int status = OK;
 
 
-void prompt(MonadContext *ctx, struct device *dev, struct conn *c) {
+void promptM(MonadContext *ctx, struct device *dev, struct conn *c) {
     ssize_t size = write(c->wfd, ">>> ", 4);
     if (size < 4) {
         monad_failed(ctx, c, "write");
@@ -27,13 +27,13 @@ void prompt(MonadContext *ctx, struct device *dev, struct conn *c) {
 }
 
 
-void cleanit(MonadContext *ctx, void *, struct conn *c) {
+void cleanitM(MonadContext *ctx, void *, struct conn *c) {
     c->size = 0;
     monad_succeeded(ctx, c);
 }
 
 
-void caseit(MonadContext *ctx, void *, struct conn *c) {
+void caseitM(MonadContext *ctx, void *, struct conn *c) {
     char *s = c->data;
     size_t l = c->size;
     while (l) {
@@ -75,14 +75,14 @@ int main() {
     struct device dev = {false, CHUNK_SIZE};
 
     /* Draw circut */
-    Monad *m = MONAD_RETURN(   monad_io_waitw, &dev );
-               MONAD_APPEND(m, prompt,         &dev );
-               MONAD_APPEND(m, monad_io_waitr, &dev );
-               MONAD_APPEND(m, monad_io_read,  &dev );
-               MONAD_APPEND(m, caseit,         NULL );
-               MONAD_APPEND(m, monad_io_waitw, &dev );
-               MONAD_APPEND(m, monad_io_write, &dev );
-               MONAD_APPEND(m, cleanit,        NULL );
+    Monad *m = MONAD_RETURN(   monad_io_waitwM, &dev );
+               MONAD_APPEND(m, promptM,         &dev );
+               MONAD_APPEND(m, monad_io_waitrM, &dev );
+               MONAD_APPEND(m, monad_io_readM,  &dev );
+               MONAD_APPEND(m, caseitM,         NULL );
+               MONAD_APPEND(m, monad_io_waitwM, &dev );
+               MONAD_APPEND(m, monad_io_writeM, &dev );
+               MONAD_APPEND(m, cleanitM,        NULL );
 
     /* Loop/Close it */
     monad_loop(m);

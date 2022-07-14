@@ -71,18 +71,18 @@ static void _wait(MonadContext *ctx, struct device *dev, struct conn *c,
 
 
 // TODO: Use macro instead
-void monad_io_waitw(MonadContext *ctx, struct device *dev, struct conn *c) {
+void monad_io_waitwM(MonadContext *ctx, struct device *dev, struct conn *c) {
     _wait(ctx, dev, c, EPOLLOUT);
 }
 
 
 // TODO: Use macro instead
-void monad_io_waitr(MonadContext *ctx, struct device *dev, struct conn *c) {
+void monad_io_waitrM(MonadContext *ctx, struct device *dev, struct conn *c) {
     _wait(ctx, dev, c, EPOLLIN);
 }
 
 
-void monad_io_read(MonadContext *ctx, struct device *dev, struct conn *c) {
+void monad_io_readM(MonadContext *ctx, struct device *dev, struct conn *c) {
     ssize_t size = read(c->rfd, c->data, dev->readsize);
 
     /* Check for EOF */
@@ -101,7 +101,7 @@ void monad_io_read(MonadContext *ctx, struct device *dev, struct conn *c) {
 }
 
 
-void monad_io_write(MonadContext *ctx, struct device *dev, struct conn *c) {
+void monad_io_writeM(MonadContext *ctx, struct device *dev, struct conn *c) {
     /* Empty line */
     if (c->size == 1) {
         monad_succeeded(ctx, c);
@@ -118,10 +118,10 @@ void monad_io_write(MonadContext *ctx, struct device *dev, struct conn *c) {
 
 
 struct monad * echoF(struct device *dev) {
-    Monad *echo = MONAD_RETURN(      monad_io_waitr, &dev);
-                  MONAD_APPEND(echo, monad_io_read,  &dev);
-                  MONAD_APPEND(echo, monad_io_waitw, &dev);
-                  MONAD_APPEND(echo, monad_io_write, &dev);
+    Monad *echo = MONAD_RETURN(      monad_io_waitrM, &dev);
+                  MONAD_APPEND(echo, monad_io_readM,  &dev);
+                  MONAD_APPEND(echo, monad_io_waitwM, &dev);
+                  MONAD_APPEND(echo, monad_io_writeM, &dev);
    
     monad_loop(echo);
     return echo;
