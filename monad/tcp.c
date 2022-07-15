@@ -17,6 +17,8 @@ static void _client_free(struct conn *c) {
     if (c->data != NULL) {
         free(c->data);
     }
+    
+    free(c);
 }
 
 
@@ -96,7 +98,7 @@ void acceptM(MonadContext *ctx, struct io_props *dev, struct conn *c) {
 	}
     
     // TODO: printf("Client connected: %s\n", inet_ntoa(addr.sin_addr));
-    // TODO: free
+    /* Will be free at tcp: client_free() */
     struct conn *cc = malloc(sizeof(struct conn));
     if (cc == NULL) {
         err(EXIT_FAILURE, "Out of memory");
@@ -105,7 +107,8 @@ void acceptM(MonadContext *ctx, struct io_props *dev, struct conn *c) {
     cc->rfd = fd; 
     cc->wfd = fd; 
     cc->size = 0; 
-    // TODO: free
+
+    /* Will be free at tcp: client_free() */
     cc->data = malloc(dev->readsize);
     if (cc->data == NULL) {
         err(EXIT_FAILURE, "Out of memory");

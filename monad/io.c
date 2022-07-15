@@ -179,7 +179,6 @@ int monad_io_run(struct monad *m, struct conn *conn, monad_finish finish) {
     MonadContext *ctx;
     struct io_props *props;
 
-    // TODO: run multiple monads, then wait
     monad_runall(m, conn, finish);
     
     while (_waitfds) {

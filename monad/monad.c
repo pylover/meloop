@@ -26,7 +26,6 @@ struct monad {
 };
 
 
-// TODO: Use macro instead of function.
 void monad_execute(struct monad_context *ctx, void *data) {
     struct monad *m = ctx->monad;
     m->run(ctx, m->args, data);
@@ -155,7 +154,7 @@ struct monad * monad_append(struct monad *m, monad_task task, void* args) {
 
 void monad_failed(struct monad_context* ctx, void *data, 
         const char *format, ...) {
-    char reason[MONAM_REASON_BUFFSIZE];  // TODO: Use macro
+    char reason[MONAM_REASON_BUFFSIZE]; 
     va_list args;
 
     /* var args */
