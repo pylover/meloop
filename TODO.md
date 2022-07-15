@@ -1,5 +1,2 @@
 - Document every function
-- Memory profile
-- Monad loop
 - Test for all functions
-- Exit status: EXIT_FAILURE, EXIT_SUCCESS
