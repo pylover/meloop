@@ -16,16 +16,12 @@ static volatile int status = OK;
 
 
 void promptM(MonadContext *ctx, struct device *dev, struct conn *c) {
-    ssize_t size = write(c->wfd, ">>> ", 4);
-    if (size < 4) {
-        monad_failed(ctx, c, "write");
-        return;
-    }
-    monad_succeeded(ctx, c);
+    c->size = sprintf(c->data, ">>> ");
+    writerM(ctx, dev, c);
 }
 
 
-void cleanitM(MonadContext *ctx, void *, struct conn *c) {
+void resetM(MonadContext *ctx, void *, struct conn *c) {
     c->size = 0;
     monad_succeeded(ctx, c);
 }
@@ -73,29 +69,26 @@ int main() {
     struct device dev = {false, CHUNK_SIZE};
 
     /* Draw circut */
-    Monad *m = MONAD_RETURN(   awaitwM,  &dev );
-               MONAD_APPEND(m, promptM,  &dev );
-               MONAD_BIND  (m, readerF  (&dev));
-               MONAD_APPEND(m, caseitM,  NULL );
-               MONAD_BIND  (m, writerF  (&dev));
-               MONAD_APPEND(m, cleanitM, NULL );
+    Monad *init = MONAD_RETURN(nonblockM, &dev);
 
-               // MONAD_APPEND(m, awaitrM,  &dev );
-               // MONAD_APPEND(m, readerM,  &dev );
-               // MONAD_APPEND(m, awaitwM,  &dev );
-               // MONAD_APPEND(m, writerM,  &dev );
+    Monad *loop = MONAD_RETURN(      promptM, &dev);
+                  MONAD_APPEND(loop, readerM, &dev);
+                  MONAD_APPEND(loop, caseitM, NULL);
+                  MONAD_APPEND(loop, writerM, &dev);
+                  MONAD_APPEND(loop, resetM,  NULL);
 
     /* Loop/Close it */
-    monad_loop(m);
+    monad_loop(loop);
+    monad_bind(init, loop);
 
-    if (MONAD_IO_RUN(m, &c, finish)) {
+    if (MONAD_IO_RUN(init, &c, finish)) {
         err(1, "monad_io_run");
     }
    
     if (c.data != NULL) {
         free(c.data);
     }
-    monad_free(m);
+    monad_free(init);
     monad_io_deinit();
     return status;
 }

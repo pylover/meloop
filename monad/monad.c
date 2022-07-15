@@ -21,20 +21,22 @@ struct monad {
     monad_task run;
     void *args;
     struct monad *next;
+    bool closed;
 };
 
 
 // TODO: Use macro instead of function.
-static void _run(struct monad_context *ctx, struct monad *m, void *data) {
+void monad_execute(struct monad_context *ctx, void *data) {
+    struct monad *m = ctx->monad;
     m->run(ctx, m->args, data);
 }
 
 
-void monad_run(struct monad *m, void *data, monad_finish finish) {
+void monad_runall(struct monad *m, void *data, monad_finish finish) {
     struct monad_context *ctx = malloc(sizeof(struct monad_context));
     ctx->monad = m;
     ctx->finish = finish;
-    _run(ctx, m, data);
+    monad_execute(ctx, data);
 }
 
 
@@ -114,6 +116,7 @@ int monad_loop(struct monad *m1) {
         if (last->next == NULL) {
             /* Last element */
             last->next = m1;
+            last->closed = true;
             return OK;
         }
 
@@ -173,7 +176,7 @@ void monad_succeeded(struct monad_context* ctx, void *result) {
     }
 
     ctx->monad = next;
-    _run(ctx, next, result);
+    monad_execute(ctx, result);
 }
 
 
@@ -182,6 +185,7 @@ struct monad * monad_return(monad_task task, void *args) {
     m->run = task;
     m->args = args;
     m->next = NULL;
+    m->closed = false;
     return m;
 };
 
@@ -197,10 +201,11 @@ static void _monad_free(struct monad *first, struct monad *m) {
         return;
     }
     
+    bool closed = m->closed;
     struct monad * next = m->next;
     free(m);
 
-    if (next == first) {
+    if (closed || (next == first)) {
         /* Disposition comppleted. */
         return;
     }
@@ -213,7 +218,7 @@ void monad_free(struct monad *m) {
     if (m == NULL) {
         return;
     }
-
+    
     _monad_free(m, m);
 }
 

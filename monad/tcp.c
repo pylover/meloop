@@ -4,8 +4,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <sys/socket.h>
+#include <errno.h>
 #include <err.h>
+#include <sys/socket.h>
+#include <sys/epoll.h>
 
 
 #define TCP_BACKLOG_DEFAULT 2
@@ -22,17 +24,11 @@ void listenM(MonadContext *ctx, struct device *dev, struct conn *c) {
     int fd;
     int option = 1;
     int res;
-    int socktype = SOCK_STREAM;
     struct bind *info = (struct bind*) c->ptr;
     struct sockaddr_in *addr = &(info->addr);
     
-    /* Non blocking */
-    if (dev->nonblocking) {
-        socktype |= SOCK_NONBLOCK;
-    }
-
     /* Create socket */
-    fd = socket(AF_INET, socktype, 0);
+    fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
 
     /* Allow reuse the address */
     setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
@@ -87,16 +83,15 @@ void acceptM(MonadContext *ctx, struct device *dev, struct conn *c) {
 	socklen_t addrlen = sizeof(struct sockaddr);
     struct bind *info = (struct bind*) c->ptr;
 	struct sockaddr addr; 
-    int acceptflags = 0;
 
-    /* Non blocking or not ? */
-    if (dev->nonblocking) {
-        acceptflags |= SOCK_NONBLOCK;
-    }
-
-	fd = accept4(c->rfd, &addr, &addrlen, acceptflags);
+	fd = accept4(c->rfd, &addr, &addrlen, SOCK_NONBLOCK);
 	if (fd == -1) {
-        monad_failed(ctx, c, "accept");
+        if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
+            monad_again(ctx, dev, c, EPOLLIN);
+        }
+        else {
+            monad_failed(ctx, c, "accept4");
+        }
         return;
 	}
     
@@ -117,7 +112,7 @@ void acceptM(MonadContext *ctx, struct device *dev, struct conn *c) {
     if (info->client_connected != NULL) {
         info->client_connected(ctx, cc, NULL);
     }
-    MONAD_RUN(info->client_monad, cc, client_closed);
+    MONAD_RUNALL(info->client_monad, cc, client_closed);
     monad_succeeded(ctx, c);
 }
 
@@ -138,8 +133,7 @@ void monad_tcp_runserver(struct bind *info, monad_tcp_finish finish) {
 
     /* Create a closed monad chain for accept a connection and wait for the
        next clinet. */
-    Monad *accept_m = MONAD_RETURN(          awaitrM, &dev);
-                      MONAD_APPEND(accept_m, acceptM, &dev);
+    Monad *accept_m = MONAD_RETURN(acceptM, &dev);
     monad_loop(accept_m);
     
     /* Bind them together */

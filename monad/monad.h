@@ -21,14 +21,15 @@ struct monad * monad_append(struct monad *, monad_task , void* );
 void monad_bind(Monad*, Monad*);
 int monad_loop(struct monad *m1);
 
-void monad_run(Monad*, void *input, monad_finish);
+void monad_execute(struct monad_context *ctx, void *data);
+void monad_runall(struct monad *m, void *data, monad_finish finish);
 
 
 /* Monads */
 void passM(MonadContext *, void *args, void *data);
 
 
-#define MONAD_RUN(m, d, s) monad_run(m, d, (monad_finish)(s))
+#define MONAD_RUNALL(m, d, s) monad_runall(m, d, (monad_finish)(s))
 #define MONAD_RETURN(t, a) monad_return((monad_task)(t), a)
 #define MONAD_APPEND(m, t, a) monad_append(m, (monad_task)(t), a)
 #define MONAD_BIND(m1, m2) monad_bind(m1, m2)

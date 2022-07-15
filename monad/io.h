@@ -8,7 +8,7 @@
 
 
 struct device {
-    bool nonblocking;
+    bool edge_triggered;
     int readsize;
 };
 
@@ -27,7 +27,7 @@ struct conn {
 };
 
 
-void monad_io_wait(MonadContext *, struct device *, struct conn *c, int op);
+void monad_again(MonadContext *, struct device *, struct conn *c, int op);
 int monad_io_run(struct monad *m, struct conn *conn, monad_finish);
 void monad_io_init(int flags);
 void monad_io_deinit();
@@ -35,10 +35,6 @@ void monad_io_deinit();
 
 /* IO Monads */
 void nonblockM(MonadContext *ctx, struct device *dev, struct conn *c);
-void blockM(MonadContext *ctx, struct device *dev, struct conn *c);
-
-void awaitrM(MonadContext *ctx, struct device *dev, struct conn *c); 
-void awaitwM(MonadContext *ctx, struct device *dev, struct conn *c);
 
 void writerM(MonadContext *ctx, struct device *dev, struct conn *c);
 void readerM(MonadContext *ctx, struct device *dev, struct conn *c);

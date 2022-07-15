@@ -72,7 +72,7 @@ static int _dearm(int fd) {
 }
 
 
-void monad_io_wait(MonadContext *ctx, struct device *dev, 
+void monad_again(MonadContext *ctx, struct device *dev, 
         struct conn *c, int op) {
     struct bag *bag = malloc(sizeof(bag));
     int fd = (op == EPOLLIN) ? c->rfd : c->wfd;
@@ -88,58 +88,26 @@ void monad_io_wait(MonadContext *ctx, struct device *dev,
 
 
 void nonblockM(MonadContext *ctx, struct device *dev, struct conn *c) {
-    int res;
-
-    res = _nonblocking(c->rfd, true);
+    int res = _nonblocking(c->rfd, true);
     if (res) {
         monad_failed(ctx, c, "enable nonblocking");
+        return;
     }
     
     if (c->rfd != c->wfd) {
         res = _nonblocking(c->wfd, true);
         if (res) {
             monad_failed(ctx, c, "enable nonblocking");
+            return;
         }
     }
-    
-    dev->nonblocking = true;
     monad_succeeded(ctx, c);
-}
-
-
-void blockM(MonadContext *ctx, struct device *dev, struct conn *c) {
-    int res;
-
-    res = _nonblocking(c->rfd, false);
-    if (res) {
-        monad_failed(ctx, c, "disable nonblocking");
-    }
-    
-    if (c->rfd != c->wfd) {
-        res = _nonblocking(c->wfd, false);
-        if (res) {
-            monad_failed(ctx, c, "disable nonblocking");
-        }
-    }
-    
-    dev->nonblocking = false;
-    monad_succeeded(ctx, c);
-}
-
-
-void awaitwM(MonadContext *ctx, struct device *dev, struct conn *c) {
-    monad_io_wait(ctx, dev, c, EPOLLOUT);
-}
-
-
-void awaitrM(MonadContext *ctx, struct device *dev, struct conn *c) {
-    monad_io_wait(ctx, dev, c, EPOLLIN);
 }
 
 
 void readerM(MonadContext *ctx, struct device *dev, struct conn *c) {
     ssize_t size;
-
+    
     /* Read from the file descriptor */
     size = read(c->rfd, c->data, dev->readsize);
 
@@ -151,7 +119,12 @@ void readerM(MonadContext *ctx, struct device *dev, struct conn *c) {
     
     /* Check for error */
     if (size < 0) {
-        monad_failed(ctx, c, "read");
+        if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
+            monad_again(ctx, dev, c, EPOLLIN);
+        }
+        else {
+            monad_failed(ctx, c, "read");
+        }
         return;
     }
     c->size = size;
@@ -160,43 +133,38 @@ void readerM(MonadContext *ctx, struct device *dev, struct conn *c) {
 
 
 void writerM(MonadContext *ctx, struct device *dev, struct conn *c) {
-    /* Empty line */
-    if (c->size == 1) {
-        monad_succeeded(ctx, c);
-        return;
-    }
+    ssize_t size;
 
-    ssize_t size = write(c->wfd, c->data, c->size);
+    size = write(c->wfd, c->data, c->size);
     if (size < 0) {
-        monad_failed(ctx, c, "write");
+        if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
+            monad_again(ctx, dev, c, EPOLLIN);
+        }
+        else {
+            monad_failed(ctx, c, "write");
+        }
         return;
     }
     monad_succeeded(ctx, c);
 }
 
 
-struct monad * readerF(struct device *dev) {
-    Monad *echo = MONAD_RETURN(      awaitrM, &dev);
-                  MONAD_APPEND(echo, readerM, &dev);
-   
-    return echo;
-}
-
-
-struct monad * writerF(struct device *dev) {
-    Monad *echo = MONAD_RETURN(      awaitwM, &dev);
-                  MONAD_APPEND(echo, writerM, &dev);
-   
-    return echo;
-}
-
-
 struct monad * echoF(struct device *dev) {
-    Monad *echo = readerF(dev);
-    monad_bind(echo, writerF(dev));
+    Monad *echo = MONAD_RETURN(      readerM, dev);
+                  MONAD_APPEND(echo, writerM, dev);
+    
     monad_loop(echo);
     return echo;
 }
+
+
+struct monad * echoLoopF(struct device *dev) {
+    Monad *echo = echoF(dev);
+    monad_loop(echo);
+    return echo;
+}
+
+
 int monad_io_run(struct monad *m, struct conn *conn, monad_finish finish) {
     struct epoll_event events[MAX_EVENTS];
     struct epoll_event ev;
@@ -208,7 +176,7 @@ int monad_io_run(struct monad *m, struct conn *conn, monad_finish finish) {
     struct device *dev;
 
     // TODO: run multiple monads, then wait
-    monad_run(m, conn, finish);
+    monad_runall(m, conn, finish);
     
     while (_waitfds) {
         nfds = epoll_wait(_epfd, events, MAX_EVENTS, -1);
@@ -239,7 +207,7 @@ int monad_io_run(struct monad *m, struct conn *conn, monad_finish finish) {
                 monad_failed(ctx, conn, "Connection Error");
             }
             else {
-                monad_succeeded(ctx, conn);
+                monad_execute(ctx, conn);
             }
         }
     }
