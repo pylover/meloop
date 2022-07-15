@@ -24,17 +24,23 @@ static void finish(MonadContext *ctx, struct conn *c,
 
 static void client_connected(MonadContext *ctx, struct conn *c, 
         const char *reason) {
-    printf("Client connected: %d\n", c->rfd);
+    struct sockaddr_in addr = c->addr;
+    printf("%s:%d Connected.\n", inet_ntoa(addr.sin_addr), 
+            addr.sin_port);
 }
 
 
 static void client_closed(MonadContext *ctx, struct conn *c, 
         const char *reason) {
+    struct sockaddr_in addr = c->addr;
+    
     if (reason != NULL) {
-        printf("client error: %d %s\n", c->rfd, reason);
+        printf("%s:%d Error: %s\n", inet_ntoa(addr.sin_addr), 
+            addr.sin_port, reason);
     }
     else {
-        printf("client closed: %d\n", c->rfd);
+        printf("%s:%d Disconnected.\n", inet_ntoa(addr.sin_addr), 
+            addr.sin_port);
     }
 }
 

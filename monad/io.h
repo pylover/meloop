@@ -5,6 +5,9 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <netinet/ip.h>
 
 
 struct io_props {
@@ -21,6 +24,9 @@ struct conn {
     /* Buffer */
     size_t size;
     char *data;
+    
+    /* Address */
+    struct sockaddr_in addr;
 
     /* user void ptr */
     void *ptr;

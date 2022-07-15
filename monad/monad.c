@@ -154,13 +154,20 @@ struct monad * monad_append(struct monad *m, monad_task task, void* args) {
 
 void monad_failed(struct monad_context* ctx, void *data, 
         const char *format, ...) {
-    char reason[MONAM_REASON_BUFFSIZE]; 
+    char buff[MONAM_REASON_BUFFSIZE]; 
+    char *reason;
     va_list args;
 
     /* var args */
-    va_start(args, format);
-    snprintf(reason, MONAM_REASON_BUFFSIZE, format, args);
-    va_end(args);
+    if (format != NULL) {
+        va_start(args, format);
+        snprintf(buff, MONAM_REASON_BUFFSIZE, format, args);
+        va_end(args);
+        reason = buff;
+    }
+    else {
+        reason = NULL;
+    }
 
     if (ctx->finish != NULL) {
         ctx->finish(ctx, data, reason);

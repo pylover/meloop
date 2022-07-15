@@ -203,7 +203,7 @@ int monad_io_run(struct monad *m, struct conn *conn, monad_finish finish) {
 
             if (ev.events & EPOLLRDHUP) {
                 _dearm(fd);
-                monad_failed(ctx, conn, "Remote hanged up");
+                monad_failed(ctx, conn, NULL);
             }
             else if (ev.events & EPOLLERR) {
                 _dearm(fd);

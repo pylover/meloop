@@ -6,7 +6,6 @@
 #include <string.h>
 #include <errno.h>
 #include <err.h>
-#include <sys/socket.h>
 #include <sys/epoll.h>
 
 
@@ -96,8 +95,7 @@ void acceptM(MonadContext *ctx, struct io_props *dev, struct conn *c) {
         }
         return;
 	}
-    
-    // TODO: printf("Client connected: %s\n", inet_ntoa(addr.sin_addr));
+   
     /* Will be free at tcp: client_free() */
     struct conn *cc = malloc(sizeof(struct conn));
     if (cc == NULL) {
@@ -107,6 +105,7 @@ void acceptM(MonadContext *ctx, struct io_props *dev, struct conn *c) {
     cc->rfd = fd; 
     cc->wfd = fd; 
     cc->size = 0; 
+    memcpy(&(cc->addr), &addr, sizeof(struct sockaddr_in));
 
     /* Will be free at tcp: client_free() */
     cc->data = malloc(dev->readsize);
