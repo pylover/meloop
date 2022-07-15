@@ -1,4 +1,3 @@
-#include "io.h"
 #include "tcp.h"
 
 #include <stdlib.h>

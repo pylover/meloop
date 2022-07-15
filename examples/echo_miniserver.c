@@ -1,17 +1,11 @@
-#include "monad/monad.h"
-#include "monad/io.h"
 #include "monad/tcp.h"
 
 #include <stdlib.h>
 
 
-#define CHUNK_SIZE  1024
-#define OK 0
-static struct io_props client_props = {false, CHUNK_SIZE};
-
-
-int main() {
+void main() {
     monad_io_init(0);
+    static struct io_props client_props = {false, 1024};
     
     struct bind bindinfo = {
         .host = "127.0.0.1",
@@ -22,5 +16,4 @@ int main() {
     monad_tcp_runserver(&bindinfo, NULL, NULL);
     monad_free(bindinfo.client_monad);
     monad_io_deinit();
-    return OK;
 }
