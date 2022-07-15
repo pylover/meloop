@@ -34,6 +34,9 @@ void monad_io_deinit();
 
 
 /* IO Monads */
+void nonblockM(MonadContext *ctx, struct device *dev, struct conn *c);
+void blockM(MonadContext *ctx, struct device *dev, struct conn *c);
+
 void awaitrM(MonadContext *ctx, struct device *dev, struct conn *c); 
 void awaitwM(MonadContext *ctx, struct device *dev, struct conn *c);
 

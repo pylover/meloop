@@ -221,5 +221,3 @@ void monad_free(struct monad *m) {
 void passM(struct monad_context *ctx, void *args, void *data) {
     monad_succeeded(ctx, data);
 }
-
-

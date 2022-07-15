@@ -3,6 +3,7 @@
 #include <err.h>
 #include <errno.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <sys/epoll.h>
 
@@ -22,6 +23,23 @@ struct bag {
     struct device *dev;
     struct conn *conn;
 };
+
+
+static int _nonblocking(int fd, bool enabled) {
+    int flags = fcntl(fd, F_GETFL);
+    if (flags < 0) {
+        return flags;
+    }
+    
+    if (enabled) {
+        flags |= O_NONBLOCK;
+    }
+    else {
+        flags &= ~O_NONBLOCK;
+    }
+
+    return fcntl(fd, F_SETFL, flags);
+}
 
 
 static int _arm(int fd, int op, struct bag *bag) {
@@ -69,6 +87,46 @@ void monad_io_wait(MonadContext *ctx, struct device *dev,
 }
 
 
+void nonblockM(MonadContext *ctx, struct device *dev, struct conn *c) {
+    int res;
+
+    res = _nonblocking(c->rfd, true);
+    if (res) {
+        monad_failed(ctx, c, "enable nonblocking");
+    }
+    
+    if (c->rfd != c->wfd) {
+        res = _nonblocking(c->wfd, true);
+        if (res) {
+            monad_failed(ctx, c, "enable nonblocking");
+        }
+    }
+    
+    dev->nonblocking = true;
+    monad_succeeded(ctx, c);
+}
+
+
+void blockM(MonadContext *ctx, struct device *dev, struct conn *c) {
+    int res;
+
+    res = _nonblocking(c->rfd, false);
+    if (res) {
+        monad_failed(ctx, c, "disable nonblocking");
+    }
+    
+    if (c->rfd != c->wfd) {
+        res = _nonblocking(c->wfd, false);
+        if (res) {
+            monad_failed(ctx, c, "disable nonblocking");
+        }
+    }
+    
+    dev->nonblocking = false;
+    monad_succeeded(ctx, c);
+}
+
+
 void awaitwM(MonadContext *ctx, struct device *dev, struct conn *c) {
     monad_io_wait(ctx, dev, c, EPOLLOUT);
 }
@@ -80,7 +138,10 @@ void awaitrM(MonadContext *ctx, struct device *dev, struct conn *c) {
 
 
 void readerM(MonadContext *ctx, struct device *dev, struct conn *c) {
-    ssize_t size = read(c->rfd, c->data, dev->readsize);
+    ssize_t size;
+
+    /* Read from the file descriptor */
+    size = read(c->rfd, c->data, dev->readsize);
 
     /* Check for EOF */
     if (size == 0) {
