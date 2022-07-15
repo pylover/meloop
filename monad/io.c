@@ -18,6 +18,8 @@ static volatile int _waitfds = 0;
 #define OK 0
 
 
+/* A simple bag whoch used by monad_again to hold monad's essential data 
+   until the underlying file descriptor becomes ready for read or write. */
 struct bag {
     MonadContext *ctx;
     struct io_props *props;
@@ -72,6 +74,7 @@ static int _dearm(int fd) {
 }
 
 
+/* Register a monad for wait for read or write. */
 void monad_again(MonadContext *ctx, struct io_props *props, 
         struct conn *c, int op) {
     struct bag *bag = malloc(sizeof(struct bag));
@@ -92,6 +95,7 @@ void monad_again(MonadContext *ctx, struct io_props *props,
 }
 
 
+/* Enable non-blocking mode for a connection. */
 void nonblockM(MonadContext *ctx, struct io_props *props, struct conn *c) {
     int res = _nonblocking(c->rfd, true);
     if (res) {
@@ -110,6 +114,7 @@ void nonblockM(MonadContext *ctx, struct io_props *props, struct conn *c) {
 }
 
 
+/* Reader monad */
 void readerM(MonadContext *ctx, struct io_props *props, struct conn *c) {
     ssize_t size;
 
@@ -137,6 +142,7 @@ void readerM(MonadContext *ctx, struct io_props *props, struct conn *c) {
 }
 
 
+/* Write monad */
 void writerM(MonadContext *ctx, struct io_props *props, struct conn *c) {
     ssize_t size;
 
@@ -154,6 +160,7 @@ void writerM(MonadContext *ctx, struct io_props *props, struct conn *c) {
 }
 
 
+/* Simple echo monad factory. */
 struct monad * echoF(struct io_props *props) {
     Monad *echo = MONAD_RETURN(      readerM, props);
                   MONAD_APPEND(echo, writerM, props);
@@ -163,6 +170,7 @@ struct monad * echoF(struct io_props *props) {
 }
 
 
+/* Simple looped echo monad factory. */
 struct monad * echoLoopF(struct io_props *props) {
     Monad *echo = echoF(props);
     monad_loop(echo);
@@ -170,6 +178,7 @@ struct monad * echoLoopF(struct io_props *props) {
 }
 
 
+/* Run a monad within io context. */
 int monad_io_run(struct monad *m, struct conn *data, monad_finish finish,
         volatile int *status) {
     struct epoll_event events[MAX_EVENTS];
