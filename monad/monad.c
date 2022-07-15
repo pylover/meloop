@@ -4,6 +4,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <err.h>
 
 
 #define MONAM_REASON_BUFFSIZE   256
@@ -34,6 +35,10 @@ void monad_execute(struct monad_context *ctx, void *data) {
 
 void monad_runall(struct monad *m, void *data, monad_finish finish) {
     struct monad_context *ctx = malloc(sizeof(struct monad_context));
+    if (ctx == NULL) {
+        err(EXIT_FAILURE, "Out of memory");
+    }
+
     ctx->monad = m;
     ctx->finish = finish;
     monad_execute(ctx, data);
@@ -182,6 +187,10 @@ void monad_succeeded(struct monad_context* ctx, void *result) {
 
 struct monad * monad_return(monad_task task, void *args) {
     struct monad *m = malloc(sizeof(struct monad));
+    if (m == NULL) {
+        err(EXIT_FAILURE, "Out of memory");
+    }
+
     m->run = task;
     m->args = args;
     m->next = NULL;

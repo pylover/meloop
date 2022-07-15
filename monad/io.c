@@ -75,6 +75,10 @@ static int _dearm(int fd) {
 void monad_again(MonadContext *ctx, struct io_props *props, 
         struct conn *c, int op) {
     struct bag *bag = malloc(sizeof(bag));
+    if (bag == NULL) {
+        err(EXIT_FAILURE, "Out of memory");
+    }
+
     int fd = (op == EPOLLIN) ? c->rfd : c->wfd;
     bag->ctx = ctx;
     bag->conn = c;

@@ -6,6 +6,7 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <err.h>
+#include <sys/epoll.h>
 
 
 #define CHUNK_SIZE  1024
@@ -66,7 +67,7 @@ int main() {
         .data = malloc(CHUNK_SIZE), 
         .ptr = NULL
     };
-    struct io_props dev = {false, CHUNK_SIZE};
+    struct io_props dev = {EPOLLET, CHUNK_SIZE};
 
     /* Draw circut */
     Monad *init = MONAD_RETURN(nonblockM, &dev);

@@ -98,15 +98,18 @@ void acceptM(MonadContext *ctx, struct io_props *dev, struct conn *c) {
     // TODO: printf("Client connected: %s\n", inet_ntoa(addr.sin_addr));
     // TODO: free
     struct conn *cc = malloc(sizeof(struct conn));
-
     if (cc == NULL) {
-        monad_failed(ctx, c, "malloc");
-        return;
+        err(EXIT_FAILURE, "Out of memory");
     }
-    cc->rfd = fd, 
-    cc->wfd = fd, 
-    cc->size = 0, 
-    cc->data = malloc(dev->readsize), 
+
+    cc->rfd = fd; 
+    cc->wfd = fd; 
+    cc->size = 0; 
+    // TODO: free
+    cc->data = malloc(dev->readsize);
+    if (cc->data == NULL) {
+        err(EXIT_FAILURE, "Out of memory");
+    }
     cc->ptr = info;
 
     if (info->client_connected != NULL) {
