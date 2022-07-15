@@ -80,6 +80,7 @@ void monad_again(MonadContext *ctx, struct io_props *props,
     }
 
     int fd = (op == EPOLLIN) ? c->rfd : c->wfd;
+    // printf("bag_alloc: %d\n", fd);
     bag->ctx = ctx;
     bag->props = props;
     bag->conn = c;
@@ -199,6 +200,7 @@ int monad_io_run(struct monad *m, struct conn *conn, monad_finish finish,
             props = bag->props;
             conn = bag->conn;
             fd = (ev.events && EPOLLIN) ? conn->rfd : conn->wfd;
+            // printf("bag_free: %d\n", fd);
             free(bag);
 
             if (ev.events & EPOLLRDHUP) {

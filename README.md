@@ -38,6 +38,12 @@ make echo_server
 gprof echo_server
 ```
 
+```bash
+make clean all 
+valgrind --tool=memcheck --leak-check=full ./echo_server
+valgrind --tool=massif ./echo_server 
+```
+
 
 ## Coding Convention
 

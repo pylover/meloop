@@ -26,6 +26,11 @@ struct monad {
 };
 
 
+void * monad_args(struct monad *m) {
+    return m->args;
+}
+
+
 void monad_execute(struct monad_context *ctx, void *data) {
     struct monad *m = ctx->monad;
     m->run(ctx, m->args, data);

@@ -1,8 +1,8 @@
 CFLAGS = \
 	-I.. \
+	-g \
 	-D_GNU_SOURCE=1
 
-#	-g \
 # LDFLAGS = -pg
 objects = $(patsubst %.c,%.o,$(wildcard ../monad/*.c))
 

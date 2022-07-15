@@ -10,6 +10,7 @@ typedef void (*monad_task) (MonadContext*, void* args, void *data);
 typedef void (*monad_finish) (MonadContext*, void *data, const char *reason);
 
 
+void * monad_args(struct monad *m);
 void monad_free(Monad *);
 Monad * monad_new();
 Monad * monad_return(monad_task, void*);

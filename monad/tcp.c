@@ -110,7 +110,8 @@ void acceptM(MonadContext *ctx, struct io_props *dev, struct conn *c) {
     memcpy(&(cc->addr), &addr, sizeof(struct sockaddr_in));
 
     /* Will be free at tcp.c: client_free() */
-    cc->data = malloc(dev->readsize);
+    struct io_props *cdev = monad_args(info->client_monad);
+    cc->data = malloc(cdev->readsize);
     if (cc->data == NULL) {
         close(fd);
         free(cc);
@@ -134,6 +135,7 @@ int monad_tcp_runserver(struct bind *info, monad_tcp_finish finish,
         .data = NULL,
         .size = 0
     };
+    // TODO: maybe enable edge triggering for listen socket
     struct io_props listen_props = {false, 0};
    
     /* Default backlog if not given. */
