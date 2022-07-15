@@ -82,7 +82,7 @@ int main() {
     monad_loop(loop);
     monad_bind(init, loop);
 
-    if (MONAD_IO_RUN(init, &c, finish)) {
+    if (MONAD_IO_RUN(init, &c, finish, NULL)) {
         err(1, "monad_io_run");
     }
    

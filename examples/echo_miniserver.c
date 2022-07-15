@@ -19,7 +19,7 @@ int main() {
         .client_monad = echoF(&client_props),
     };
     
-    monad_tcp_runserver(&bindinfo, NULL);
+    monad_tcp_runserver(&bindinfo, NULL, NULL);
     monad_free(bindinfo.client_monad);
     monad_io_deinit();
     return OK;

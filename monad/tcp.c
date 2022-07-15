@@ -122,7 +122,8 @@ void acceptM(MonadContext *ctx, struct io_props *dev, struct conn *c) {
 }
 
 
-void monad_tcp_runserver(struct bind *info, monad_tcp_finish finish) {
+int monad_tcp_runserver(struct bind *info, monad_tcp_finish finish, 
+        volatile int *status) {
     struct conn listenc = {
         .ptr = info
     };
@@ -145,10 +146,11 @@ void monad_tcp_runserver(struct bind *info, monad_tcp_finish finish) {
     monad_bind(listen_m, accept_m);
 
     /* Run it within IO context. */
-    if (MONAD_IO_RUN(listen_m, &listenc, (monad_finish)finish)) {
-        err(1, "monad_io_run");
-    }
+    int res = MONAD_IO_RUN(listen_m, &listenc, (monad_finish)finish, status);
    
     /* Dispose */
     monad_free(listen_m);
+    
+    /* return result */
+    return res;
 }

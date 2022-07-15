@@ -34,7 +34,8 @@ struct conn {
 
 
 void monad_again(MonadContext *, struct io_props *, struct conn *c, int op);
-int monad_io_run(struct monad *m, struct conn *conn, monad_finish);
+int monad_io_run(struct monad *m, struct conn *conn, monad_finish finish,
+        volatile int *status);
 void monad_io_init(int flags);
 void monad_io_deinit();
 
@@ -53,7 +54,7 @@ struct monad * writerF(struct io_props *dev);
 Monad * echoF(struct io_props *dev);
 
 
-#define MONAD_IO_RUN(m, c, f) monad_io_run(m, c, (monad_finish)(f))
+#define MONAD_IO_RUN(m, c, f, s) monad_io_run(m, c, (monad_finish)(f), (s))
 
 
 #endif

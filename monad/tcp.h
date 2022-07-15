@@ -20,8 +20,8 @@ struct bind {
 };
 
 
-void monad_tcp_runserver(struct bind *info, monad_tcp_finish finish);
-
+int monad_tcp_runserver(struct bind *info, monad_tcp_finish finish, 
+        volatile int *status);
 
 /* TCP Server Monads */
 void listenM(MonadContext *ctx, struct io_props *dev, struct conn *c);

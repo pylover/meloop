@@ -169,7 +169,8 @@ struct monad * echoLoopF(struct io_props *props) {
 }
 
 
-int monad_io_run(struct monad *m, struct conn *conn, monad_finish finish) {
+int monad_io_run(struct monad *m, struct conn *conn, monad_finish finish,
+        volatile int *status) {
     struct epoll_event events[MAX_EVENTS];
     struct epoll_event ev;
     struct bag *bag;
@@ -181,7 +182,7 @@ int monad_io_run(struct monad *m, struct conn *conn, monad_finish finish) {
 
     monad_runall(m, conn, finish);
     
-    while (_waitfds) {
+    while (((status == NULL) || (*status > EXIT_FAILURE)) && _waitfds) {
         nfds = epoll_wait(_epfd, events, MAX_EVENTS, -1);
         if (nfds < 0) {
             return ERR;
