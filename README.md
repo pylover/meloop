@@ -27,6 +27,8 @@ make echo_server
 #### Profiling
 
 
+##### gprof
+
 Run desired example, signal it with `CTRL+C`, then:
 
 ```bash
@@ -38,7 +40,10 @@ make echo_server
 gprof echo_server
 ```
 
+##### valgrind
+
 ```bash
+sudo apt install valgrind
 make clean all 
 valgrind --tool=memcheck --leak-check=full ./echo_server
 valgrind --tool=massif ./echo_server 
