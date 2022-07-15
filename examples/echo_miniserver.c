@@ -7,7 +7,7 @@
 
 #define CHUNK_SIZE  1024
 #define OK 0
-static struct io_props clientdev = {false, CHUNK_SIZE};
+static struct io_props client_props = {false, CHUNK_SIZE};
 
 
 int main() {
@@ -16,7 +16,7 @@ int main() {
     struct bind bindinfo = {
         .host = "127.0.0.1",
         .port = 9090,
-        .client_monad = echoF(&clientdev),
+        .client_monad = echoF(&client_props),
     };
     
     monad_tcp_runserver(&bindinfo, NULL);

@@ -121,7 +121,7 @@ void monad_tcp_runserver(struct bind *info, monad_tcp_finish finish) {
     struct conn listenc = {
         .ptr = info
     };
-    struct io_props dev = {false, 0};
+    struct io_props listen_props = {false, 0};
    
     /* Default backlog if not given. */
     if (info->backlog == 0) {
@@ -129,11 +129,11 @@ void monad_tcp_runserver(struct bind *info, monad_tcp_finish finish) {
     }
 
     /* Create an open monad chain for listen */
-    Monad *listen_m = MONAD_RETURN(          listenM,   &dev);
+    Monad *listen_m = MONAD_RETURN(          listenM,   &listen_props);
 
     /* Create a closed monad chain for accept a connection and wait for the
        next clinet. */
-    Monad *accept_m = MONAD_RETURN(acceptM, &dev);
+    Monad *accept_m = MONAD_RETURN(acceptM, &listen_props);
     monad_loop(accept_m);
     
     /* Bind them together */

@@ -8,7 +8,7 @@
 
 
 struct io_props {
-    bool edge_triggered;
+    int epollflags;
     int readsize;
 };
 

@@ -20,7 +20,7 @@ static volatile int _waitfds = 0;
 
 struct bag {
     MonadContext *ctx;
-    struct io_props *dev;
+    struct io_props *props;
     struct conn *conn;
 };
 
@@ -72,22 +72,22 @@ static int _dearm(int fd) {
 }
 
 
-void monad_again(MonadContext *ctx, struct io_props *dev, 
+void monad_again(MonadContext *ctx, struct io_props *props, 
         struct conn *c, int op) {
     struct bag *bag = malloc(sizeof(bag));
     int fd = (op == EPOLLIN) ? c->rfd : c->wfd;
     bag->ctx = ctx;
     bag->conn = c;
-    bag->dev = dev;
-
-    if (_arm(fd, op, bag)) {
+    bag->props = props;
+    
+    if (_arm(fd, op | props->epollflags, bag)) {
         monad_failed(ctx, c, "_arm");
         return;
     }
 }
 
 
-void nonblockM(MonadContext *ctx, struct io_props *dev, struct conn *c) {
+void nonblockM(MonadContext *ctx, struct io_props *props, struct conn *c) {
     int res = _nonblocking(c->rfd, true);
     if (res) {
         monad_failed(ctx, c, "enable nonblocking");
@@ -105,11 +105,11 @@ void nonblockM(MonadContext *ctx, struct io_props *dev, struct conn *c) {
 }
 
 
-void readerM(MonadContext *ctx, struct io_props *dev, struct conn *c) {
+void readerM(MonadContext *ctx, struct io_props *props, struct conn *c) {
     ssize_t size;
     
     /* Read from the file descriptor */
-    size = read(c->rfd, c->data, dev->readsize);
+    size = read(c->rfd, c->data, props->readsize);
 
     /* Check for EOF */
     if (size == 0) {
@@ -120,7 +120,7 @@ void readerM(MonadContext *ctx, struct io_props *dev, struct conn *c) {
     /* Check for error */
     if (size < 0) {
         if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
-            monad_again(ctx, dev, c, EPOLLIN);
+            monad_again(ctx, props, c, EPOLLIN);
         }
         else {
             monad_failed(ctx, c, "read");
@@ -132,13 +132,13 @@ void readerM(MonadContext *ctx, struct io_props *dev, struct conn *c) {
 }
 
 
-void writerM(MonadContext *ctx, struct io_props *dev, struct conn *c) {
+void writerM(MonadContext *ctx, struct io_props *props, struct conn *c) {
     ssize_t size;
 
     size = write(c->wfd, c->data, c->size);
     if (size < 0) {
         if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
-            monad_again(ctx, dev, c, EPOLLIN);
+            monad_again(ctx, props, c, EPOLLIN);
         }
         else {
             monad_failed(ctx, c, "write");
@@ -149,17 +149,17 @@ void writerM(MonadContext *ctx, struct io_props *dev, struct conn *c) {
 }
 
 
-struct monad * echoF(struct io_props *dev) {
-    Monad *echo = MONAD_RETURN(      readerM, dev);
-                  MONAD_APPEND(echo, writerM, dev);
+struct monad * echoF(struct io_props *props) {
+    Monad *echo = MONAD_RETURN(      readerM, props);
+                  MONAD_APPEND(echo, writerM, props);
     
     monad_loop(echo);
     return echo;
 }
 
 
-struct monad * echoLoopF(struct io_props *dev) {
-    Monad *echo = echoF(dev);
+struct monad * echoLoopF(struct io_props *props) {
+    Monad *echo = echoF(props);
     monad_loop(echo);
     return echo;
 }
@@ -173,7 +173,7 @@ int monad_io_run(struct monad *m, struct conn *conn, monad_finish finish) {
     int nfds;
     int fd;
     MonadContext *ctx;
-    struct io_props *dev;
+    struct io_props *props;
 
     // TODO: run multiple monads, then wait
     monad_runall(m, conn, finish);
@@ -193,7 +193,7 @@ int monad_io_run(struct monad *m, struct conn *conn, monad_finish finish) {
             ev = events[i];
             bag = (struct bag *) ev.data.ptr;
             ctx = bag->ctx;
-            dev = bag->dev;
+            props = bag->props;
             conn = bag->conn;
             fd = (ev.events && EPOLLIN) ? conn->rfd : conn->wfd;
             free(bag);

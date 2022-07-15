@@ -3,6 +3,7 @@
 #include "monad/tcp.h"
 
 #include <stdlib.h>
+#include <sys/epoll.h>
 
 
 #define CHUNK_SIZE  1024
@@ -41,7 +42,10 @@ static void client_closed(MonadContext *ctx, struct conn *c,
 int main() {
     monad_io_init(0);
     
-    static struct io_props client_props = {false, CHUNK_SIZE};
+    static struct io_props client_props = {
+        .epollflags = EPOLLET, 
+        .readsize = CHUNK_SIZE
+    };
     
     struct bind bindinfo = {
         .host = "127.0.0.1",
