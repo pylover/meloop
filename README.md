@@ -24,6 +24,21 @@ make echo_server
 ./echo_server
 ```
 
+#### Profiling
+
+
+Run desired example, signal it with `CTRL+C`, then:
+
+```bash
+cd examples
+
+make echo_server
+./echo_server
+
+gprof echo_server
+```
+
+
 ## Coding Convention
 
 - Opaque objects: PascalCase
