@@ -84,6 +84,7 @@ void monad_again(MonadContext *ctx, struct io_props *props,
     bag->ctx = ctx;
     bag->props = props;
     bag->conn = c;
+    c->garbage = bag;
     
     if (_arm(fd, op | props->epollflags, bag)) {
         monad_failed(ctx, c, "_arm");
@@ -177,19 +178,24 @@ int monad_io_run(struct monad *m, struct conn *conn, monad_finish finish,
     int i;
     int nfds;
     int fd;
+    int ret = OK;
+    MonadContext *parent_context;
     MonadContext *ctx;
     struct io_props *props;
 
-    monad_runall(m, conn, finish);
+    /* trigger the monad */
+    parent_context = monad_runall(m, conn, finish);
     
     while (((status == NULL) || (*status > EXIT_FAILURE)) && _waitfds) {
         nfds = epoll_wait(_epfd, events, MAX_EVENTS, -1);
         if (nfds < 0) {
-            return ERR;
+            ret = ERR;
+            break;
         }
 
         if (nfds == 0) {
-            return OK;
+            ret = OK;
+            break;
         }
         
         for (i = 0; i < nfds; i++) {
@@ -202,6 +208,7 @@ int monad_io_run(struct monad *m, struct conn *conn, monad_finish finish,
             fd = (ev.events && EPOLLIN) ? conn->rfd : conn->wfd;
             // printf("bag_free: %d\n", fd);
             free(bag);
+            conn->garbage = NULL;
 
             if (ev.events & EPOLLRDHUP) {
                 _dearm(fd);
@@ -216,7 +223,10 @@ int monad_io_run(struct monad *m, struct conn *conn, monad_finish finish,
             }
         }
     }
-    return OK;
+    if (parent_context != NULL) {
+        monad_terminate(parent_context, conn, NULL);
+    }
+    return ret;
 }
 
 

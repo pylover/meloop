@@ -23,7 +23,10 @@ void monad_bind(Monad*, Monad*);
 int monad_loop(struct monad *m1);
 
 void monad_execute(struct monad_context *ctx, void *data);
-void monad_runall(struct monad *m, void *data, monad_finish finish);
+struct monad_context * monad_runall(struct monad *m, void *data, 
+        monad_finish finish);
+void monad_terminate(struct monad_context *ctx, void *data, 
+        const char *reason);
 
 
 /* Monads */

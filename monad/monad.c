@@ -37,7 +37,8 @@ void monad_execute(struct monad_context *ctx, void *data) {
 }
 
 
-void monad_runall(struct monad *m, void *data, monad_finish finish) {
+struct monad_context * monad_runall(struct monad *m, void *data, 
+        monad_finish finish) {
     struct monad_context *ctx = malloc(sizeof(struct monad_context));
     if (ctx == NULL) {
         err(EXIT_FAILURE, "Out of memory");
@@ -46,6 +47,7 @@ void monad_runall(struct monad *m, void *data, monad_finish finish) {
     ctx->monad = m;
     ctx->finish = finish;
     monad_execute(ctx, data);
+    return ctx;
 }
 
 
@@ -157,7 +159,17 @@ struct monad * monad_append(struct monad *m, monad_task task, void* args) {
 }
 
 
-void monad_failed(struct monad_context* ctx, void *data, 
+void monad_terminate(struct monad_context *ctx, void *data, 
+        const char *reason) {
+    
+    if (ctx->finish != NULL) {
+        ctx->finish(ctx, data, reason);
+    }
+    free(ctx);
+}
+
+
+void monad_failed(struct monad_context *ctx, void *data, 
         const char *format, ...) {
     char buff[MONAM_REASON_BUFFSIZE]; 
     char *reason;
@@ -173,21 +185,15 @@ void monad_failed(struct monad_context* ctx, void *data,
     else {
         reason = NULL;
     }
-
-    if (ctx->finish != NULL) {
-        ctx->finish(ctx, data, reason);
-    }
-    free(ctx);
+    
+    monad_terminate(ctx, data, reason);
 }
 
 
 void monad_succeeded(struct monad_context* ctx, void *result) {
     struct monad *next = ctx->monad->next;
     if (next == NULL) {
-        if (ctx->finish != NULL) {
-            ctx->finish(ctx, result, NULL);
-        }
-        free(ctx);
+        monad_terminate(ctx, result, NULL);
         return;
     }
 
@@ -215,6 +221,7 @@ struct monad * monad_new() {
 };
 
 
+// TODO: with closed field, the first argument is not required, remove it.
 static void _monad_free(struct monad *first, struct monad *m) {
     if (m == NULL) {
         /* Disposition comppleted. */

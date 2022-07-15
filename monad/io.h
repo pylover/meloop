@@ -30,6 +30,9 @@ struct conn {
 
     /* user void ptr */
     void *ptr;
+
+    /* Garbage for internal use, it should be freed by user. */
+    void *garbage;
 };
 
 

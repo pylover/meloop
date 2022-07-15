@@ -31,6 +31,7 @@ void catch_signal() {
 
 static void finish(MonadContext *ctx, struct conn *c, 
         const char *reason) {
+    printf("Terminating TCP Server\n");
     if (reason != NULL) {
         perror(reason);
         status = EXIT_FAILURE;

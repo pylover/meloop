@@ -159,6 +159,7 @@ int monad_tcp_runserver(struct bind *info, monad_tcp_finish finish,
    
     /* Dispose */
     monad_free(listen_m);
+    free(listenc.garbage);
     
     /* return result */
     return res;
