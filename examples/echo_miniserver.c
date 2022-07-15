@@ -1,7 +1,5 @@
 #include "monad/tcp.h"
 
-#include <stdlib.h>
-
 
 void main() {
     monad_io_init(0);

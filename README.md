@@ -17,7 +17,6 @@ make clean all
 
 ```c
 #include "monad/tcp.h"
-#include <stdlib.h>
 
 
 void main() {
