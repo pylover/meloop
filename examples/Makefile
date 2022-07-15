@@ -5,8 +5,7 @@ CFLAGS = \
 objects = $(patsubst %.c,%.o,$(wildcard ../monad/*.c))
 
 
-# all: echo_shell echo_server echo_miniserver
-all: echo_shell echo_server
+all: echo_shell echo_server echo_miniserver
 
 
 echo_shell: echo_shell.c $(objects)
