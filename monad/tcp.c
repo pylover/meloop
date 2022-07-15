@@ -144,7 +144,7 @@ int monad_tcp_runserver(struct bind *info, monad_tcp_finish finish,
     }
 
     /* Create an open monad chain for listen */
-    Monad *listen_m = MONAD_RETURN(          listenM,   &listen_props);
+    Monad *listen_m = MONAD_RETURN(listenM, &listen_props);
 
     /* Create a closed monad chain for accept a connection and wait for the
        next clinet. */
