@@ -27,6 +27,8 @@ clean::
 	- rm echo_shell 
 	- rm echo_server 
 	- rm echo_miniserver 
+	- rm massif.out.*
+	- rm gmon.out
 	cd ..; make clean
 
 
