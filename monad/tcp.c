@@ -99,7 +99,9 @@ void acceptM(MonadContext *ctx, struct io_props *dev, struct conn *c) {
     /* Will be free at tcp: client_free() */
     struct conn *cc = malloc(sizeof(struct conn));
     if (cc == NULL) {
-        err(EXIT_FAILURE, "Out of memory");
+        close(fd);
+        monad_failed(ctx, c, "Out of memory");
+        return;
     }
 
     cc->rfd = fd; 
@@ -107,10 +109,13 @@ void acceptM(MonadContext *ctx, struct io_props *dev, struct conn *c) {
     cc->size = 0; 
     memcpy(&(cc->addr), &addr, sizeof(struct sockaddr_in));
 
-    /* Will be free at tcp: client_free() */
+    /* Will be free at tcp.c: client_free() */
     cc->data = malloc(dev->readsize);
     if (cc->data == NULL) {
-        err(EXIT_FAILURE, "Out of memory");
+        close(fd);
+        free(cc);
+        monad_failed(ctx, c, "Out of memory");
+        return;
     }
     cc->ptr = info;
 
@@ -125,7 +130,9 @@ void acceptM(MonadContext *ctx, struct io_props *dev, struct conn *c) {
 int monad_tcp_runserver(struct bind *info, monad_tcp_finish finish, 
         volatile int *status) {
     struct conn listenc = {
-        .ptr = info
+        .ptr = info,
+        .data = NULL,
+        .size = 0
     };
     struct io_props listen_props = {false, 0};
    

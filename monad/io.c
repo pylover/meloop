@@ -74,19 +74,18 @@ static int _dearm(int fd) {
 
 void monad_again(MonadContext *ctx, struct io_props *props, 
         struct conn *c, int op) {
-    struct bag *bag = malloc(sizeof(bag));
+    struct bag *bag = malloc(sizeof(struct bag));
     if (bag == NULL) {
         err(EXIT_FAILURE, "Out of memory");
     }
 
     int fd = (op == EPOLLIN) ? c->rfd : c->wfd;
     bag->ctx = ctx;
-    bag->conn = c;
     bag->props = props;
+    bag->conn = c;
     
     if (_arm(fd, op | props->epollflags, bag)) {
         monad_failed(ctx, c, "_arm");
-        return;
     }
 }
 
@@ -111,7 +110,7 @@ void nonblockM(MonadContext *ctx, struct io_props *props, struct conn *c) {
 
 void readerM(MonadContext *ctx, struct io_props *props, struct conn *c) {
     ssize_t size;
-    
+
     /* Read from the file descriptor */
     size = read(c->rfd, c->data, props->readsize);
 
