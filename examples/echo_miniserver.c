@@ -7,7 +7,7 @@
 
 #define CHUNK_SIZE  1024
 #define OK 0
-static struct device clientdev = {false, CHUNK_SIZE};
+static struct io_props clientdev = {false, CHUNK_SIZE};
 
 
 int main() {

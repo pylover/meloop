@@ -24,8 +24,8 @@ void monad_tcp_runserver(struct bind *info, monad_tcp_finish finish);
 
 
 /* TCP Server Monads */
-void listenM(MonadContext *ctx, struct device *dev, struct conn *c);
-void acceptM(MonadContext *ctx, struct device *dev, struct conn *c);
+void listenM(MonadContext *ctx, struct io_props *dev, struct conn *c);
+void acceptM(MonadContext *ctx, struct io_props *dev, struct conn *c);
 
 
 #endif

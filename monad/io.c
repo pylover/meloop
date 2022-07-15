@@ -20,7 +20,7 @@ static volatile int _waitfds = 0;
 
 struct bag {
     MonadContext *ctx;
-    struct device *dev;
+    struct io_props *dev;
     struct conn *conn;
 };
 
@@ -72,7 +72,7 @@ static int _dearm(int fd) {
 }
 
 
-void monad_again(MonadContext *ctx, struct device *dev, 
+void monad_again(MonadContext *ctx, struct io_props *dev, 
         struct conn *c, int op) {
     struct bag *bag = malloc(sizeof(bag));
     int fd = (op == EPOLLIN) ? c->rfd : c->wfd;
@@ -87,7 +87,7 @@ void monad_again(MonadContext *ctx, struct device *dev,
 }
 
 
-void nonblockM(MonadContext *ctx, struct device *dev, struct conn *c) {
+void nonblockM(MonadContext *ctx, struct io_props *dev, struct conn *c) {
     int res = _nonblocking(c->rfd, true);
     if (res) {
         monad_failed(ctx, c, "enable nonblocking");
@@ -105,7 +105,7 @@ void nonblockM(MonadContext *ctx, struct device *dev, struct conn *c) {
 }
 
 
-void readerM(MonadContext *ctx, struct device *dev, struct conn *c) {
+void readerM(MonadContext *ctx, struct io_props *dev, struct conn *c) {
     ssize_t size;
     
     /* Read from the file descriptor */
@@ -132,7 +132,7 @@ void readerM(MonadContext *ctx, struct device *dev, struct conn *c) {
 }
 
 
-void writerM(MonadContext *ctx, struct device *dev, struct conn *c) {
+void writerM(MonadContext *ctx, struct io_props *dev, struct conn *c) {
     ssize_t size;
 
     size = write(c->wfd, c->data, c->size);
@@ -149,7 +149,7 @@ void writerM(MonadContext *ctx, struct device *dev, struct conn *c) {
 }
 
 
-struct monad * echoF(struct device *dev) {
+struct monad * echoF(struct io_props *dev) {
     Monad *echo = MONAD_RETURN(      readerM, dev);
                   MONAD_APPEND(echo, writerM, dev);
     
@@ -158,7 +158,7 @@ struct monad * echoF(struct device *dev) {
 }
 
 
-struct monad * echoLoopF(struct device *dev) {
+struct monad * echoLoopF(struct io_props *dev) {
     Monad *echo = echoF(dev);
     monad_loop(echo);
     return echo;
@@ -173,7 +173,7 @@ int monad_io_run(struct monad *m, struct conn *conn, monad_finish finish) {
     int nfds;
     int fd;
     MonadContext *ctx;
-    struct device *dev;
+    struct io_props *dev;
 
     // TODO: run multiple monads, then wait
     monad_runall(m, conn, finish);

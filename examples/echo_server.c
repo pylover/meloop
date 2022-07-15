@@ -9,7 +9,6 @@
 #define ERROR -1
 #define OK 0
 static volatile int status = OK;
-static struct device clientdev = {false, CHUNK_SIZE};
 
 
 static void finish(MonadContext *ctx, struct conn *c, 
@@ -42,11 +41,13 @@ static void client_closed(MonadContext *ctx, struct conn *c,
 int main() {
     monad_io_init(0);
     
+    static struct io_props client_props = {false, CHUNK_SIZE};
+    
     struct bind bindinfo = {
         .host = "127.0.0.1",
         .port = 9090,
         .backlog = 2,
-        .client_monad = echoF(&clientdev),
+        .client_monad = echoF(&client_props),
         .client_connected = client_connected,
         .client_closed = client_closed
     };

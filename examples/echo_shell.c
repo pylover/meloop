@@ -15,7 +15,7 @@
 static volatile int status = OK;
 
 
-void promptM(MonadContext *ctx, struct device *dev, struct conn *c) {
+void promptM(MonadContext *ctx, struct io_props *dev, struct conn *c) {
     c->size = sprintf(c->data, ">>> ");
     writerM(ctx, dev, c);
 }
@@ -66,7 +66,7 @@ int main() {
         .data = malloc(CHUNK_SIZE), 
         .ptr = NULL
     };
-    struct device dev = {false, CHUNK_SIZE};
+    struct io_props dev = {false, CHUNK_SIZE};
 
     /* Draw circut */
     Monad *init = MONAD_RETURN(nonblockM, &dev);

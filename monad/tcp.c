@@ -20,7 +20,7 @@ static void _client_free(struct conn *c) {
 }
 
 
-void listenM(MonadContext *ctx, struct device *dev, struct conn *c) {
+void listenM(MonadContext *ctx, struct io_props *dev, struct conn *c) {
     int fd;
     int option = 1;
     int res;
@@ -78,7 +78,7 @@ static void client_closed(MonadContext *ctx, struct conn *c,
 }
 
 
-void acceptM(MonadContext *ctx, struct device *dev, struct conn *c) {
+void acceptM(MonadContext *ctx, struct io_props *dev, struct conn *c) {
 	int fd;
 	socklen_t addrlen = sizeof(struct sockaddr);
     struct bind *info = (struct bind*) c->ptr;
@@ -121,7 +121,7 @@ void monad_tcp_runserver(struct bind *info, monad_tcp_finish finish) {
     struct conn listenc = {
         .ptr = info
     };
-    struct device dev = {false, 0};
+    struct io_props dev = {false, 0};
    
     /* Default backlog if not given. */
     if (info->backlog == 0) {
