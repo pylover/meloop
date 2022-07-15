@@ -3,7 +3,10 @@
 
 void main() {
     monad_io_init(0);
-    static struct io_props client_props = {false, 1024};
+    static struct io_props client_props = {
+        .epollflags = EPOLLET, 
+        .readsize = 1024
+    };
     
     struct bind bindinfo = {
         .host = "127.0.0.1",
