@@ -11,9 +11,10 @@
 
 #define CHUNK_SIZE  1024
 
+#define WORKING 9999
 #define ERROR -1
 #define OK 0
-static volatile int status = OK;
+static volatile int status = WORKING;
 
 
 void promptM(MonadContext *ctx, struct io_props *dev, struct conn *c) {
@@ -24,12 +25,19 @@ void promptM(MonadContext *ctx, struct io_props *dev, struct conn *c) {
 
 void resetM(MonadContext *ctx, void *, struct conn *c) {
     c->size = 0;
+    memset(c->data, 0, CHUNK_SIZE);
     monad_succeeded(ctx, c);
 }
 
 
 void caseitM(MonadContext *ctx, void *, struct conn *c) {
     char *s = c->data;
+   
+    /* Ignore empty line */
+    if (strlen(s) == 1) {
+        s[0] = 0;
+    }
+
     size_t l = c->size;
     while (l) {
         *s = toupper((unsigned char) *s);
@@ -41,15 +49,17 @@ void caseitM(MonadContext *ctx, void *, struct conn *c) {
 
 
 void finish(MonadContext *ctx, struct conn *c, const char *reason) {
-    /* CTRL+D */
-    if (strstr(reason, "EOF")) {
-        printf("%s\n", reason);
-        status = OK;
-        return;
-    }
-    else {
-        perror(reason);
-        status = ERROR;
+    if (reason != NULL) {
+        /* CTRL+D */
+        if (strstr(reason, "EOF")) {
+            printf("%s\n", reason);
+            status = OK;
+            return;
+        }
+        else {
+            perror(reason);
+            status = ERROR;
+        }
     }
     
     printf("\n");
@@ -73,6 +83,7 @@ int main() {
     Monad *init = MONAD_RETURN(nonblockM, &dev);
 
     Monad *loop = MONAD_RETURN(      promptM, &dev);
+                  MONAD_APPEND(loop, resetM,  NULL);
                   MONAD_APPEND(loop, readerM, &dev);
                   MONAD_APPEND(loop, caseitM, NULL);
                   MONAD_APPEND(loop, writerM, &dev);
@@ -81,11 +92,16 @@ int main() {
     /* Loop/Close it */
     monad_loop(loop);
     monad_bind(init, loop);
-
-    if (MONAD_IO_RUN(init, &c, finish, NULL)) {
+   
+    /* Run echo shell monad */
+    MONAD_RUN(init, &c, finish);
+    
+    /* Start and wait for event loop */
+    if (monad_io_loop(&status)) {
         err(1, "monad_io_run");
     }
-   
+    
+    /* Dispose */
     if (c.data != NULL) {
         free(c.data);
     }

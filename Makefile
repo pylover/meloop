@@ -1,6 +1,7 @@
 CC = gcc
 CFLAGS = \
 	-I. \
+	-fms-extensions \
 	-D_GNU_SOURCE=1
 
 # Uncomment for production

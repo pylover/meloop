@@ -1,9 +1,9 @@
 #include "monad/tcp.h"
+#include "monad/random.h"
 
 #include <stdlib.h>
 #include <sys/epoll.h>
 #include <signal.h>
-#include <string.h>
 #include <err.h>
 
 
@@ -30,7 +30,7 @@ void catch_signal() {
 
 static void finish(MonadContext *ctx, struct conn *c, 
         const char *reason) {
-    printf("Terminating TCP Server\n");
+    printf("Terminating TCP Connection\n");
     if (reason != NULL) {
         perror(reason);
         status = EXIT_FAILURE;
@@ -39,14 +39,14 @@ static void finish(MonadContext *ctx, struct conn *c,
 }
 
 
-static void client_connected(MonadContext *ctx, struct conn *c, 
+static void connected(MonadContext *ctx, struct conn *c, 
         const char *reason) {
     struct sockaddr_in addr = c->addr;
     printf("%s:%d Connected.\n", inet_ntoa(addr.sin_addr), addr.sin_port);
 }
 
 
-static void client_closed(MonadContext *ctx, struct conn *c, 
+static void disconnected(MonadContext *ctx, struct conn *c, 
         const char *reason) {
     struct sockaddr_in addr = c->addr;
     
@@ -64,26 +64,39 @@ static void client_closed(MonadContext *ctx, struct conn *c,
 int main() {
     catch_signal();
     monad_io_init(0);
-        
-    static struct io_props client_props = {
+    
+    static struct rand_props randprops = {
+        .epollflags = EPOLLET,
+        .readsize = CHUNK_SIZE
+    };
+    static struct io_props ioprops = {
         .epollflags = EPOLLET, 
         .readsize = CHUNK_SIZE
     };
     
-    struct bind bindinfo = {
+    Monad *init = MONAD_RETURN(      urandom_openM, &randprops);
+
+    // Monad *init = MONAD_RETURN(      urandom_openM, &props);
+    //               MONAD_APPEND(init, connectM,      &props);
+    // Monad *loop = MONAD_RETURN(      urandomM,      &props);
+    //               MONAD_APPEND(loop, writerM,       &props);
+    //               MONAD_APPEND(loop, readerM,       &props);
+    //               MONAD_APPEND(loop, printM,        &props);
+    // monad_loop(loop);
+    // monad_bind(init, loop);
+
+    struct connect connectinfo = {
         .host = "127.0.0.1",
         .port = 9090,
-        .backlog = 2,
-        // TODO: rename to worker
-        .worker = echoloopF(&client_props),
-        .client_connected = client_connected,
-        .client_closed = client_closed
+        .worker = init,
+        .connected = connected,
+        .disconnected = disconnected
     };
     
-    if (monad_tcp_runserver(&bindinfo, finish, &status)) {
+    if (monad_tcp_connect(&connectinfo, finish, &status)) {
         status = EXIT_FAILURE;
     }
-    monad_free(bindinfo.worker);
+    monad_free(connectinfo.worker);
     monad_io_deinit();
     return status;
 }

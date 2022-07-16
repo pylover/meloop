@@ -4,6 +4,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 #include <err.h>
 
 
@@ -26,24 +27,26 @@ struct monad {
 };
 
 
-void * monad_args(struct monad *m) {
+void * 
+monad_args(struct monad *m) {
     return m->args;
 }
 
 
-void monad_execute(struct monad_context *ctx, void *data) {
+void 
+monad_execute(struct monad_context *ctx, void *data) {
     struct monad *m = ctx->monad;
     m->run(ctx, m->args, data);
 }
 
 
-struct monad_context * monad_runall(struct monad *m, void *data, 
-        monad_finish finish) {
+struct monad_context * 
+monad_run(struct monad *m, void *data, monad_finish finish) {
     struct monad_context *ctx = malloc(sizeof(struct monad_context));
     if (ctx == NULL) {
         err(EXIT_FAILURE, "Out of memory");
     }
-
+    
     ctx->monad = m;
     ctx->finish = finish;
     monad_execute(ctx, data);
@@ -68,7 +71,8 @@ struct monad_context * monad_runall(struct monad *m, void *data,
   |_|   |_|    |_____|
 
 */
-void monad_bind(struct monad *m1, struct monad *m2) {
+void 
+monad_bind(struct monad *m1, struct monad *m2) {
     struct monad *m1last = m1;
     struct monad *m2last = m2;
 
@@ -121,7 +125,8 @@ void monad_bind(struct monad *m1, struct monad *m2) {
   |_|   
 
 */
-int monad_loop(struct monad *m1) {
+int 
+monad_loop(struct monad *m1) {
     struct monad *last = m1;
     while (true) {
         if (last->next == NULL) {
@@ -152,14 +157,16 @@ int monad_loop(struct monad *m1) {
   |_|          |___|
 
 */
-struct monad * monad_append(struct monad *m, monad_task task, void* args) {
+struct monad * 
+monad_append(struct monad *m, monad_task task, void* args) {
     struct monad *newmonad = monad_return(task, args);
     monad_bind(m, newmonad);
     return newmonad;
 }
 
 
-void monad_terminate(struct monad_context *ctx, void *data, 
+void 
+monad_terminate(struct monad_context *ctx, void *data, 
         const char *reason) {
     
     if (ctx->finish != NULL) {
@@ -169,7 +176,8 @@ void monad_terminate(struct monad_context *ctx, void *data,
 }
 
 
-void monad_failed(struct monad_context *ctx, void *data, 
+void 
+monad_failed(struct monad_context *ctx, void *data, 
         const char *format, ...) {
     char buff[MONAM_REASON_BUFFSIZE]; 
     char *reason;
@@ -190,7 +198,8 @@ void monad_failed(struct monad_context *ctx, void *data,
 }
 
 
-void monad_succeeded(struct monad_context* ctx, void *result) {
+void 
+monad_succeeded(struct monad_context* ctx, void *result) {
     struct monad *next = ctx->monad->next;
     if (next == NULL) {
         monad_terminate(ctx, result, NULL);
@@ -202,7 +211,8 @@ void monad_succeeded(struct monad_context* ctx, void *result) {
 }
 
 
-struct monad * monad_return(monad_task task, void *args) {
+struct monad * 
+monad_return(monad_task task, void *args) {
     struct monad *m = malloc(sizeof(struct monad));
     if (m == NULL) {
         err(EXIT_FAILURE, "Out of memory");
@@ -216,13 +226,15 @@ struct monad * monad_return(monad_task task, void *args) {
 };
 
 
-struct monad * monad_new() {
+struct monad * 
+monad_new() {
     return monad_return(passM, NULL); 
 };
 
 
 // TODO: with closed field, the first argument is not required, remove it.
-static void _monad_free(struct monad *first, struct monad *m) {
+static void 
+_monad_free(struct monad *first, struct monad *m) {
     if (m == NULL) {
         /* Disposition comppleted. */
         return;
@@ -241,7 +253,8 @@ static void _monad_free(struct monad *first, struct monad *m) {
 }
 
 
-void monad_free(struct monad *m) {
+void 
+monad_free(struct monad *m) {
     if (m == NULL) {
         return;
     }
@@ -250,6 +263,7 @@ void monad_free(struct monad *m) {
 }
 
 
-void passM(struct monad_context *ctx, void *args, void *data) {
+void 
+passM(struct monad_context *ctx, void *args, void *data) {
     monad_succeeded(ctx, data);
 }

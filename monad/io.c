@@ -3,6 +3,7 @@
 #include <err.h>
 #include <errno.h>
 #include <unistd.h>
+#include <string.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <sys/epoll.h>
@@ -18,7 +19,7 @@ static volatile int _waitfds = 0;
 #define OK 0
 
 
-/* A simple bag whoch used by monad_again to hold monad's essential data 
+/* A simple bag whoch used by monad_io_again to hold monad's essential data 
    until the underlying file descriptor becomes ready for read or write. */
 struct bag {
     MonadContext *ctx;
@@ -27,7 +28,8 @@ struct bag {
 };
 
 
-static int _nonblocking(int fd, bool enabled) {
+static int 
+_nonblocking(int fd, bool enabled) {
     int flags = fcntl(fd, F_GETFL);
     if (flags < 0) {
         return flags;
@@ -44,11 +46,13 @@ static int _nonblocking(int fd, bool enabled) {
 }
 
 
-static int _arm(int fd, int op, struct bag *bag) {
+static int 
+_arm(int fd, int op, struct bag *bag) {
     struct epoll_event ev;
+    
     ev.events = _epflags | op;
     ev.data.ptr = bag;
-
+    
     if (epoll_ctl(_epfd, EPOLL_CTL_MOD, fd, &ev) != OK) {
         if (errno == ENOENT) {
             /* File descriptor is not exists yet */
@@ -66,7 +70,8 @@ static int _arm(int fd, int op, struct bag *bag) {
 }
 
 
-static int _dearm(int fd) {
+static int 
+_dearm(int fd) {
     if (epoll_ctl(_epfd, EPOLL_CTL_DEL, fd, NULL) != OK) {
         return ERR;
     }
@@ -75,7 +80,8 @@ static int _dearm(int fd) {
 
 
 /* Register a monad for wait for read or write. */
-void monad_again(MonadContext *ctx, struct io_props *props, 
+void 
+monad_io_again(MonadContext *ctx, struct io_props *props, 
         struct conn *c, int op) {
     struct bag *bag = malloc(sizeof(struct bag));
     if (bag == NULL) {
@@ -83,7 +89,6 @@ void monad_again(MonadContext *ctx, struct io_props *props,
     }
 
     int fd = (op == EPOLLIN) ? c->rfd : c->wfd;
-    // printf("bag_alloc: %d\n", fd);
     bag->ctx = ctx;
     bag->props = props;
     bag->conn = c;
@@ -96,7 +101,8 @@ void monad_again(MonadContext *ctx, struct io_props *props,
 
 
 /* Enable non-blocking mode for a connection. */
-void nonblockM(MonadContext *ctx, struct io_props *props, struct conn *c) {
+void 
+nonblockM(MonadContext *ctx, struct io_props *props, struct conn *c) {
     int res = _nonblocking(c->rfd, true);
     if (res) {
         monad_failed(ctx, c, "enable nonblocking");
@@ -115,7 +121,8 @@ void nonblockM(MonadContext *ctx, struct io_props *props, struct conn *c) {
 
 
 /* Reader monad */
-void readerM(MonadContext *ctx, struct io_props *props, struct conn *c) {
+void 
+readerM(MonadContext *ctx, struct io_props *props, struct conn *c) {
     ssize_t size;
 
     /* Read from the file descriptor */
@@ -130,7 +137,7 @@ void readerM(MonadContext *ctx, struct io_props *props, struct conn *c) {
     /* Check for error */
     if (size < 0) {
         if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
-            monad_again(ctx, props, c, EPOLLIN);
+            monad_io_again(ctx, props, c, EPOLLIN);
         }
         else {
             monad_failed(ctx, c, "read");
@@ -143,13 +150,14 @@ void readerM(MonadContext *ctx, struct io_props *props, struct conn *c) {
 
 
 /* Write monad */
-void writerM(MonadContext *ctx, struct io_props *props, struct conn *c) {
+void 
+writerM(MonadContext *ctx, struct io_props *props, struct conn *c) {
     ssize_t size;
 
     size = write(c->wfd, c->data, c->size);
     if (size < 0) {
         if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
-            monad_again(ctx, props, c, EPOLLIN);
+            monad_io_again(ctx, props, c, EPOLLIN);
         }
         else {
             monad_failed(ctx, c, "write");
@@ -161,26 +169,47 @@ void writerM(MonadContext *ctx, struct io_props *props, struct conn *c) {
 
 
 /* Simple echo monad factory. */
-struct monad * echoF(struct io_props *props) {
+struct monad * 
+echoF(struct io_props *props) {
     Monad *echo = MONAD_RETURN(      readerM, props);
                   MONAD_APPEND(echo, writerM, props);
     
-    monad_loop(echo);
     return echo;
 }
 
 
 /* Simple looped echo monad factory. */
-struct monad * echoloopF(struct io_props *props) {
+struct monad * 
+echoloopF(struct io_props *props) {
     Monad *echo = echoF(props);
     monad_loop(echo);
     return echo;
 }
 
 
-/* Run a monad within io context. */
-int monad_io_run(struct monad *m, struct conn *data, monad_finish finish,
-        volatile int *status) {
+void 
+monad_io_init(int flags) {
+    if (_epfd != -1) {
+        return;
+    }
+    _waitfds = 0;
+    _epflags |= flags;
+    _epfd = epoll_create1(0);
+    if (_epfd < 0) {
+        err(ERR, "epoll_create1");
+    }
+}
+
+
+void 
+monad_io_deinit() {
+    close(_epfd);
+}
+
+
+/* Start event loop */
+int 
+monad_io_loop(volatile int *status) {
     struct epoll_event events[MAX_EVENTS];
     struct epoll_event ev;
     struct bag *bag;
@@ -189,13 +218,9 @@ int monad_io_run(struct monad *m, struct conn *data, monad_finish finish,
     int nfds;
     int fd;
     int ret = OK;
-    MonadContext *parent_context;
     MonadContext *ctx;
     struct io_props *props;
 
-    /* trigger the monad */
-    parent_context = monad_runall(m, data, finish);
-    
     while (((status == NULL) || (*status > EXIT_FAILURE)) && _waitfds) {
         nfds = epoll_wait(_epfd, events, MAX_EVENTS, -1);
         if (nfds < 0) {
@@ -216,7 +241,6 @@ int monad_io_run(struct monad *m, struct conn *data, monad_finish finish,
             props = bag->props;
             conn = bag->conn;
             fd = (ev.events && EPOLLIN) ? conn->rfd : conn->wfd;
-            // printf("bag_free: %d\n", fd);
             free(bag);
             conn->garbage = NULL;
 
@@ -234,29 +258,5 @@ int monad_io_run(struct monad *m, struct conn *data, monad_finish finish,
         }
     }
 
-    if (data != NULL) {
-        free(data->garbage);
-    }
-    if (parent_context != NULL) {
-        monad_terminate(parent_context, conn, NULL);
-    }
     return ret;
-}
-
-
-void monad_io_init(int flags) {
-    if (_epfd != -1) {
-        return;
-    }
-    _waitfds = 0;
-    _epflags |= flags;
-    _epfd = epoll_create1(0);
-    if (_epfd < 0) {
-        err(ERR, "epoll_create1");
-    }
-}
-
-
-void monad_io_deinit() {
-    close(_epfd);
 }

@@ -10,35 +10,9 @@ make all
 make clean all
 ```
 
-
-## Quickstart
-
-### Simple TCP Server
-
-```c
-#include "monad/tcp.h"
-
-
-void main() {
-    monad_io_init(0);
-    static struct io_props client_props = {
-        .epollflags = EPOLLET, 
-        .readsize = 1024
-    };
-    
-    struct bind bindinfo = {
-        .host = "127.0.0.1",
-        .port = 9090,
-        .client_monad = echoloopF(&client_props),
-    };
-    
-    monad_tcp_runserver(&bindinfo, NULL, NULL);
-    monad_free(bindinfo.client_monad);
-    monad_io_deinit();
-}
-```
-
 ## Examples
+
+Take a look at `examples` directory.
 
 ```bash
 cd examples
@@ -71,7 +45,15 @@ gprof echo_server
 
 ```bash
 sudo apt install valgrind
+
+cd examples
 make clean all 
+make valgrind
+```
+
+Or
+
+```bash
 valgrind --tool=memcheck --leak-check=full ./echo_server
 valgrind --tool=massif ./echo_server 
 ```
