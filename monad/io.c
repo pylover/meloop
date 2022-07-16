@@ -171,7 +171,7 @@ struct monad * echoF(struct io_props *props) {
 
 
 /* Simple looped echo monad factory. */
-struct monad * echoLoopF(struct io_props *props) {
+struct monad * echoloopF(struct io_props *props) {
     Monad *echo = echoF(props);
     monad_loop(echo);
     return echo;

@@ -75,7 +75,7 @@ int main() {
         .host = "127.0.0.1",
         .port = 9090,
         .backlog = 2,
-        .client_monad = echoF(&client_props),
+        .client_monad = echoloopF(&client_props),
         .client_connected = client_connected,
         .client_closed = client_closed
     };

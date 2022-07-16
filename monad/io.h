@@ -55,6 +55,7 @@ struct monad * writerF(struct io_props *dev);
 
 /* IO Monad Factories */
 Monad * echoF(struct io_props *dev);
+Monad * echoloopF(struct io_props *props);
 
 
 #define MONAD_IO_RUN(m, c, f, s) monad_io_run(m, c, (monad_finish)(f), (s))

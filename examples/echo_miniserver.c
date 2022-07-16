@@ -1,5 +1,7 @@
 #include "monad/tcp.h"
 
+#include "sys/epoll.h"
+
 
 void main() {
     monad_io_init(0);
@@ -11,7 +13,7 @@ void main() {
     struct bind bindinfo = {
         .host = "127.0.0.1",
         .port = 9090,
-        .client_monad = echoLoopF(&client_props),
+        .client_monad = echoloopF(&client_props),
     };
     
     monad_tcp_runserver(&bindinfo, NULL, NULL);
