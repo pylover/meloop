@@ -34,6 +34,7 @@ monad_append(struct monad *, monad_task , void* );
 void 
 monad_bind(Monad*, Monad*);
 
+// TODO: rename it to monad_make_circular
 int 
 monad_loop(struct monad *m1);
 
