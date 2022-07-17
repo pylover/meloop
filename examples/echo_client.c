@@ -93,6 +93,7 @@ int main() {
         .disconnected = disconnected
     };
     
+    // monad_run(init, connectinfo, 
     if (monad_tcp_connect(&connectinfo, finish, &status)) {
         status = EXIT_FAILURE;
     }

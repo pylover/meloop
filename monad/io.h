@@ -65,6 +65,9 @@ readerF(struct io_props *dev);
 struct monad * 
 writerF(struct io_props *dev); 
 
+void 
+printM(MonadContext *ctx, struct io_props *props, struct conn *c);
+
 
 /* IO Monad Factories */
 Monad * 

@@ -23,6 +23,7 @@ struct bind {
 
 
 struct connect {
+    struct conn;
     const char *host;
     const int port;
     Monad * worker;

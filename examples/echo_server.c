@@ -83,6 +83,7 @@ int main() {
     if (monad_tcp_runserver(&bindinfo, finish, &status)) {
         status = EXIT_FAILURE;
     }
+    printf("after loop\n");
     monad_free(bindinfo.worker);
     monad_io_deinit();
     return status;

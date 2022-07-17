@@ -168,6 +168,25 @@ writerM(MonadContext *ctx, struct io_props *props, struct conn *c) {
 }
 
 
+/* Just prints the conn->data into stdout */
+void 
+printM(MonadContext *ctx, struct io_props *props, struct conn *c) {
+    ssize_t size;
+
+    size = write(STDOUT_FILENO, c->data, c->size);
+    if (size < 0) {
+        if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
+            monad_io_again(ctx, props, c, EPOLLIN);
+        }
+        else {
+            monad_failed(ctx, c, "write");
+        }
+        return;
+    }
+    monad_succeeded(ctx, c);
+}
+
+
 /* Simple echo monad factory. */
 struct monad * 
 echoF(struct io_props *props) {
