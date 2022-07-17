@@ -8,8 +8,12 @@ CFLAGS = \
 objects = $(patsubst %.c,%.o,$(wildcard ../monad/*.c))
 
 
-# all: echo_shell echo_server echo_client
-all: echo_shell echo_server
+# all: maybe echo_shell echo_server echo_client
+all: maybe
+
+
+maybe: maybe.c $(objects)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 
 echo_shell: echo_shell.c $(objects)
