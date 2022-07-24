@@ -9,7 +9,11 @@ objects = $(patsubst %.c,%.o,$(wildcard ../monad/*.c))
 
 
 # all: maybe echo_shell echo_server echo_client
-all: maybe
+all: state
+
+
+%: %.c $(objects)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 
 maybe: maybe.c $(objects)
