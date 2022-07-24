@@ -36,6 +36,8 @@ echo_client: echo_client.c $(objects)
 clean:: 
 	- rm echo_shell 
 	- rm echo_server 
+	- rm state 
+	- rm maybe 
 	- rm massif.out.*
 	- rm gmon.out
 	cd ..; make clean

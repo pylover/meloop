@@ -9,7 +9,7 @@ CFLAGS += -g
 
 
 # Internal variables
-objects = $(patsubst %.c,%.o,$(wildcard monad/*.c))
+objects = $(patsubst %.c,%.o,$(wildcard arrow/*.c))
 
 
 .PHONY: all
@@ -23,4 +23,4 @@ all: $(objects)
 
 .PHONY: clean
 clean:: 
-	- rm monad/*.o
+	- rm arrow/*.o
