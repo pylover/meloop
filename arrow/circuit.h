@@ -9,7 +9,7 @@ struct circuit;
 
 
 struct circuit * 
-returnC(arrow f);
+returnC(arrow f, union args priv);
 
 
 void 
@@ -21,7 +21,7 @@ bindA(struct circuit *c1, struct circuit *c2);
 
 
 struct circuit * 
-appendC(struct circuit *c1, arrow f);
+appendC(struct circuit *c1, arrow f, union args priv);
 
 
 int 

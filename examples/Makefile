@@ -40,6 +40,7 @@ clean::
 	- rm maybe 
 	- rm massif.out.*
 	- rm gmon.out
+	- rm *.o
 	cd ..; make clean
 
 
@@ -56,5 +57,5 @@ valgrind: all
 		--track-origins=yes \
 		--suppressions=.valgrind.supp \
 		--gen-suppressions=all \
-		./echo_server
+		./state
 
