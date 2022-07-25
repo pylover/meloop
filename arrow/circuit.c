@@ -104,7 +104,7 @@ bindA(struct circuit *c1, struct circuit *c2) {
 
 
 /** 
-  Make a circuit from conputation and bind it to c1.
+  Make circuit c2 from conputation and bind it to c1. returns c2.
 
   c1    arrow   result
 

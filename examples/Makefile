@@ -55,7 +55,7 @@ valgrind: all
 		--tool=memcheck \
 		--leak-check=full \
 		--track-origins=yes \
-		--suppressions=.valgrind.supp \
 		--gen-suppressions=all \
 		./state
 
+#--suppressions=.valgrind.supp \
