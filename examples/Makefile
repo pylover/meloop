@@ -5,7 +5,7 @@ CFLAGS = \
 	-D_GNU_SOURCE=1
 
 # LDFLAGS = -pg
-objects = $(patsubst %.c,%.o,$(wildcard ../monad/*.c))
+objects = $(patsubst %.c,%.o,$(wildcard ../arrow/*.c))
 
 
 # all: maybe echo_shell echo_server echo_client

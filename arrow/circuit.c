@@ -7,14 +7,14 @@
 
 
 struct circuit {
-    computation run;
+    arrow run;
     bool last;
     struct circuit *next;
 };
 
 
 struct circuit * 
-returnC(computation f) {
+returnC(arrow f) {
     struct circuit *c = malloc(sizeof(struct circuit));
     if (c == NULL) {
         err(EXIT_FAILURE, "Out of memory");
@@ -104,16 +104,16 @@ bindA(struct circuit *c1, struct circuit *c2) {
 /** 
   Make a circuit from conputation and bind it to c1.
 
-  c1    computation   result
+  c1    arrow   result
 
-  o-o   O             o-o-O 
+  o-o   O       o-o-O 
 
-  o-o   O             o-o-O
-  |_|                 |___|
+  o-o   O       o-o-O
+  |_|           |___|
 
 */
 struct circuit * 
-appendC(struct circuit *c1, computation f) {
+appendC(struct circuit *c1, arrow f) {
     struct circuit *next = returnC(f);
     c1->last = false;
     c1->next = next;
@@ -157,4 +157,15 @@ loopC(struct circuit *c1) {
 
         last = last->next;
     }
+}
+
+
+union args runA(struct circuit *c, void *state, union args args) {
+    union args result = c->run(state, args);
+    
+    if (c->last || (c->next == NULL)) {
+        return result;
+    }
+
+    return runA(c->next, state, result);
 }

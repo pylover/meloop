@@ -5,12 +5,11 @@
 #include "arrow/types.h"
 
 
-typedef union args (*computation) (void* state, union args args);
 struct circuit;
 
 
 struct circuit * 
-returnC(computation f);
+returnC(arrow f);
 
 
 void 
@@ -22,11 +21,14 @@ bindA(struct circuit *c1, struct circuit *c2);
 
 
 struct circuit * 
-appendC(struct circuit *c1, computation f);
+appendC(struct circuit *c1, arrow f);
 
 
 int 
 loopC(struct circuit *c1);
+
+
+union args runA(struct circuit *c, void *state, union args);
 
 
 #endif

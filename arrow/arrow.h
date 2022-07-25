@@ -3,6 +3,7 @@
 
 
 #include "arrow/types.h"
+#include "arrow/circuit.h"
 
 
 #endif

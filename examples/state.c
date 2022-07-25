@@ -24,18 +24,30 @@ divA(struct state *s, struct pair p) {
 }
 
 
+int
+cubeA(struct state *s, int x) {
+    return x * x * x;
+}
+
+
 void 
 main() {
     int out;
     struct state s = {"\0"};
-    struct pair p = {2, 0};
+    union args p = {
+        .pair = {3, 4}
+    };
+    
+    struct circuit *c = returnC(   (arrow) addA);
+                        appendC(c, (arrow) cubeA);
 
     // out = addM(&s, p);
-    out = divA(&s, p);
+    out = runA(c, &s, p).sint;
     if (s.error[0]) {
         printf("Error: %s\n", s.error);
     }
     else {
         printf("Out: %d\n", out);
     }
+    freeC(c);
 }

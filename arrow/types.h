@@ -10,8 +10,11 @@ struct pair {
 
 union args {
     int sint;
-    struct pair;
+    struct pair pair;
 };
+
+
+typedef union args (*arrow) (void* state, union args args);
 
 
 #endif
