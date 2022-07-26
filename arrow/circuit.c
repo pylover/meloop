@@ -1,4 +1,3 @@
-#include "arrow/common.h"
 #include "arrow/circuit.h"
 
 #include <stdlib.h>
@@ -6,22 +5,15 @@
 #include <err.h>
 
 
-struct circuit {
-    arrow run;
-    union args priv;
-    bool last;
-    struct circuit *next;
-};
-
-
 struct circuit * 
-returnC(arrow f, union args priv) {
+newC(arrow f, union args priv, arrow cb) {
     struct circuit *c = malloc(sizeof(struct circuit));
     if (c == NULL) {
         err(EXIT_FAILURE, "Out of memory");
     }
     
     c->run = f;
+    c->callback = cb;
     c->priv = priv;
     c->last = true;
     c->next = NULL;
@@ -115,8 +107,8 @@ bindA(struct circuit *c1, struct circuit *c2) {
 
 */
 struct circuit * 
-appendC(struct circuit *c1, arrow f, union args priv) {
-    struct circuit *next = returnC(f, priv);
+appendC(struct circuit *c1, arrow f, union args priv, arrow cb) {
+    struct circuit *next = newC(f, priv, cb);
     bindA(c1, next);
     return next;
 }
@@ -161,12 +153,21 @@ loopC(struct circuit *c1) {
 }
 
 
-union args runA(struct circuit *c, void *state, union args args) {
-    union args result = c->run(state, args, c->priv);
-    
+void 
+returnC(struct circuit *c, void *state, union args result) {
+    if (c->callback != NULL) {
+        c->callback(c, state, result);
+    }
+
     if (c->last || (c->next == NULL)) {
-        return result;
+        return;
     }
 
     return runA(c->next, state, result);
+}
+
+
+void
+runA(struct circuit *c, void *state, union args args) {
+    c->run(c, state, args);
 }

@@ -9,60 +9,66 @@ struct state {
 };
 
 
-int 
-addA(struct state *s, struct pair p, union args priv) {
+void 
+addA(struct circuit *c, struct state *s, struct pair p) {
     printf("addA, left: %d, right: %d\n", p.left, p.right);
-    return p.left + p.right;
+    returnC(c, s, (union args) (p.left + p.right));
 }
 
 
-struct pair 
-pairA(struct state *s, union args value, union args priv) {
+void
+pairA(struct circuit *c, struct state *s, int value) {
     struct pair p = {
-        .left = value.sint,
-        .right = priv.sint
+        .left = value,
+        .right = c->priv.sint 
     };
     
     printf("pairA, left: %d, right: %d\n", p.left, p.right);
-    return p;
+    returnC(c, s, (union args) p);
 }
 
 
-int 
-divA(struct state *s, struct pair p, union args priv) {
+void 
+divA(struct circuit *c, struct state *s, struct pair p) {
     if (p.right == 0) {
         sprintf(s->error, "Division by zero");
-        return 0;
+        returnC(c, s, (union args) NULL);
     }
-    return p.left / p.right;
+    returnC(c, s, (union args) (p.left / p.right));
 }
 
 
-int
-cubeA(struct state *s, int x, union args priv) {
-    return x * x * x;
+void
+cubeA(struct circuit *c, struct state *s, int x) {
+    x = x * x * x;
+    returnC(c, s, (union args)x);
+}
+
+
+void
+callback(struct circuit *c, struct state *s, int out) {
+    if (s->error[0]) {
+        printf("Error: %s\n", s->error);
+    }
+    else {
+        printf("Out: %d\n", out);
+    }
 }
 
 
 void 
 main() {
-    int out;
     struct state s = {"\0"};
     union args p = {
         .pair = {6, 4}
     };
     
-    struct circuit *c = returnC(   (arrow) addA,  (union args) {.null = true});
-                        appendC(c, (arrow) pairA, (union args) {.sint = 2});
-                        appendC(c, (arrow) divA,  (union args) {.null = true});
-                        appendC(c, (arrow) cubeA, (union args) {.null = true});
+    struct circuit *c = 
+        newC(      (arrow) addA,  (union args) NULL, NULL            );
+        appendC(c, (arrow) pairA, (union args) 2,    NULL            );
+        appendC(c, (arrow) divA,  (union args) NULL, NULL            );
+        appendC(c, (arrow) cubeA, (union args) NULL, (arrow) callback);
 
-    out = runA(c, &s, p).sint;
-    if (s.error[0]) {
-        printf("Error: %s\n", s.error);
-    }
-    else {
-        printf("Out: %d\n", out);
-    }
+    runA(c, &s, p);
     freeC(c);
 }

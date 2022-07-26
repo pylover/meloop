@@ -2,7 +2,6 @@
 #define ARROW_H
 
 
-#include "arrow/types.h"
 #include "arrow/circuit.h"
 
 
