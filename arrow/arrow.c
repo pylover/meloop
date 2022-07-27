@@ -5,19 +5,88 @@
 #include <err.h>
 
 
+struct element {
+    arrow run;
+    union args priv;
+    bool last;
+    struct element *next;
+};
+
+
+struct circuit {
+    arrow_okcb ok;
+    arrow_errcb err;
+    struct element *current;
+    struct element *nets;
+};
+
+
 struct circuit * 
-newA(arrow f, union args priv, arrow cb) {
+newC(arrow_okcb ok, arrow_errcb error) {
     struct circuit *c = malloc(sizeof(struct circuit));
     if (c == NULL) {
         err(EXIT_FAILURE, "Out of memory");
     }
     
-    c->run = f;
-    c->callback = cb;
-    c->priv = priv;
-    c->last = true;
-    c->next = NULL;
+    c->ok = ok;
+    c->err = error;
+    c->current = NULL;
+    c->nets = NULL;
     return c;
+}
+
+
+/** 
+  Make element e2 from conputation and bind it to c. returns e2.
+
+  c     arrow   result
+
+  o-o   O       o-o-O 
+
+  o-o   O       o-o-O
+  |_|           |___|
+
+*/
+struct element * 
+appendA(struct circuit *c, arrow f, union args priv) {
+    struct element *e2 = malloc(sizeof(struct element));
+    if (e2 == NULL) {
+        err(EXIT_FAILURE, "Out of memory");
+    }
+    
+    /* Initialize new element */
+    e2->run = f;
+    e2->priv = priv;
+    e2->last = true;
+    e2->next = NULL;
+    
+    if (c->nets == NULL) {
+        c->nets = e2;
+    }
+    else {
+        /* Bind them */
+        bindA(c->nets, e2);
+    }
+    return e2;
+}
+
+
+static void 
+freeE(struct element *e) {
+    if (e == NULL) {
+        return;
+    }
+    
+    bool last = e->last;
+    struct element *next = e->next;
+    free(e);
+
+    if (last) {
+        /* Disposition comppleted. */
+        return;
+    }
+
+    freeE(next);
 }
 
 
@@ -27,23 +96,14 @@ freeA(struct circuit *c) {
         return;
     }
     
-    bool last = c->last;
-    struct circuit *next = c->next;
+    freeE(c->nets);
     free(c);
-
-    if (last) {
-        /* Disposition comppleted. */
-        return;
-    }
-
-    freeA(next);
 }
-
 
 /** 
   Bind two circuits:
 
-  c1    c2     result
+  e1    e2     result
 
   o-o   O-O    o-o-O-O 
 
@@ -58,72 +118,53 @@ freeA(struct circuit *c) {
 
 */
 void 
-bindA(struct circuit *c1, struct circuit *c2) {
-    struct circuit *m1last = c1;
-    struct circuit *m2last = c2;
+bindA(struct element *e1, struct element *e2) {
+    struct element *e1last = e1;
+    struct element *e2last = e2;
 
     while (true) {
         /* Open cicuit */
-        if (m1last->next == NULL) {
-            /* c1 Last element */
-            m1last->next = c2;
-            m1last->last = false;
+        if (e1last->next == NULL) {
+            /* e1 Last element */
+            e1last->next = e2;
+            e1last->last = false;
             return;
         }
 
         /* Closed cicuit */
-        if (m1last->next == c1) {
-            /* It's a closed loop, Inserting c2 before the first element. */
-            m1last->next = c2;
-            m1last->last = false;
+        if (e1last->next == e1) {
+            /* It's a closed loop, Inserting e2 before the first element. */
+            e1last->next = e2;
+            e1last->last = false;
             while (true) {
-                /* c2 Last element */
-                if ((m2last->next == NULL) || (m2last->next == c2)) {
-                    m2last->next = c1;
+                /* e2 Last element */
+                if ((e2last->next == NULL) || (e2last->next == e2)) {
+                    e2last->next = e1;
                     return;
                 }
             
                 /* Navigate forward */
-                m2last = m2last->next;
+                e2last = e2last->next;
             }
             return;
         }
         
         /* Try next circuit */
-        m1last = m1last->next;
+        e1last = e1last->next;
     }
 }
 
 
 /** 
-  Make circuit c2 from conputation and bind it to c1. returns c2.
+  Close (Loop) the circuit c.
 
-  c1    arrow   result
-
-  o-o   O       o-o-O 
-
-  o-o   O       o-o-O
-  |_|           |___|
-
-*/
-struct circuit * 
-appendA(struct circuit *c1, arrow f, union args priv, arrow cb) {
-    struct circuit *next = newA(f, priv, cb);
-    bindA(c1, next);
-    return next;
-}
-
-
-/** 
-  Close (Loop) the circuit c1.
-
-  Syntactic sugar for bindA(c2, c1) if c1 is the first circuit in the 
-  chain and c2 is the last one.
+  Syntactic sugar for bindA(e2, e1) if e1 is the first element in the 
+  circuit and e2 is the last one.
     
   If the c1 is already a closed circuit, then 1 will be returned.
   Otherwise the returned value will be zero.
 
-  c1    result
+  c     result
 
   o-o   o-o
         |_|
@@ -133,17 +174,18 @@ appendA(struct circuit *c1, arrow f, union args priv, arrow cb) {
 
 */
 int 
-loopA(struct circuit *c1) {
-    struct circuit *last = c1;
+loopA(struct circuit *c) {
+    struct element *first = c->nets;
+    struct element *last = c->nets;
     while (true) {
         if (last->next == NULL) {
             /* Last element */
-            last->next = c1;
+            last->next = first;
             last->last = true;
             return OK;
         }
 
-        if (last->next == c1) {
+        if (last->next == first) {
             /* It's already a closed loop, Do nothing. */
             return ERR;
         }
@@ -155,19 +197,32 @@ loopA(struct circuit *c1) {
 
 void 
 returnA(struct circuit *c, void *state, union args result) {
-    if (c->callback != NULL) {
-        c->callback(c, state, result);
-    }
-
-    if (c->last || (c->next == NULL)) {
+    struct element *curr = c->current;
+    if (curr->last || (curr->next == NULL)) {
+        if (c->ok != NULL) {
+            c->ok(c, state, result);
+        }
+        c->current = NULL;
         return;
     }
 
-    return runA(c->next, state, result);
+    struct element *next = curr->next;
+    c->current = next;
+    next->run(c, state, next->priv, result);
+}
+
+
+void 
+errorA(struct circuit *c, void *state, const char *msg) {
+    if (c->err != NULL) {
+        c->err(c, state, msg);
+    }
+    c->current = NULL;
 }
 
 
 void
 runA(struct circuit *c, void *state, union args args) {
-    c->run(c, state, args);
+    c->current = c->nets;
+    c->current->run(c, state, c->current->priv, args);
 }

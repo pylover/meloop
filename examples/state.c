@@ -10,17 +10,17 @@ struct state {
 
 
 void 
-addA(struct circuit *c, struct state *s, struct pair p) {
+addA(struct circuit *c, struct state *s, void*, struct pair p) {
     printf("addA, left: %d, right: %d\n", p.left, p.right);
     returnA(c, s, (union args) (p.left + p.right));
 }
 
 
 void
-pairA(struct circuit *c, struct state *s, int value) {
+pairA(struct circuit *c, struct state *s, int right, int value) {
     struct pair p = {
         .left = value,
-        .right = c->priv.sint 
+        .right = right
     };
     
     printf("pairA, left: %d, right: %d\n", p.left, p.right);
@@ -29,10 +29,9 @@ pairA(struct circuit *c, struct state *s, int value) {
 
 
 void 
-divA(struct circuit *c, struct state *s, struct pair p) {
+divA(struct circuit *c, struct state *s, void*, struct pair p) {
     if (p.right == 0) {
-        sprintf(s->error, "Division by zero");
-        returnA(c, s, (union args) NULL);
+        errorA(c, s, "Division by zero");
         return;
     }
     returnA(c, s, (union args) (p.left / p.right));
@@ -40,20 +39,21 @@ divA(struct circuit *c, struct state *s, struct pair p) {
 
 
 void
-cubeA(struct circuit *c, struct state *s, int x) {
+cubeA(struct circuit *c, struct state *s, void*, int x) {
     x = x * x * x;
     returnA(c, s, (union args)x);
 }
 
 
 void
-callback(struct circuit *c, struct state *s, int out) {
-    if (s->error[0]) {
-        printf("Error: %s\n", s->error);
-    }
-    else {
-        printf("Out: %d\n", out);
-    }
+errorcb(struct circuit *c, struct state *s, const char *error) {
+    printf("Error: %s\n", error);
+}
+
+
+void
+successcb(struct circuit *c, struct state *s, int out) {
+    printf("Out: %d\n", out);
 }
 
 
@@ -64,11 +64,11 @@ main() {
         .pair = {6, 4}
     };
     
-    struct circuit *c = 
-        NEW_A(      addA,  NULL, NULL    );
-        APPEND_A(c, pairA, 2,    NULL    );
-        APPEND_A(c, divA,  NULL, NULL    );
-        APPEND_A(c, cubeA, NULL, callback);
+    struct circuit *c = NEW_C(successcb, errorcb);
+    APPEND_A(c, addA,  NULL);
+    APPEND_A(c, pairA, 2   );
+    APPEND_A(c, divA,  NULL);
+    APPEND_A(c, cubeA, NULL);
 
     runA(c, &s, p);
     freeA(c);

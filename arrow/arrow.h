@@ -16,30 +16,24 @@ struct pair {
 
 
 union args {
-    bool null;
     int sint;
     void *ptr;
     struct pair pair;
 };
 
 
+struct element;
 struct circuit;
 
 
-typedef void (*arrow) (struct circuit *c, void* state, union args value);
-
-
-struct circuit {
-    arrow run;
-    arrow callback;    
-    union args priv;
-    bool last;
-    struct circuit *next;
-};
+typedef void (*arrow) (struct circuit *c, void* state, union args priv, 
+        union args value);
+typedef void (*arrow_okcb) (struct circuit *c, void* state, union args value);
+typedef void (*arrow_errcb) (struct circuit *c, void* state, const char *msg);
 
 
 struct circuit * 
-newA(arrow f, union args priv, arrow cb);
+newC(arrow_okcb ok, arrow_errcb cb);
 
 
 void 
@@ -47,11 +41,11 @@ freeA(struct circuit *c);
 
 
 void 
-bindA(struct circuit *c1, struct circuit *c2);
+bindA(struct element *e1, struct element *e2);
 
 
-struct circuit * 
-appendA(struct circuit *c1, arrow f, union args priv, arrow cb);
+struct element * 
+appendA(struct circuit *c, arrow f, union args priv);
 
 
 int 
@@ -62,14 +56,17 @@ void
 returnA(struct circuit *c, void *state, union args result);
 
 
+void 
+errorA(struct circuit *c, void *state, const char *msg);
+
+
 void
 runA(struct circuit *c, void *state, union args);
 
 
 /* Helper macros */
-#define NEW_A(a, v, cb) newA((arrow)a, (union args)v, (arrow)cb)
-
-#define APPEND_A(c, a, v, cb) appendA(c, (arrow)a, (union args)v, (arrow)cb)
+#define NEW_C(ok, e) newC((arrow_okcb)(ok), (arrow_errcb)(e))
+#define APPEND_A(c, a, v) appendA(c, (arrow)a, (union args)v)
 
 
 #endif
