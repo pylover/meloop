@@ -66,7 +66,7 @@ runA(struct circuit *c, void *state, union args);
 
 /* Helper macros */
 #define NEW_C(ok, e) newC((arrow_okcb)(ok), (arrow_errcb)(e))
-#define APPEND_A(c, a, v) appendA(c, (arrow)a, (union args)v)
-
+#define APPEND_A(c, a, v) appendA(c, (arrow)(a), (union args)(v))
+#define RETURN_A(c, s, r) returnA(c, s, (union args)(r));
 
 #endif

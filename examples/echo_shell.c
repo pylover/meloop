@@ -1,5 +1,5 @@
-#include "monad/monad.h"
-#include "monad/io.h"
+#include "arrow/arrow.h"
+#include "arrow/io.h"
 
 #include <stdlib.h>
 #include <string.h>

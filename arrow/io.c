@@ -8,10 +8,10 @@
 //     size = write(conn->wfd, p.data, p.size);
 //     if (size < 0) {
 //         if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
-//             io_againA(c, conn, p, EPOLLIN);
+//             waitA(c, conn, p, EPOLLIN);
 //         }
 //         else {
-//             io_failedA(c, conn, "write");
+//             errorA(c, conn, "write");
 //         }
 //         return;
 //     }

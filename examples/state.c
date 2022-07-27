@@ -12,7 +12,7 @@ struct state {
 void 
 addA(struct circuit *c, struct state *s, void*, struct pair p) {
     printf("addA, left: %d, right: %d\n", p.left, p.right);
-    returnA(c, s, (union args) (p.left + p.right));
+    RETURN_A(c, s, p.left + p.right);
 }
 
 
@@ -24,7 +24,7 @@ pairA(struct circuit *c, struct state *s, int right, int value) {
     };
     
     printf("pairA, left: %d, right: %d\n", p.left, p.right);
-    returnA(c, s, (union args) p);
+    RETURN_A(c, s, p);
 }
 
 
@@ -34,14 +34,14 @@ divA(struct circuit *c, struct state *s, void*, struct pair p) {
         errorA(c, s, "Division by zero");
         return;
     }
-    returnA(c, s, (union args) (p.left / p.right));
+    RETURN_A(c, s, p.left / p.right);
 }
 
 
 void
 cubeA(struct circuit *c, struct state *s, void*, int x) {
     x = x * x * x;
-    returnA(c, s, (union args)x);
+    RETURN_A(c, s, x);
 }
 
 
