@@ -66,4 +66,10 @@ void
 runA(struct circuit *c, void *state, union args);
 
 
+/* Helper macros */
+#define NEW_A(a, v, cb) newA((arrow)a, (union args)v, (arrow)cb)
+
+#define APPEND_A(c, a, v, cb) appendA(c, (arrow)a, (union args)v, (arrow)cb)
+
+
 #endif

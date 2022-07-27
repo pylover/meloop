@@ -65,10 +65,10 @@ main() {
     };
     
     struct circuit *c = 
-        newA(      (arrow) addA,  (union args) NULL, NULL            );
-        appendA(c, (arrow) pairA, (union args) 2,    NULL            );
-        appendA(c, (arrow) divA,  (union args) NULL, NULL            );
-        appendA(c, (arrow) cubeA, (union args) NULL, (arrow) callback);
+        NEW_A(      addA,  NULL, NULL    );
+        APPEND_A(c, pairA, 2,    NULL    );
+        APPEND_A(c, divA,  NULL, NULL    );
+        APPEND_A(c, cubeA, NULL, callback);
 
     runA(c, &s, p);
     freeA(c);

@@ -58,4 +58,21 @@ valgrind: all
 		--gen-suppressions=all \
 		./state
 
-#--suppressions=.valgrind.supp \
+# --suppressions=.valgrind.supp \
+# .valgrind.supp file:
+# {
+#    io_epoll_ctl
+#    Memcheck:Param
+#    epoll_ctl(event)
+#    fun:epoll_ctl
+#    fun:_arm
+#    fun:monad_io_again
+#    fun:acceptM
+#    fun:monad_execute
+#    fun:monad_succeeded
+#    fun:listenM
+#    fun:monad_execute
+#    fun:monad_run
+#    fun:monad_tcp_runserver
+#    fun:main
+# }
