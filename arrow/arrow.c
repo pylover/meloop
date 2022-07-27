@@ -1,4 +1,4 @@
-#include "arrow/circuit.h"
+#include "arrow/arrow.h"
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -6,7 +6,7 @@
 
 
 struct circuit * 
-newC(arrow f, union args priv, arrow cb) {
+newA(arrow f, union args priv, arrow cb) {
     struct circuit *c = malloc(sizeof(struct circuit));
     if (c == NULL) {
         err(EXIT_FAILURE, "Out of memory");
@@ -22,7 +22,7 @@ newC(arrow f, union args priv, arrow cb) {
 
 
 void 
-freeC(struct circuit *c) {
+freeA(struct circuit *c) {
     if (c == NULL) {
         return;
     }
@@ -36,7 +36,7 @@ freeC(struct circuit *c) {
         return;
     }
 
-    freeC(next);
+    freeA(next);
 }
 
 
@@ -107,8 +107,8 @@ bindA(struct circuit *c1, struct circuit *c2) {
 
 */
 struct circuit * 
-appendC(struct circuit *c1, arrow f, union args priv, arrow cb) {
-    struct circuit *next = newC(f, priv, cb);
+appendA(struct circuit *c1, arrow f, union args priv, arrow cb) {
+    struct circuit *next = newA(f, priv, cb);
     bindA(c1, next);
     return next;
 }
@@ -133,7 +133,7 @@ appendC(struct circuit *c1, arrow f, union args priv, arrow cb) {
 
 */
 int 
-loopC(struct circuit *c1) {
+loopA(struct circuit *c1) {
     struct circuit *last = c1;
     while (true) {
         if (last->next == NULL) {
@@ -154,7 +154,7 @@ loopC(struct circuit *c1) {
 
 
 void 
-returnC(struct circuit *c, void *state, union args result) {
+returnA(struct circuit *c, void *state, union args result) {
     if (c->callback != NULL) {
         c->callback(c, state, result);
     }

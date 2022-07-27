@@ -12,7 +12,7 @@ struct state {
 void 
 addA(struct circuit *c, struct state *s, struct pair p) {
     printf("addA, left: %d, right: %d\n", p.left, p.right);
-    returnC(c, s, (union args) (p.left + p.right));
+    returnA(c, s, (union args) (p.left + p.right));
 }
 
 
@@ -24,7 +24,7 @@ pairA(struct circuit *c, struct state *s, int value) {
     };
     
     printf("pairA, left: %d, right: %d\n", p.left, p.right);
-    returnC(c, s, (union args) p);
+    returnA(c, s, (union args) p);
 }
 
 
@@ -32,16 +32,17 @@ void
 divA(struct circuit *c, struct state *s, struct pair p) {
     if (p.right == 0) {
         sprintf(s->error, "Division by zero");
-        returnC(c, s, (union args) NULL);
+        returnA(c, s, (union args) NULL);
+        return;
     }
-    returnC(c, s, (union args) (p.left / p.right));
+    returnA(c, s, (union args) (p.left / p.right));
 }
 
 
 void
 cubeA(struct circuit *c, struct state *s, int x) {
     x = x * x * x;
-    returnC(c, s, (union args)x);
+    returnA(c, s, (union args)x);
 }
 
 
@@ -64,11 +65,11 @@ main() {
     };
     
     struct circuit *c = 
-        newC(      (arrow) addA,  (union args) NULL, NULL            );
-        appendC(c, (arrow) pairA, (union args) 2,    NULL            );
-        appendC(c, (arrow) divA,  (union args) NULL, NULL            );
-        appendC(c, (arrow) cubeA, (union args) NULL, (arrow) callback);
+        newA(      (arrow) addA,  (union args) NULL, NULL            );
+        appendA(c, (arrow) pairA, (union args) 2,    NULL            );
+        appendA(c, (arrow) divA,  (union args) NULL, NULL            );
+        appendA(c, (arrow) cubeA, (union args) NULL, (arrow) callback);
 
     runA(c, &s, p);
-    freeC(c);
+    freeA(c);
 }
