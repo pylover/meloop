@@ -1,5 +1,6 @@
 #include "arrow/arrow.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <err.h>
@@ -223,6 +224,9 @@ errorA(struct circuit *c, void *state, const char *msg) {
 
 void
 runA(struct circuit *c, void *state, union args args) {
+    struct pair *p = (struct pair*) (&args);
+    printf("runA1, left: %d, right: %d\n", args.pair.left, args.pair.right);
+    printf("runA2, left: %d, right: %d\n", p->left, p->right);
     c->current = c->nets;
     c->current->run(c, state, c->current->priv, args);
 }

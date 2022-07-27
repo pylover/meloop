@@ -2,6 +2,7 @@
 #define ARROW_H
 
 
+#include <stdlib.h>
 #include <stdbool.h>
 
 
@@ -15,10 +16,17 @@ struct pair {
 };
 
 
+struct string {
+    size_t size;
+    char *data;
+};
+
+
 union args {
     int sint;
     void *ptr;
     struct pair pair;
+    struct string;
 };
 
 
