@@ -1,14 +1,15 @@
-#include "arrow/arrow.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <err.h>
 
 
+#include "arrow/arrow.h"
+
+
 struct element {
     arrow run;
-    union args priv;
+    union any vars;
     bool last;
     struct element *next;
 };
@@ -49,7 +50,7 @@ newC(arrow_okcb ok, arrow_errcb error) {
 
 */
 struct element * 
-appendA(struct circuit *c, arrow f, union args priv) {
+appendA(struct circuit *c, arrow f, union any vars) {
     struct element *e2 = malloc(sizeof(struct element));
     if (e2 == NULL) {
         err(EXIT_FAILURE, "Out of memory");
@@ -57,7 +58,7 @@ appendA(struct circuit *c, arrow f, union args priv) {
     
     /* Initialize new element */
     e2->run = f;
-    e2->priv = priv;
+    e2->vars = vars;
     e2->last = true;
     e2->next = NULL;
     
@@ -197,7 +198,7 @@ loopA(struct circuit *c) {
 
 
 void 
-returnA(struct circuit *c, void *state, union args result) {
+returnA(struct circuit *c, void *state, union any result) {
     struct element *curr = c->current;
     if (curr->last || (curr->next == NULL)) {
         if (c->ok != NULL) {
@@ -209,7 +210,7 @@ returnA(struct circuit *c, void *state, union args result) {
 
     struct element *next = curr->next;
     c->current = next;
-    next->run(c, state, next->priv, result);
+    next->run(c, state, result);
 }
 
 
@@ -223,10 +224,46 @@ errorA(struct circuit *c, void *state, const char *msg) {
 
 
 void
-runA(struct circuit *c, void *state, union args args) {
+runA(struct circuit *c, void *state, union any args) {
     struct pair *p = (struct pair*) (&args);
     printf("runA1, left: %d, right: %d\n", args.pair.left, args.pair.right);
     printf("runA2, left: %d, right: %d\n", p->left, p->right);
     c->current = c->nets;
-    c->current->run(c, state, c->current->priv, args);
+    c->current->run(c, state, args);
+}
+
+
+int
+arrow_vars_int(struct circuit *c) {
+    return c->current->vars.sint;
+}
+
+
+struct string
+arrow_vars_string_from_ptr(struct circuit *c) {
+    char *p = (char *)c->current->vars.ptr;
+    struct string s = {
+        .size = strlen(p),
+        .data = p,
+    };
+
+    return s;
+}
+
+
+struct string 
+arrow_string(char *s) {
+    struct string out = {
+        .size = 0,
+        .data = NULL
+    };
+
+    if (s != NULL) {
+        struct string out = {
+            .size = strlen(s),
+            .data = s
+        };
+    }
+
+    return out;
 }

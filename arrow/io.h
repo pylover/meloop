@@ -13,11 +13,8 @@ struct conn {
 
 
 
-#define WAIT_A(c, s, d, op) waitA(c, s, (union args)(p), op);
-
-
 void 
-waitA(struct circuit *c, struct conn *conn, union args data, int op);
+waitA(struct circuit *c, struct conn *conn, union any data, int op);
 
 
 void
@@ -28,6 +25,10 @@ void arrow_io_init(int flags);
 
 
 void arrow_io_deinit();
+
+
+/* Helper macros */
+#define WAIT_A(c, s, d, op) waitA(c, s, (union any)(d), op);
 
 
 #endif

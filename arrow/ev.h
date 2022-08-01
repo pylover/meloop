@@ -2,12 +2,15 @@
 #define ARROW_EV_H
 
 
+#include "arrow/types.h"
+
+
 /* A simple bag which used by waitA to hold arrow's essential data 
    until the underlying file descriptor becomes ready for read or write. */
 struct bag {
     struct circuit *circuit;
     struct conn *conn;
-    union args data;
+    union any data;
 };
 
 

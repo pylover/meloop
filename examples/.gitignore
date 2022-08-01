@@ -3,5 +3,6 @@ echo_server
 echo_miniserver
 maybe
 state
+echoshell
 gmon.out
 massif.out.*

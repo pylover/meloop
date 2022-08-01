@@ -10,7 +10,7 @@
 
 
 void 
-waitA(struct circuit *c, struct conn *conn, union args data, int op) {
+waitA(struct circuit *c, struct conn *conn, union any data, int op) {
     struct bag *bag = malloc(sizeof(struct bag));
     if (bag == NULL) {
         err(EXIT_FAILURE, "Out of memory");
