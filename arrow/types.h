@@ -33,4 +33,8 @@ union any
 any_null();
 
 
+union any
+any_string(struct string s);
+
+
 #endif

@@ -6,11 +6,13 @@ struct conn {
     /* File descriptors */
     int rfd;
     int wfd;
-    
+        
     /* epoll */
     int epollflags;
-};
 
+    /* Behaviour */
+    size_t readsize;
+};
 
 
 void 
@@ -21,10 +23,18 @@ void
 writeA(struct circuit *c, struct conn *conn, struct string p);
 
 
+void
+readA(struct circuit *c, struct conn *conn, struct string p);
+
+
 void arrow_io_init(int flags);
 
 
 void arrow_io_deinit();
+
+
+int 
+arrow_io_loop(volatile int *status);
 
 
 /* Helper macros */

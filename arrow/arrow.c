@@ -200,7 +200,7 @@ loopA(struct circuit *c) {
 void 
 returnA(struct circuit *c, void *state, union any result) {
     struct element *curr = c->current;
-    if (curr->last || (curr->next == NULL)) {
+    if (curr->next == NULL) {
         if (c->ok != NULL) {
             c->ok(c, state, result);
         }

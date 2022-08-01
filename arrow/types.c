@@ -26,3 +26,13 @@ any_null() {
 
     return out;
 }
+
+
+union any
+any_string(struct string s) {
+    union any out = {
+        .string = s
+    };
+
+    return out;
+}
