@@ -226,8 +226,6 @@ errorA(struct circuit *c, void *state, const char *msg) {
 void
 runA(struct circuit *c, void *state, union any args) {
     struct pair *p = (struct pair*) (&args);
-    printf("runA1, left: %d, right: %d\n", args.pair.left, args.pair.right);
-    printf("runA2, left: %d, right: %d\n", p->left, p->right);
     c->current = c->nets;
     c->current->run(c, state, args);
 }
@@ -241,29 +239,5 @@ arrow_vars_int(struct circuit *c) {
 
 struct string
 arrow_vars_string_from_ptr(struct circuit *c) {
-    char *p = (char *)c->current->vars.ptr;
-    struct string s = {
-        .size = strlen(p),
-        .data = p,
-    };
-
-    return s;
-}
-
-
-struct string 
-arrow_string(char *s) {
-    struct string out = {
-        .size = 0,
-        .data = NULL
-    };
-
-    if (s != NULL) {
-        struct string out = {
-            .size = strlen(s),
-            .data = s
-        };
-    }
-
-    return out;
+    return c->current->vars.string;
 }

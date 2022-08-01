@@ -4,6 +4,7 @@
 
 #include <err.h>
 #include <errno.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/epoll.h>
@@ -30,7 +31,7 @@ waitA(struct circuit *c, struct conn *conn, union any data, int op) {
 void
 writeA(struct circuit *c, struct conn *conn, struct string p) {
     ssize_t size;
-
+    
     size = write(conn->wfd, p.data, p.size);
     if (size < 0) {
         if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
@@ -43,7 +44,6 @@ writeA(struct circuit *c, struct conn *conn, struct string p) {
     }
     RETURN_A(c, conn, NULL);
 }
-
 
 void arrow_io_init(int flags) {
     ev_init(flags);

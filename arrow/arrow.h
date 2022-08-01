@@ -61,10 +61,6 @@ struct string
 arrow_vars_string_from_ptr(struct circuit *c);
 
 
-struct string 
-arrow_string(char *s);
-
-
 /* Helper macros */
 #define NEW_C(ok, e) newC((arrow_okcb)(ok), (arrow_errcb)(e))
 #define APPEND_A(c, a, v) appendA(c, (arrow)(a), (union any)(v))

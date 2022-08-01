@@ -25,4 +25,12 @@ union any {
 };
 
 
+struct string 
+string_from_char(char *s);
+
+
+union any
+any_null();
+
+
 #endif
