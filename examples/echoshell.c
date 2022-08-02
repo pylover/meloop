@@ -17,13 +17,13 @@ promptA(struct circuit *c, struct conn *conn, struct string buff) {
 
 void
 errorcb(struct circuit *c, struct conn *conn, const char *error) {
-    err(EXIT_FAILURE, "%s", error);
+    dprintf(STDERR_FILENO, "%s\n", error);
 }
 
 
 void
 successcb(struct circuit *c, struct conn *conn, int out) {
-    // printf("Out: %d\n", out);
+    printf("Out: %d\n", out);
 }
 
 
@@ -39,14 +39,12 @@ int main() {
         .readsize = BUFFSIZE,
     };
 
-
     struct circuit *c = NEW_C(successcb, errorcb);
+
     APPEND_A(c, promptA, string_from_char(">> "));
     APPEND_A(c, readA, any_null());
     APPEND_A(c, writeA, any_null());
-    if (loopA(c)) {
-        err(1, "loopA");
-    }
+    loopA(c);
 
     /* Run circuit */
     runA(c, &state, any_string(string_from_char(buff))); 
@@ -55,6 +53,8 @@ int main() {
     if (arrow_io_loop(NULL)) {
         err(1, "arrow_io_loop");
     }
+    printf("after loop\n");
+
     arrow_io_deinit();
     free(buff);
 }

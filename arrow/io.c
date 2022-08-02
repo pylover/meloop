@@ -64,7 +64,6 @@ readA(struct circuit *c, struct conn *conn, struct string p) {
 
     /* Check for EOF */
     if (size == 0) {
-        errno = ECANCELED;
         errorA(c, conn, "EOF");
         return;
     }

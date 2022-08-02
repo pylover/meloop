@@ -57,7 +57,7 @@ valgrind: all
 		--leak-check=full \
 		--track-origins=yes \
 		--gen-suppressions=all \
-		./state
+		./echoshell
 
 # --suppressions=.valgrind.supp \
 # .valgrind.supp file:
