@@ -15,6 +15,15 @@ promptA(struct circuit *c, struct conn *conn, struct string buff) {
 }
 
 
+void 
+echoA(struct circuit *c, struct conn *conn, struct string buff) {
+    if ((buff.size == 1) && (buff.data[0] == '\n')) {
+        buff.size = 0;
+    }
+    RETURN_A(c, conn, buff);
+}
+
+
 void
 errorcb(struct circuit *c, struct conn *conn, const char *error) {
     dprintf(STDERR_FILENO, "%s\n", error);
@@ -41,9 +50,10 @@ int main() {
 
     struct circuit *c = NEW_C(successcb, errorcb);
 
-    APPEND_A(c, promptA, string_from_char(">> "));
-    APPEND_A(c, readA, any_null());
-    APPEND_A(c, writeA, any_null());
+    APPEND_A(c, promptA, string_from_char("me@loop:~$ "));
+    APPEND_A(c, readA,   NULL);
+    APPEND_A(c, echoA,   NULL);
+    APPEND_A(c, writeA,  NULL);
     loopA(c);
 
     /* Run circuit */
@@ -54,7 +64,7 @@ int main() {
         err(1, "arrow_io_loop");
     }
     printf("after loop\n");
-
+    
     arrow_io_deinit();
     free(buff);
 }

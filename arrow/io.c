@@ -7,30 +7,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/epoll.h>
-
-
-static int _epfd = -1;
-static int _epflags = EPOLLONESHOT | EPOLLRDHUP | EPOLLERR;
-static volatile int _waitfds = 0;
-
-
-#define MAX_EVENTS  16
 
 
 void 
 waitA(struct circuit *c, struct conn *conn, union any data, int op) {
-    struct bag *bag = malloc(sizeof(struct bag));
-    if (bag == NULL) {
-        err(EXIT_FAILURE, "Out of memory");
-    }
+    struct bag *bag = bag_new(c, conn, data);
+    int fd = (op == EPOLLIN) ? conn->rfd : conn->wfd;
     
     printf("IO wait\n");
-    int fd = (op == EPOLLIN) ? conn->rfd : conn->wfd;
-    bag->circuit = c;
-    bag->conn = conn;
-    bag->data = data;
-    
     if (ev_arm(fd, op | conn->epollflags, bag)) {
         errorA(c, conn, "_arm");
     }
@@ -89,13 +73,14 @@ void arrow_io_init(int flags) {
 
 void arrow_io_deinit() {
     ev_deinit();
+    bags_freeall();
 }
 
 
 /* Start event loop */
 int 
 arrow_io_loop(volatile int *status) {
-    struct epoll_event events[MAX_EVENTS];
+    struct epoll_event events[EV_MAXEVENTS];
     struct epoll_event ev;
     struct bag *bag;
     struct conn *conn;
@@ -107,8 +92,8 @@ arrow_io_loop(volatile int *status) {
     struct conn *tmpconn;
     union any tmpdata;
 
-    while (((status == NULL) || (*status > EXIT_FAILURE)) && _waitfds) {
-        nfds = epoll_wait(_epfd, events, MAX_EVENTS, -1);
+    while (((status == NULL) || (*status > EXIT_FAILURE)) && ev_more()) {
+        nfds = ev_wait(events);
         if (nfds < 0) {
             ret = ERR;
             break;
@@ -120,14 +105,13 @@ arrow_io_loop(volatile int *status) {
         }
         
         for (i = 0; i < nfds; i++) {
-            _waitfds--;
             ev = events[i];
             bag = (struct bag *) ev.data.ptr;
             tmpcirc = bag->circuit;
             tmpconn = bag->conn;
             tmpdata = bag->data;
             fd = (ev.events && EPOLLIN) ? conn->rfd : conn->wfd;
-            free(bag);
+            bag_free(bag);
 
             if (ev.events & EPOLLRDHUP) {
                 ev_dearm(fd);
