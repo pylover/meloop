@@ -8,11 +8,12 @@ string_from_char(char *s) {
         .data = NULL
     };
 
-    if (s != NULL) {
-        out.size = strlen(s);
-        out.data = s;
+    if (s == NULL) {
+        return out;
     }
 
+    out.size = strlen(s);
+    out.data = s;
     return out;
 }
 

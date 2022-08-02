@@ -93,7 +93,7 @@ freeE(struct element *e) {
 
 
 void 
-freeA(struct circuit *c) {
+freeC(struct circuit *c) {
     if (c == NULL) {
         return;
     }

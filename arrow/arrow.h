@@ -26,7 +26,7 @@ newC(arrow_okcb ok, arrow_errcb cb);
 
 
 void 
-freeA(struct circuit *c);
+freeC(struct circuit *c);
 
 
 void 

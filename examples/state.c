@@ -71,5 +71,5 @@ main() {
     APPEND_A(c, cubeA, NULL);
 
     runA(c, &s, p);
-    freeA(c);
+    freeC(c);
 }

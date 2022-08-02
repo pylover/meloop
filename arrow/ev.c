@@ -20,7 +20,7 @@ static int
 bags_remember(struct bag *bag) {
     int i;
 
-    for (i == 0; i < EV_MAXEVENTS; i++) {
+    for (i = 0; i < EV_MAXEVENTS; i++) {
         if (_bags[i] == NULL) {
             _bags[i] = bag;
             _waitingbags++;
@@ -36,7 +36,7 @@ void
 bag_free(struct bag *bag) {
     int i;
 
-    for (i == 0; i < EV_MAXEVENTS; i++) {
+    for (i = 0; i < EV_MAXEVENTS; i++) {
         if (_bags[i] == bag) {
             free(bag);
             _bags[i] = NULL;
@@ -51,7 +51,7 @@ void
 bags_freeall() {
     int i;
 
-    for (i == 0; i < EV_MAXEVENTS; i++) {
+    for (i = 0; i < EV_MAXEVENTS; i++) {
         if (_bags[i] == NULL) {
             continue;
         }

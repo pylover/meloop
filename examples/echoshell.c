@@ -41,7 +41,7 @@ successcb(struct circuit *c, struct conn *conn, int out) {
 
 int main() {
     arrow_io_init(0);
-    char *buff = malloc(BUFFSIZE);
+    char buff[BUFFSIZE] = "\0";
     struct conn state = {
         .wfd = STDOUT_FILENO,
         .rfd = STDIN_FILENO,
@@ -66,5 +66,5 @@ int main() {
     printf("after loop\n");
     
     arrow_io_deinit();
-    free(buff);
+    freeC(c);
 }

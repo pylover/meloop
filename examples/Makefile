@@ -57,9 +57,9 @@ valgrind: all
 		--leak-check=full \
 		--track-origins=yes \
 		--gen-suppressions=all \
+		--suppressions=.valgrind.supp \
 		./echoshell
 
-# --suppressions=.valgrind.supp \
 # .valgrind.supp file:
 # {
 #    io_epoll_ctl
