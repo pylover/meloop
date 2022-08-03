@@ -6,6 +6,9 @@
 #include <unistd.h>
 
 
+#define BUFFSIZE 1024
+
+
 void 
 promptA(struct circuit *c, struct conn *conn, struct string buff) {
     struct string s = arrow_vars_string_from_ptr(c);
@@ -36,11 +39,11 @@ successcb(struct circuit *c, struct conn *conn, int out) {
 }
 
 
-#define BUFFSIZE 1024
 
 
 int main() {
     arrow_io_init(0);
+
     char buff[BUFFSIZE] = "\0";
     struct conn state = {
         .wfd = STDOUT_FILENO,

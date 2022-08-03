@@ -1,8 +1,0 @@
-{
-   strlen_conditional_jump
-   Memcheck:Cond
-   fun:strlen
-   fun:string_from_char
-   fun:main
-}
-
