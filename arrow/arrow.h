@@ -38,7 +38,7 @@ appendA(struct circuit *c, arrow f, union any vars);
 
 
 int 
-loopA(struct circuit *c1);
+loopA(struct element *e);
 
 
 void 
@@ -46,7 +46,7 @@ returnA(struct circuit *c, void *state, union any result);
 
 
 void 
-errorA(struct circuit *c, void *state, const char *msg);
+errorA(struct circuit *c, void *state, const char *format, ...);
 
 
 void

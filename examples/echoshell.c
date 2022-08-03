@@ -39,8 +39,6 @@ successcb(struct circuit *c, struct conn *conn, int out) {
 }
 
 
-
-
 int main() {
     arrow_io_init(0);
 
@@ -53,11 +51,11 @@ int main() {
 
     struct circuit *c = NEW_C(successcb, errorcb);
 
-    APPEND_A(c, promptA, string_from_char("me@loop:~$ "));
-    APPEND_A(c, readA,   NULL);
-    APPEND_A(c, echoA,   NULL);
-    APPEND_A(c, writeA,  NULL);
-    loopA(c);
+    struct element *e = APPEND_A(c, promptA, string_from_char("me@loop:~$ "));
+                        APPEND_A(c, readA,   NULL);
+                        APPEND_A(c, echoA,   NULL);
+                        APPEND_A(c, writeA,  NULL);
+    loopA(e);
 
     /* Run circuit */
     runA(c, &state, any_string(string_from_char(buff))); 

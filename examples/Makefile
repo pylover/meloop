@@ -9,7 +9,7 @@ objects = $(patsubst %.c,%.o,$(wildcard ../arrow/*.c))
 
 
 # all: maybe echo_shell echo_server echo_client
-all: state echoshell
+all: state echoshell echoserver
 
 
 %: %.c $(objects)
@@ -21,6 +21,10 @@ maybe: maybe.c $(objects)
 
 
 echoshell: echoshell.c $(objects)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+
+echoserver: echoserver.c $(objects)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 
@@ -37,6 +41,7 @@ clean::
 	- rm echo_shell 
 	- rm echo_server 
 	- rm echoshell 
+	- rm echoserver 
 	- rm state 
 	- rm maybe 
 	- rm massif.out.*

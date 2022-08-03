@@ -2,6 +2,12 @@
 #define ARROW_IO_H
 
 
+#include <arrow/types.h>
+#include <arrow/arrow.h>
+
+#include <stdlib.h>
+
+
 struct conn {
     /* File descriptors */
     int rfd;

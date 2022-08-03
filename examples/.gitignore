@@ -4,5 +4,6 @@ echo_miniserver
 maybe
 state
 echoshell
+echoserver
 gmon.out
 massif.out.*

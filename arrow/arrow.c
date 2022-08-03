@@ -1,10 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdarg.h>
 #include <err.h>
 
 
 #include "arrow/arrow.h"
+
+    
+#define ARROW_ERROR_BUFFSIZE    1024
 
 
 struct element {
@@ -176,9 +180,9 @@ bindA(struct element *e1, struct element *e2) {
 
 */
 int 
-loopA(struct circuit *c) {
-    struct element *first = c->nets;
-    struct element *last = c->nets;
+loopA(struct element *e) {
+    struct element *first = e;
+    struct element *last = e;
     while (true) {
         if (last->next == NULL) {
             /* Last element */
@@ -215,7 +219,22 @@ returnA(struct circuit *c, void *state, union any result) {
 
 
 void 
-errorA(struct circuit *c, void *state, const char *msg) {
+errorA(struct circuit *c, void *state, const char *format, ...) {
+    char buff[ARROW_ERROR_BUFFSIZE]; 
+    char *msg;
+    va_list args;
+
+    /* var args */
+    if (format != NULL) {
+        va_start(args, format);
+        snprintf(buff, ARROW_ERROR_BUFFSIZE, format, args);
+        va_end(args);
+        msg = buff;
+    }
+    else {
+        msg = NULL;
+    }
+
     if (c->err != NULL) {
         c->err(c, state, msg);
     }
