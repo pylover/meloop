@@ -8,29 +8,29 @@
 #include <stdlib.h>
 
 
-struct conn {
-    /* File descriptors */
-    int rfd;
-    int wfd;
-        
+struct io {
     /* epoll */
     int epollflags;
 
     /* Behaviour */
     size_t readsize;
+
+    /* File descriptors */
+    int rfd;
+    int wfd;
 };
 
 
 void 
-waitA(struct circuit *c, struct conn *conn, union any data, int op);
+waitA(struct circuit *c, struct io *io, union any data, int fd, int op);
 
 
 void
-writeA(struct circuit *c, struct conn *conn, struct string p);
+writeA(struct circuit *c, struct io *io, struct string p);
 
 
 void
-readA(struct circuit *c, struct conn *conn, struct string p);
+readA(struct circuit *c, struct io *io, struct string p);
 
 
 void arrow_io_init(int flags);
@@ -44,7 +44,8 @@ arrow_io_loop(volatile int *status);
 
 
 /* Helper macros */
-#define WAIT_A(c, s, d, op) waitA(c, s, (union any)(d), op);
+#define WAIT_A(c, s, d, f, op) \
+    waitA(c, (struct io*)(s), (union any)(d), f, op);
 
 
 #endif

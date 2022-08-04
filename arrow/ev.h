@@ -14,7 +14,7 @@
    until the underlying file descriptor becomes ready for read or write. */
 struct bag {
     struct circuit *circuit;
-    struct conn *conn;
+    struct io *io;
     union any data;
 };
 
@@ -44,7 +44,7 @@ bags_freeall();
 
 
 struct bag *
-bag_new(struct circuit *c, struct conn *conn, union any data);
+bag_new(struct circuit *c, struct io *io, union any data);
 
 
 int

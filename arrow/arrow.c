@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdarg.h>
+#include <errno.h>
 #include <err.h>
 
 
@@ -245,7 +246,10 @@ errorA(struct circuit *c, void *state, const char *format, ...) {
 void
 runA(struct circuit *c, void *state, union any args) {
     struct pair *p = (struct pair*) (&args);
-    c->current = c->nets;
+    
+    if (c->current == NULL) {
+        c->current = c->nets;
+    }
     c->current->run(c, state, args);
 }
 

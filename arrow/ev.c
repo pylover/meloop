@@ -63,14 +63,14 @@ bags_freeall() {
 
 
 struct bag *
-bag_new(struct circuit *c, struct conn *conn, union any data) {
+bag_new(struct circuit *c, struct io *io, union any data) {
     struct bag *bag = malloc(sizeof(struct bag));
     if (bag == NULL) {
         err(EXIT_FAILURE, "Out of memory");
     }
     
     bag->circuit = c;
-    bag->conn = conn;
+    bag->io = io;
     bag->data = data;
     
     bags_remember(bag);

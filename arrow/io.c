@@ -10,59 +10,58 @@
 
 
 void 
-waitA(struct circuit *c, struct conn *conn, union any data, int op) {
-    struct bag *bag = bag_new(c, conn, data);
-    int fd = (op == EPOLLIN) ? conn->rfd : conn->wfd;
+waitA(struct circuit *c, struct io *io, union any data, int fd, int op) {
+    struct bag *bag = bag_new(c, io, data);
     
-    printf("IO wait\n");
-    if (ev_arm(fd, op | conn->epollflags, bag)) {
-        errorA(c, conn, "_arm");
+    //printf("IO wait\n");
+    if (ev_arm(fd, op | io->epollflags, bag)) {
+        errorA(c, io, "_arm");
     }
 }
 
 
 void
-writeA(struct circuit *c, struct conn *conn, struct string p) {
+writeA(struct circuit *c, struct io *io, struct string p) {
     ssize_t size;
     
-    size = write(conn->wfd, p.data, p.size);
+    size = write(io->wfd, p.data, p.size);
     if (size < 0) {
         if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
-            WAIT_A(c, conn, p, EPOLLIN);
+            WAIT_A(c, io, p, EPOLLOUT, io->wfd);
         }
         else {
-            errorA(c, conn, "write");
+            errorA(c, io, "write");
         }
         return;
     }
-    RETURN_A(c, conn, p);
+    RETURN_A(c, io, p);
 }
 
 
 void
-readA(struct circuit *c, struct conn *conn, struct string p) {
+readA(struct circuit *c, struct io *io, struct string p) {
     ssize_t size;
     
     /* Read from the file descriptor */
-    size = read(conn->rfd, p.data, conn->readsize);
+    size = read(io->rfd, p.data, io->readsize);
 
     /* Check for EOF */
     if (size == 0) {
-        errorA(c, conn, "EOF");
+        errorA(c, io, "EOF");
         return;
     }
 
     if (size < 0) {
         if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
-            WAIT_A(c, conn, p, EPOLLIN);
+            WAIT_A(c, io, p, io->rfd, EPOLLIN);
         }
         else {
-            errorA(c, conn, "read");
+            errorA(c, io, "read");
         }
         return;
     }
     p.size = size;
-    RETURN_A(c, conn, p);
+    RETURN_A(c, io, p);
 }
 
 
@@ -83,13 +82,12 @@ arrow_io_loop(volatile int *status) {
     struct epoll_event events[EV_MAXEVENTS];
     struct epoll_event ev;
     struct bag *bag;
-    struct conn *conn;
     int i;
     int nfds;
     int fd;
     int ret = OK;
     struct circuit *tmpcirc;
-    struct conn *tmpconn;
+    struct io *tmpio;
     union any tmpdata;
 
     while (((status == NULL) || (*status > EXIT_FAILURE)) && ev_more()) {
@@ -108,21 +106,21 @@ arrow_io_loop(volatile int *status) {
             ev = events[i];
             bag = (struct bag *) ev.data.ptr;
             tmpcirc = bag->circuit;
-            tmpconn = bag->conn;
+            tmpio = bag->io;
             tmpdata = bag->data;
-            fd = (ev.events && EPOLLIN) ? conn->rfd : conn->wfd;
+            fd = (ev.events && EPOLLIN) ? tmpio->rfd : tmpio->wfd;
             bag_free(bag);
 
             if (ev.events & EPOLLRDHUP) {
                 ev_dearm(fd);
-                RETURN_A(tmpcirc, tmpconn, tmpdata);
+                RETURN_A(tmpcirc, tmpio, tmpdata);
             }
             else if (ev.events & EPOLLERR) {
                 ev_dearm(fd);
-                errorA(tmpcirc, tmpconn, "Connection Error");
+                errorA(tmpcirc, tmpio, "Connection Error");
             }
             else {
-                runA(tmpcirc, conn, tmpdata);
+                runA(tmpcirc, tmpio, tmpdata);
             }
         }
     }

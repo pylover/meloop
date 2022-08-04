@@ -2,6 +2,7 @@
 #include "arrow/io.h"
 
 #include <err.h>
+#include <errno.h>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -10,31 +11,31 @@
 
 
 void 
-promptA(struct circuit *c, struct conn *conn, struct string buff) {
+promptA(struct circuit *c, struct io *io, struct string buff) {
     struct string s = arrow_vars_string_from_ptr(c);
     memcpy(buff.data, s.data, s.size);
     buff.size = s.size;
-    writeA(c, conn, buff);
+    writeA(c, io, buff);
 }
 
 
 void 
-echoA(struct circuit *c, struct conn *conn, struct string buff) {
+echoA(struct circuit *c, struct io *io, struct string buff) {
     if ((buff.size == 1) && (buff.data[0] == '\n')) {
         buff.size = 0;
     }
-    RETURN_A(c, conn, buff);
+    RETURN_A(c, io, buff);
 }
 
 
 void
-errorcb(struct circuit *c, struct conn *conn, const char *error) {
-    dprintf(STDERR_FILENO, "%s\n", error);
+errorcb(struct circuit *c, struct io *io, const char *error) {
+    perror(error);
 }
 
 
 void
-successcb(struct circuit *c, struct conn *conn, int out) {
+successcb(struct circuit *c, struct io *io, int out) {
     printf("Out: %d\n", out);
 }
 
@@ -43,7 +44,7 @@ int main() {
     arrow_io_init(0);
 
     char buff[BUFFSIZE] = "\0";
-    struct conn state = {
+    struct io state = {
         .wfd = STDOUT_FILENO,
         .rfd = STDIN_FILENO,
         .readsize = BUFFSIZE,
@@ -68,4 +69,5 @@ int main() {
     
     arrow_io_deinit();
     freeC(c);
+    return EXIT_SUCCESS;
 }

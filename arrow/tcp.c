@@ -1,5 +1,11 @@
 #include "arrow/arrow.h"
+#include "arrow/io.h"
 #include "arrow/tcp.h"
+
+#include <errno.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <sys/epoll.h>
 
 
 void 
@@ -16,7 +22,7 @@ listenA(struct circuit *c, struct tcpserver *s) {
     setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
 
     /* parse listen address */
-    memset(addr, '0', sizeof(&addr));
+    memset(addr, 0, sizeof(struct sockaddr_in));
     addr->sin_family = AF_INET;
     if (s->host == NULL) {
         addr->sin_addr.s_addr = htonl(INADDR_ANY);
@@ -40,6 +46,57 @@ listenA(struct circuit *c, struct tcpserver *s) {
         errorA(c, s, "Cannot listen on: %s", inet_ntoa(addr->sin_addr));
         return;
     }
-    s->listenfd = fd;
+    s->rfd = fd;
+    s->wfd = fd;
     RETURN_A(c, s, NULL);
+}
+
+
+void 
+acceptA(struct circuit *c, struct tcpserver *s, union any data) {
+    int fd;
+    socklen_t addrlen = sizeof(struct sockaddr);
+    struct sockaddr addr; 
+
+    fd = accept4(s->rfd, &addr, &addrlen, SOCK_NONBLOCK);
+    if (fd == -1) {
+        if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
+            WAIT_A(c, s, data, s->rfd, EPOLLIN);
+        }
+        else {
+            errorA(c, s, "accept4");
+        }
+        return;
+    }
+   
+    // /* Will be free at tcp: client_free() */
+    // struct conn *cc = malloc(sizeof(struct conn));
+    // if (cc == NULL) {
+    //     close(fd);
+    //     errorA(c, s, "Out of memory");
+    //     return;
+    // }
+
+    printf("new conn\n");
+    // cc->rfd = fd; 
+    // cc->wfd = fd; 
+    // cc->readsize = s->chunksize; 
+    // memcpy(&(cc->addr), &addr, sizeof(struct sockaddr_in));
+
+    // /* Will be free at tcp.c: client_free() */
+    // struct io_props *cdev = monad_args(c->worker);
+    // cc->data = malloc(cdev->readsize);
+    // if (cc->data == NULL) {
+    //     close(fd);
+    //     free(cc);
+    //     monad_failed(ctx, c, "Out of memory");
+    //     return;
+    // }
+    // cc->ptr = c;
+
+    // if (c->client_connected != NULL) {
+    //     c->client_connected(ctx, cc, NULL);
+    // }
+    // MONAD_RUN(c->worker, cc, client_closed);
+    returnA(c, s, data);
 }
