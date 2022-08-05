@@ -30,6 +30,7 @@ struct circuit {
 
 struct circuit * 
 newC(arrow_okcb ok, arrow_errcb error) {
+    printf("malloc circ\n");
     struct circuit *c = malloc(sizeof(struct circuit));
     if (c == NULL) {
         err(EXIT_FAILURE, "Out of memory");
@@ -56,6 +57,7 @@ newC(arrow_okcb ok, arrow_errcb error) {
 */
 struct element * 
 appendA(struct circuit *c, arrow f, union any vars) {
+    printf("malloc elem\n");
     struct element *e2 = malloc(sizeof(struct element));
     if (e2 == NULL) {
         err(EXIT_FAILURE, "Out of memory");
@@ -86,6 +88,7 @@ freeE(struct element *e) {
     
     bool last = e->last;
     struct element *next = e->next;
+    printf("free elem\n");
     free(e);
 
     if (last) {
@@ -104,6 +107,7 @@ freeC(struct circuit *c) {
     }
     
     freeE(c->nets);
+    printf("free circ\n");
     free(c);
 }
 

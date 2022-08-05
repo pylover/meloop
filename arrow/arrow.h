@@ -69,4 +69,5 @@ arrow_vars_string_from_ptr(struct circuit *c);
 #define RETURN_A(c, s, r) returnA(c, s, (union any)(r))
 #define ERROR_A(c, s, r, e, ...) errorA(c, s, (union any)(r), e, #__VA_ARGS__)
 
+
 #endif

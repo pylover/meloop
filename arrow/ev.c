@@ -3,6 +3,7 @@
 
 #include <err.h>
 #include <errno.h>
+#include <stdio.h>
 #include <unistd.h>
 #include <sys/epoll.h>
 
@@ -49,14 +50,18 @@ bag_free(struct bag *bag) {
 
 void
 bags_freeall() {
+    struct bag *bag;
     int i;
 
     for (i = 0; i < EV_MAXEVENTS; i++) {
-        if (_bags[i] == NULL) {
+        bag = _bags[i];
+
+        if (bag == NULL) {
             continue;
         }
 
-        free(_bags[i]);
+        ERROR_A(bag->circuit, bag->io, bag->data, "bag_free");
+        free(bag);
         _bags[i] = NULL;
     }
 }
@@ -109,6 +114,7 @@ ev_arm(int fd, int op, struct bag *bag) {
     
     if (epoll_ctl(_epfd, EPOLL_CTL_MOD, fd, &ev) != OK) {
         if (errno == ENOENT) {
+            errno = 0;
             /* File descriptor is not exists yet */
             if (epoll_ctl(_epfd, EPOLL_CTL_ADD, fd, &ev) != OK) {
                 return ERR;

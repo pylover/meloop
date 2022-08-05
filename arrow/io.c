@@ -13,8 +13,8 @@ void
 waitA(struct circuit *c, struct io *io, union any data, int fd, int op) {
     struct bag *bag = bag_new(c, io, data);
     
-    //printf("IO wait\n");
     if (ev_arm(fd, op | io->epollflags, bag)) {
+        perror("ev_arm"); 
         ERROR_A(c, io, data, "_arm");
     }
 }
@@ -27,7 +27,7 @@ writeA(struct circuit *c, struct io *io, struct string p) {
     size = write(io->wfd, p.data, p.size);
     if (size < 0) {
         if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
-            WAIT_A(c, io, p, EPOLLOUT, io->wfd);
+            WAIT_A(c, io, p, io->wfd, EPOLLOUT);
         }
         else {
             ERROR_A(c, io, p, "write");
@@ -103,6 +103,7 @@ arrow_io_loop(volatile int *status) {
             break;
         }
         
+        
         for (i = 0; i < nfds; i++) {
             ev = events[i];
             bag = (struct bag *) ev.data.ptr;
@@ -114,10 +115,12 @@ arrow_io_loop(volatile int *status) {
 
             if (ev.events & EPOLLRDHUP) {
                 ev_dearm(fd);
-                RETURN_A(tmpcirc, tmpio, tmpdata);
+                close(fd);
+                ERROR_A(tmpcirc, tmpio, tmpdata, "Remote hanged up");
             }
             else if (ev.events & EPOLLERR) {
                 ev_dearm(fd);
+                close(fd);
                 ERROR_A(tmpcirc, tmpio, tmpdata, "Connection Error");
             }
             else {
