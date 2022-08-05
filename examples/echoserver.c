@@ -105,6 +105,7 @@ int main() {
                         APPEND_A(worker, writeA, NULL);
               loopA(e);
 
+    /* Initialize TCP Server */
     static struct tcpserver server = {
         .epollflags = EPOLLET,
         .readsize = 1024,
@@ -112,7 +113,7 @@ int main() {
         .client_connected = client_connected,
     };
 
-    /* parse listen address */
+    /* Parse listen address */
     addr_parse(&(server.bind), "127.0.0.1", 9090);
     
     /* Server init -> loop circuit */
