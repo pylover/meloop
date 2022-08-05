@@ -5,6 +5,10 @@
 #include <string.h>
 
 
+#define ERR -1
+#define OK 0
+
+
 struct pair {
     int left;
     int right;

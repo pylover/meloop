@@ -8,15 +8,11 @@ CFLAGS = \
 objects = $(patsubst %.c,%.o,$(wildcard ../arrow/*.c))
 
 
-# all: maybe echo_shell echo_server echo_client
+# all: echo_client
 all: state echoshell echoserver
 
 
 %: %.c $(objects)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
-
-
-maybe: maybe.c $(objects)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 
@@ -28,30 +24,23 @@ echoserver: echoserver.c $(objects)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 
-echo_server: echo_server.c $(objects)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
-
-
 echo_client: echo_client.c $(objects)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 
 .PHONY: clean
 clean:: 
-	- rm echo_shell 
-	- rm echo_server 
 	- rm echoshell 
 	- rm echoserver 
 	- rm state 
-	- rm maybe 
 	- rm massif.out.*
 	- rm gmon.out
 	- rm *.o
 	cd ..; make clean
 
 
-.PHONY: debug-echo_shell
-debug-echo_shell: echo_shell
+.PHONY: debug-echoshell
+debug-echoshell: echoshell
 	gdb ./$^
 
 

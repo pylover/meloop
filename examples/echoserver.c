@@ -1,5 +1,6 @@
 #include "arrow/io.h"
 #include "arrow/tcp.h"
+#include "arrow/addr.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,7 +33,8 @@ void catch_signal() {
 
 
 void
-errorcb(struct circuit *c, struct tcpserver *s, const char *error) {
+errorcb(struct circuit *c, struct tcpserver *s, union any data, 
+        const char *error) {
     perror(error);
     status = EXIT_FAILURE;
 }
@@ -47,7 +49,7 @@ successcb(struct circuit *c, struct tcpserver *s, int out) {
 void
 client_error(struct circuit *c, struct conn *conn, struct string buff, 
         const char *error) {
-    printf("clinet disconnected: %d %s\n", conn->rfd, error);
+    printf("Clinet disconnected: %s -- %s\n", addr_dump(&(conn->addr)), error);
    
     if (buff.data != NULL) {
         free(buff.data);
@@ -61,7 +63,8 @@ client_error(struct circuit *c, struct conn *conn, struct string buff,
 void 
 client_connected (struct circuit *c, struct tcpserver *s, int fd, 
         struct sockaddr *addr) {
-    printf("new client\n");
+    
+    printf("Client connected: %s\n", addr_dump(addr));
 
     /* Will be free at tcp: client_free() */
     struct conn *conn = malloc(sizeof(struct conn));
@@ -71,12 +74,11 @@ client_connected (struct circuit *c, struct tcpserver *s, int fd,
         return;
     }
 
-    // printf("new conn\n");
     conn->rfd = fd; 
     conn->wfd = fd; 
     conn->epollflags = EPOLLET;
     conn->readsize = s->readsize; 
-    memcpy(&(conn->addr), addr, sizeof(struct sockaddr_in));
+    memcpy(&(conn->addr), addr, sizeof(addr));
 
     /* Will be free at tcp.c: client_free() */
     struct string buff = {
@@ -106,11 +108,12 @@ int main() {
     static struct tcpserver server = {
         .epollflags = EPOLLET,
         .readsize = 1024,
-        .host = "127.0.0.1",
-        .port = 9090,
         .backlog = 2,
         .client_connected = client_connected,
     };
+
+    /* parse listen address */
+    addr_parse(&(server.bind), "127.0.0.1", 9090);
     
     /* Server init -> loop circuit */
     struct circuit *circ = NEW_C(successcb, errorcb);

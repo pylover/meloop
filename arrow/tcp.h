@@ -16,7 +16,7 @@ struct tcpserver;
 struct conn {
     struct io;
     struct tcpserver *server;
-    struct sockaddr_in addr;
+    struct sockaddr addr;
 };
 
 
@@ -25,16 +25,15 @@ typedef void (*conn_event) (struct circuit*, struct tcpserver*, int fd,
 
 
 struct tcpserver {
-    /* io params */
     struct io;
-
-    const char *host;
-    int port;
-    struct sockaddr_in bind;
+    struct sockaddr bind;
     int backlog;
-    
     conn_event client_connected;
 };
+
+
+int
+parse_sockaddr(struct sockaddr *addr, const char *host, unsigned short port);
 
 
 void 

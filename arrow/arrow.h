@@ -8,10 +8,6 @@
 #include "arrow/types.h"
 
 
-#define ERR -1
-#define OK 0
-
-
 struct element;
 struct circuit;
 
@@ -67,7 +63,7 @@ arrow_vars_string_from_ptr(struct circuit *c);
 #define NEW_C(ok, e) newC((arrow_okcb)(ok), (arrow_errcb)(e))
 #define APPEND_A(c, a, v) appendA(c, (arrow)(a), (union any)(v))
 #define RETURN_A(c, s, r) returnA(c, s, (union any)(r))
-#define ERROR_A(c, s, r, e, ...) errorA(c, s, (union any)(r), e, #__VA_ARGS__)
+#define ERROR_A(c, s, r, ...) errorA(c, s, (union any)(r), __VA_ARGS__)
 
 
 #endif
