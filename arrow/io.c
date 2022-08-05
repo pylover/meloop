@@ -15,7 +15,7 @@ waitA(struct circuit *c, struct io *io, union any data, int fd, int op) {
     
     //printf("IO wait\n");
     if (ev_arm(fd, op | io->epollflags, bag)) {
-        errorA(c, io, "_arm");
+        ERROR_A(c, io, data, "_arm");
     }
 }
 
@@ -30,7 +30,7 @@ writeA(struct circuit *c, struct io *io, struct string p) {
             WAIT_A(c, io, p, EPOLLOUT, io->wfd);
         }
         else {
-            errorA(c, io, "write");
+            ERROR_A(c, io, p, "write");
         }
         return;
     }
@@ -41,22 +41,23 @@ writeA(struct circuit *c, struct io *io, struct string p) {
 void
 readA(struct circuit *c, struct io *io, struct string p) {
     ssize_t size;
-    
+
     /* Read from the file descriptor */
     size = read(io->rfd, p.data, io->readsize);
 
     /* Check for EOF */
     if (size == 0) {
-        errorA(c, io, "EOF");
+        ERROR_A(c, io, p, "EOF");
         return;
     }
 
+    /* Error | wait */
     if (size < 0) {
         if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
             WAIT_A(c, io, p, io->rfd, EPOLLIN);
         }
         else {
-            errorA(c, io, "read");
+            ERROR_A(c, io, p, "read");
         }
         return;
     }
@@ -117,7 +118,7 @@ arrow_io_loop(volatile int *status) {
             }
             else if (ev.events & EPOLLERR) {
                 ev_dearm(fd);
-                errorA(tmpcirc, tmpio, "Connection Error");
+                ERROR_A(tmpcirc, tmpio, tmpdata, "Connection Error");
             }
             else {
                 runA(tmpcirc, tmpio, tmpdata);

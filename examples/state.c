@@ -31,7 +31,7 @@ pairA(struct circuit *c, struct state *s, int value) {
 void 
 divA(struct circuit *c, struct state *s, struct pair p) {
     if (p.right == 0) {
-        errorA(c, s, "Division by zero");
+        ERROR_A(c, s, p, "Division by zero");
         return;
     }
     RETURN_A(c, s, p.left / p.right);

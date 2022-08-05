@@ -9,7 +9,7 @@
 
 
 void 
-listenA(struct circuit *c, struct tcpserver *s) {
+listenA(struct circuit *c, struct tcpserver *s, union any data) {
     int fd;
     int option = 1;
     int res;
@@ -28,7 +28,7 @@ listenA(struct circuit *c, struct tcpserver *s) {
         addr->sin_addr.s_addr = htonl(INADDR_ANY);
     } 
     else if(inet_pton(AF_INET, s->host, &addr->sin_addr) <= 0 ) {
-        errorA(c, s, "inet_pton");
+        ERROR_A(c, s, data, "inet_pton");
         return;
     }
     addr->sin_port = htons(s->port); 
@@ -36,14 +36,15 @@ listenA(struct circuit *c, struct tcpserver *s) {
     /* Bind to tcp port */
     res = bind(fd, (struct sockaddr*)addr, sizeof(*addr)); 
     if (res) {
-        errorA(c, s, "Cannot bind on: %s", inet_ntoa(addr->sin_addr));
+        ERROR_A(c, s, data, "Cannot bind on: %s", inet_ntoa(addr->sin_addr));
         return;
     }
     
     /* Listen */
     res = listen(fd, s->backlog); 
     if (res) {
-        errorA(c, s, "Cannot listen on: %s", inet_ntoa(addr->sin_addr));
+        ERROR_A(c, s, data, "Cannot listen on: %s", 
+                inet_ntoa(addr->sin_addr));
         return;
     }
     s->rfd = fd;
@@ -64,39 +65,13 @@ acceptA(struct circuit *c, struct tcpserver *s, union any data) {
             WAIT_A(c, s, data, s->rfd, EPOLLIN);
         }
         else {
-            errorA(c, s, "accept4");
+            ERROR_A(c, s, data, "accept4");
         }
         return;
     }
    
-    // /* Will be free at tcp: client_free() */
-    // struct conn *cc = malloc(sizeof(struct conn));
-    // if (cc == NULL) {
-    //     close(fd);
-    //     errorA(c, s, "Out of memory");
-    //     return;
-    // }
-
-    printf("new conn\n");
-    // cc->rfd = fd; 
-    // cc->wfd = fd; 
-    // cc->readsize = s->chunksize; 
-    // memcpy(&(cc->addr), &addr, sizeof(struct sockaddr_in));
-
-    // /* Will be free at tcp.c: client_free() */
-    // struct io_props *cdev = monad_args(c->worker);
-    // cc->data = malloc(cdev->readsize);
-    // if (cc->data == NULL) {
-    //     close(fd);
-    //     free(cc);
-    //     monad_failed(ctx, c, "Out of memory");
-    //     return;
-    // }
-    // cc->ptr = c;
-
-    // if (c->client_connected != NULL) {
-    //     c->client_connected(ctx, cc, NULL);
-    // }
-    // MONAD_RUN(c->worker, cc, client_closed);
+    if (s->client_connected != NULL) {
+        s->client_connected(c, s, fd, &addr);
+    }
     returnA(c, s, data);
 }

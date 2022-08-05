@@ -220,7 +220,8 @@ returnA(struct circuit *c, void *state, union any result) {
 
 
 void 
-errorA(struct circuit *c, void *state, const char *format, ...) {
+errorA(struct circuit *c, void *state, union any data, const char *format, 
+        ...) {
     char buff[ARROW_ERROR_BUFFSIZE]; 
     char *msg;
     va_list args;
@@ -237,7 +238,7 @@ errorA(struct circuit *c, void *state, const char *format, ...) {
     }
 
     if (c->err != NULL) {
-        c->err(c, state, msg);
+        c->err(c, state, data, msg);
     }
     c->current = NULL;
 }
