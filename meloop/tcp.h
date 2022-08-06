@@ -10,22 +10,22 @@
 #include <netinet/ip.h> 
 
 
-struct tcpserver;
+struct tcpserverS;
 
 
-struct conn {
-    struct io;
-    struct tcpserver *server;
+struct connS {
+    struct ioS;
+    struct tcpserverS *server;
     struct sockaddr addr;
 };
 
 
-typedef void (*conn_event) (struct circuit*, struct tcpserver*, int fd, 
+typedef void (*conn_event) (struct circuitS*, struct tcpserverS*, int fd, 
         struct sockaddr *);
 
 
-struct tcpserver {
-    struct io;
+struct tcpserverS {
+    struct ioS;
     struct sockaddr bind;
     int backlog;
     conn_event client_connected;
@@ -33,11 +33,11 @@ struct tcpserver {
 
 
 void 
-listenA(struct circuit *c, struct tcpserver *s, union any data);
+listenA(struct circuitS *c, struct tcpserverS *s, union any data);
 
 
 void 
-acceptA(struct circuit *c, struct tcpserver *s, union any data);
+acceptA(struct circuitS *c, struct tcpserverS *s, union any data);
 
 
 #endif

@@ -10,7 +10,7 @@
 
 
 void 
-listenA(struct circuit *c, struct tcpserver *s, union any data) {
+listenA(struct circuitS *c, struct tcpserverS *s, union any data) {
     int fd;
     int option = 1;
     int res;
@@ -42,7 +42,7 @@ listenA(struct circuit *c, struct tcpserver *s, union any data) {
 
 
 void 
-acceptA(struct circuit *c, struct tcpserver *s, union any data) {
+acceptA(struct circuitS *c, struct tcpserverS *s, union any data) {
     int fd;
     socklen_t addrlen = sizeof(struct sockaddr);
     struct sockaddr addr; 

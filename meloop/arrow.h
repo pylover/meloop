@@ -8,55 +8,55 @@
 #include "meloop/types.h"
 
 
-struct element;
-struct circuit;
+struct elementS;
+struct circuitS;
 
 
-typedef void (*meloop) (struct circuit *c, void* state, union any value);
-typedef void (*meloop_okcb) (struct circuit *c, void* state, union any value);
-typedef void (*meloop_errcb) (struct circuit *c, void* state, union any value, 
+typedef void (*meloop) (struct circuitS *c, void* state, union any value);
+typedef void (*meloop_okcb) (struct circuitS *c, void* state, union any value);
+typedef void (*meloop_errcb) (struct circuitS *c, void* state, union any value, 
         const char *msg);
 
 
-struct circuit * 
+struct circuitS * 
 newC(meloop_okcb ok, meloop_errcb cb);
 
 
 void 
-freeC(struct circuit *c);
+freeC(struct circuitS *c);
 
 
 void 
-bindA(struct element *e1, struct element *e2);
+bindA(struct elementS *e1, struct elementS *e2);
 
 
-struct element * 
-appendA(struct circuit *c, meloop f, union any vars);
+struct elementS * 
+appendA(struct circuitS *c, meloop f, union any vars);
 
 
 int 
-loopA(struct element *e);
+loopA(struct elementS *e);
 
 
 void 
-returnA(struct circuit *c, void *state, union any result);
+returnA(struct circuitS *c, void *state, union any result);
 
 
 void 
-errorA(struct circuit *c, void *state, union any data, const char *format, 
+errorA(struct circuitS *c, void *state, union any data, const char *format, 
         ...);
 
 
 void
-runA(struct circuit *c, void *state, union any);
+runA(struct circuitS *c, void *state, union any);
 
 
 int
-meloop_vars_int(struct circuit *c);
+meloop_vars_int(struct circuitS *c);
 
 
-struct string
-meloop_vars_string_from_ptr(struct circuit *c);
+struct stringS
+meloop_vars_string_from_ptr(struct circuitS *c);
 
 
 /* Helper macros */

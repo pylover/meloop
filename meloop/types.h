@@ -9,13 +9,13 @@
 #define OK 0
 
 
-struct pair {
+struct pairS {
     int left;
     int right;
 };
 
 
-struct string {
+struct stringS {
     size_t size;
     char *data;
 };
@@ -25,12 +25,12 @@ union any {
     int sint;
     char *charptr;
     void *ptr;
-    struct pair pair;
-    struct string string;
+    struct pairS pair;
+    struct stringS string;
 };
 
 
-struct string 
+struct stringS 
 meloop_atos(char *s);
 
 

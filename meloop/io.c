@@ -10,8 +10,8 @@
 
 
 void 
-waitA(struct circuit *c, struct io *io, union any data, int fd, int op) {
-    struct bag *bag = meloop_bag_new(c, io, data);
+waitA(struct circuitS *c, struct ioS *io, union any data, int fd, int op) {
+    struct bagS *bag = meloop_bag_new(c, io, data);
     
     if (meloop_ev_arm(fd, op | io->epollflags, bag)) {
         perror("meloop_ev_arm"); 
@@ -21,7 +21,7 @@ waitA(struct circuit *c, struct io *io, union any data, int fd, int op) {
 
 
 void
-writeA(struct circuit *c, struct io *io, struct string p) {
+writeA(struct circuitS *c, struct ioS *io, struct stringS p) {
     ssize_t size;
     
     size = write(io->wfd, p.data, p.size);
@@ -39,7 +39,7 @@ writeA(struct circuit *c, struct io *io, struct string p) {
 
 
 void
-readA(struct circuit *c, struct io *io, struct string p) {
+readA(struct circuitS *c, struct ioS *io, struct stringS p) {
     ssize_t size;
 
     /* Read from the file descriptor */
@@ -82,13 +82,13 @@ int
 meloop_io_loop(volatile int *status) {
     struct epoll_event events[EV_MAXEVENTS];
     struct epoll_event ev;
-    struct bag *bag;
+    struct bagS *bag;
     int i;
     int nfds;
     int fd;
     int ret = OK;
-    struct circuit *tmpcirc;
-    struct io *tmpio;
+    struct circuitS *tmpcirc;
+    struct ioS *tmpio;
     union any tmpdata;
 
     while (((status == NULL) || (*status > EXIT_FAILURE)) && 
@@ -107,7 +107,7 @@ meloop_io_loop(volatile int *status) {
         
         for (i = 0; i < nfds; i++) {
             ev = events[i];
-            bag = (struct bag *) ev.data.ptr;
+            bag = (struct bagS *) ev.data.ptr;
             tmpcirc = bag->circuit;
             tmpio = bag->io;
             tmpdata = bag->data;

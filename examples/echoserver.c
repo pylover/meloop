@@ -15,7 +15,7 @@
 #define WORKING 9999
 static volatile int status = WORKING;
 static struct sigaction old_action;
-static struct circuit *worker;
+static struct circuitS *worker;
 
 
 void sighandler(int s) {
@@ -33,7 +33,7 @@ void catch_signal() {
 
 
 void
-errorcb(struct circuit *c, struct tcpserver *s, union any data, 
+errorcb(struct circuitS *c, struct tcpserverS *s, union any data, 
         const char *error) {
     perror(error);
     status = EXIT_FAILURE;
@@ -41,13 +41,13 @@ errorcb(struct circuit *c, struct tcpserver *s, union any data,
 
 
 void
-successcb(struct circuit *c, struct tcpserver *s, int out) {
+successcb(struct circuitS *c, struct tcpserverS *s, int out) {
     printf("Out: %d\n", out);
 }
 
 
 void
-client_error(struct circuit *c, struct conn *conn, struct string buff, 
+client_error(struct circuitS *c, struct connS *conn, struct stringS buff, 
         const char *error) {
     printf("Clinet disconnected: %s -- %s\n", meloop_addr_dump(&(conn->addr)), error);
    
@@ -61,13 +61,13 @@ client_error(struct circuit *c, struct conn *conn, struct string buff,
 
 
 void 
-client_connected (struct circuit *c, struct tcpserver *s, int fd, 
+client_connected (struct circuitS *c, struct tcpserverS *s, int fd, 
         struct sockaddr *addr) {
     
     printf("Client connected: %s\n", meloop_addr_dump(addr));
 
     /* Will be free at tcp: client_free() */
-    struct conn *conn = malloc(sizeof(struct conn));
+    struct connS *conn = malloc(sizeof(struct connS));
     if (conn == NULL) {
         close(fd);
         ERROR_A(c, s, NULL, "Out of memory");
@@ -81,7 +81,7 @@ client_connected (struct circuit *c, struct tcpserver *s, int fd,
     memcpy(&(conn->addr), addr, sizeof(addr));
 
     /* Will be free at tcp.c: client_free() */
-    struct string buff = {
+    struct stringS buff = {
         .size = 0,
         .data = malloc(s->readsize),
     };
@@ -99,14 +99,14 @@ int main() {
     catch_signal();
     meloop_io_init(0);
 
-    /* A circuit to run for each new connection */
+    /* A circuitS to run for each new connection */
     worker = NEW_C(NULL, client_error);
-    struct element *e = APPEND_A(worker, readA,  NULL);
-                        APPEND_A(worker, writeA, NULL);
-              loopA(e);
+    struct elementS *e = APPEND_A(worker, readA,  NULL);
+                         APPEND_A(worker, writeA, NULL);
+               loopA(e);
 
     /* Initialize TCP Server */
-    static struct tcpserver server = {
+    static struct tcpserverS server = {
         .epollflags = EPOLLET,
         .readsize = 1024,
         .backlog = 2,
@@ -116,14 +116,14 @@ int main() {
     /* Parse listen address */
     meloop_addr_parse(&(server.bind), "127.0.0.1", 9090);
     
-    /* Server init -> loop circuit */
-    struct circuit *circ = NEW_C(successcb, errorcb);
+    /* Server init -> loop circuitS */
+    struct circuitS *circ = NEW_C(successcb, errorcb);
 
-                           APPEND_A(circ, listenA, NULL);
-    struct element *acpt = APPEND_A(circ, acceptA, NULL);
-              loopA(acpt);
+                            APPEND_A(circ, listenA, NULL);
+    struct elementS *acpt = APPEND_A(circ, acceptA, NULL);
+               loopA(acpt);
 
-    /* Run server circuit */
+    /* Run server circuitS */
     RUN_A(circ, &server, NULL); 
 
     /* Start and wait for event loop */

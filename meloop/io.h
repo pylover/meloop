@@ -8,7 +8,7 @@
 #include <stdlib.h>
 
 
-struct io {
+struct ioS {
     /* epoll */
     int epollflags;
 
@@ -22,15 +22,15 @@ struct io {
 
 
 void 
-waitA(struct circuit *c, struct io *io, union any data, int fd, int op);
+waitA(struct circuitS *c, struct ioS *io, union any data, int fd, int op);
 
 
 void
-writeA(struct circuit *c, struct io *io, struct string p);
+writeA(struct circuitS *c, struct ioS *io, struct stringS p);
 
 
 void
-readA(struct circuit *c, struct io *io, struct string p);
+readA(struct circuitS *c, struct ioS *io, struct stringS p);
 
 
 void meloop_io_init(int flags);
@@ -45,7 +45,7 @@ meloop_io_loop(volatile int *status);
 
 /* Helper macros */
 #define WAIT_A(c, s, d, f, op) \
-    waitA(c, (struct io*)(s), (union any)(d), f, op);
+    waitA(c, (struct ioS*)(s), (union any)(d), f, op);
 
 
 #endif

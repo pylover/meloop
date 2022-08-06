@@ -12,8 +12,8 @@
 
 
 void 
-promptA(struct circuit *c, struct io *io, struct string buff) {
-    struct string s = meloop_vars_string_from_ptr(c);
+promptA(struct circuitS *c, struct ioS *io, struct stringS buff) {
+    struct stringS s = meloop_vars_string_from_ptr(c);
     memcpy(buff.data, s.data, s.size);
     buff.size = s.size;
     writeA(c, io, buff);
@@ -21,7 +21,7 @@ promptA(struct circuit *c, struct io *io, struct string buff) {
 
 
 void
-encodeA(struct circuit *c, struct io *io, struct string buff) {
+encodeA(struct circuitS *c, struct ioS *io, struct stringS buff) {
     int i;
     unsigned int t;
     for (i = 0; i < buff.size; i++) {
@@ -33,13 +33,13 @@ encodeA(struct circuit *c, struct io *io, struct string buff) {
 
 
 void
-errorcb(struct circuit *c, struct io *io, struct string d, const char *e) {
+errorcb(struct circuitS *c, struct ioS *io, struct stringS d, const char *e) {
     perror(e);
 }
 
 
 void
-successcb(struct circuit *c, struct io *io, int out) {
+successcb(struct circuitS *c, struct ioS *io, int out) {
     printf("Out: %d\n", out);
 }
 
@@ -48,23 +48,23 @@ int main() {
     meloop_io_init(0);
 
     char buff[BUFFSIZE] = "\0";
-    struct rand state = {
+    struct randS state = {
         .wfd = STDOUT_FILENO,
         .rfd = STDIN_FILENO,
         .readsize = BUFFSIZE,
         .randfd = -1,
     };
 
-    struct circuit *c = NEW_C(successcb, errorcb);
+    struct circuitS *c = NEW_C(successcb, errorcb);
 
-                        APPEND_A(c, randopenA, NULL);
-    struct element *e = APPEND_A(c, readA,     NULL);
-                        APPEND_A(c, randreadA, NULL);
-                        APPEND_A(c, encodeA,   NULL);
-                        APPEND_A(c, writeA,    NULL);
+                         APPEND_A(c, randopenA, NULL);
+    struct elementS *e = APPEND_A(c, readA,     NULL);
+                         APPEND_A(c, randreadA, NULL);
+                         APPEND_A(c, encodeA,   NULL);
+                         APPEND_A(c, writeA,    NULL);
               loopA(e);
 
-    /* Run circuit */
+    /* Run circuitS */
     RUN_A(c, &state, meloop_atos(buff)); 
 
     /* Start and wait for event loop */

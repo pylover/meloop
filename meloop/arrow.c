@@ -11,25 +11,25 @@
 #define MELOOP_ERROR_BUFFSIZE    1024
 
 
-struct element {
+struct elementS {
     meloop run;
     union any vars;
     bool last;
-    struct element *next;
+    struct elementS *next;
 };
 
 
-struct circuit {
+struct circuitS {
     meloop_okcb ok;
     meloop_errcb err;
-    struct element *current;
-    struct element *nets;
+    struct elementS *current;
+    struct elementS *nets;
 };
 
 
-struct circuit * 
+struct circuitS * 
 newC(meloop_okcb ok, meloop_errcb error) {
-    struct circuit *c = malloc(sizeof(struct circuit));
+    struct circuitS *c = malloc(sizeof(struct circuitS));
     if (c == NULL) {
         err(EXIT_FAILURE, "Out of memory");
     }
@@ -43,7 +43,7 @@ newC(meloop_okcb ok, meloop_errcb error) {
 
 
 /** 
-  Make element e2 from conputation and bind it to c. returns e2.
+  Make elementS e2 from conputation and bind it to c. returns e2.
 
   c     meloop   result
 
@@ -53,14 +53,14 @@ newC(meloop_okcb ok, meloop_errcb error) {
   |_|           |___|
 
 */
-struct element * 
-appendA(struct circuit *c, meloop f, union any vars) {
-    struct element *e2 = malloc(sizeof(struct element));
+struct elementS * 
+appendA(struct circuitS *c, meloop f, union any vars) {
+    struct elementS *e2 = malloc(sizeof(struct elementS));
     if (e2 == NULL) {
         err(EXIT_FAILURE, "Out of memory");
     }
     
-    /* Initialize new element */
+    /* Initialize new elementS */
     e2->run = f;
     e2->vars = vars;
     e2->last = true;
@@ -78,13 +78,13 @@ appendA(struct circuit *c, meloop f, union any vars) {
 
 
 static void 
-freeE(struct element *e) {
+freeE(struct elementS *e) {
     if (e == NULL) {
         return;
     }
     
     bool last = e->last;
-    struct element *next = e->next;
+    struct elementS *next = e->next;
     free(e);
 
     if (last) {
@@ -97,7 +97,7 @@ freeE(struct element *e) {
 
 
 void 
-freeC(struct circuit *c) {
+freeC(struct circuitS *c) {
     if (c == NULL) {
         return;
     }
@@ -107,7 +107,7 @@ freeC(struct circuit *c) {
 }
 
 /** 
-  Bind two circuits:
+  Bind two circuitSs:
 
   e1    e2     result
 
@@ -124,14 +124,14 @@ freeC(struct circuit *c) {
 
 */
 void 
-bindA(struct element *e1, struct element *e2) {
-    struct element *e1last = e1;
-    struct element *e2last = e2;
+bindA(struct elementS *e1, struct elementS *e2) {
+    struct elementS *e1last = e1;
+    struct elementS *e2last = e2;
 
     while (true) {
         /* Open cicuit */
         if (e1last->next == NULL) {
-            /* e1 Last element */
+            /* e1 Last elementS */
             e1last->next = e2;
             e1last->last = false;
             return;
@@ -139,11 +139,11 @@ bindA(struct element *e1, struct element *e2) {
 
         /* Closed cicuit */
         if (e1last->next == e1) {
-            /* It's a closed loop, Inserting e2 before the first element. */
+            /* It's a closed loop, Inserting e2 before the first elementS. */
             e1last->next = e2;
             e1last->last = false;
             while (true) {
-                /* e2 Last element */
+                /* e2 Last elementS */
                 if ((e2last->next == NULL) || (e2last->next == e2)) {
                     e2last->next = e1;
                     return;
@@ -155,19 +155,19 @@ bindA(struct element *e1, struct element *e2) {
             return;
         }
         
-        /* Try next circuit */
+        /* Try next circuitS */
         e1last = e1last->next;
     }
 }
 
 
 /** 
-  Close (Loop) the circuit c.
+  Close (Loop) the circuitS c.
 
-  Syntactic sugar for bindA(e2, e1) if e1 is the first element in the 
-  circuit and e2 is the last one.
+  Syntactic sugar for bindA(e2, e1) if e1 is the first elementS in the 
+  circuitS and e2 is the last one.
     
-  If the c1 is already a closed circuit, then 1 will be returned.
+  If the c1 is already a closed circuitS, then 1 will be returned.
   Otherwise the returned value will be zero.
 
   c     result
@@ -180,12 +180,12 @@ bindA(struct element *e1, struct element *e2) {
 
 */
 int 
-loopA(struct element *e) {
-    struct element *first = e;
-    struct element *last = e;
+loopA(struct elementS *e) {
+    struct elementS *first = e;
+    struct elementS *last = e;
     while (true) {
         if (last->next == NULL) {
-            /* Last element */
+            /* Last elementS */
             last->next = first;
             last->last = true;
             return OK;
@@ -202,8 +202,8 @@ loopA(struct element *e) {
 
 
 void 
-returnA(struct circuit *c, void *state, union any result) {
-    struct element *curr = c->current;
+returnA(struct circuitS *c, void *state, union any result) {
+    struct elementS *curr = c->current;
     if (curr->next == NULL) {
         if (c->ok != NULL) {
             c->ok(c, state, result);
@@ -212,14 +212,14 @@ returnA(struct circuit *c, void *state, union any result) {
         return;
     }
 
-    struct element *next = curr->next;
+    struct elementS *next = curr->next;
     c->current = next;
     next->run(c, state, result);
 }
 
 
 void 
-errorA(struct circuit *c, void *state, union any data, 
+errorA(struct circuitS *c, void *state, union any data, 
         const char *format, ...) {
     char buff[MELOOP_ERROR_BUFFSIZE]; 
     char *msg;
@@ -244,7 +244,7 @@ errorA(struct circuit *c, void *state, union any data,
 
 
 void
-runA(struct circuit *c, void *state, union any args) {
+runA(struct circuitS *c, void *state, union any args) {
     struct pair *p = (struct pair*) (&args);
     
     if (c->current == NULL) {
@@ -255,12 +255,12 @@ runA(struct circuit *c, void *state, union any args) {
 
 
 int
-meloop_vars_int(struct circuit *c) {
+meloop_vars_int(struct circuitS *c) {
     return c->current->vars.sint;
 }
 
 
-struct string
-meloop_vars_string_from_ptr(struct circuit *c) {
+struct stringS
+meloop_vars_string_from_ptr(struct circuitS *c) {
     return c->current->vars.string;
 }

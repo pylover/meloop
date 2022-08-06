@@ -1,9 +1,9 @@
 #include "meloop/types.h"
 
 
-struct string 
+struct stringS 
 meloop_atos(char *s) {
-    struct string out = {
+    struct stringS out = {
         .size = 0,
         .data = NULL
     };

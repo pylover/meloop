@@ -11,14 +11,14 @@
 static int _epfd = -1;
 static int _epflags = EPOLLONESHOT | EPOLLRDHUP | EPOLLERR;
 static volatile int _waitingbags = 0;
-static struct bag *_bags[EV_MAXEVENTS];
+static struct bagS *_bags[EV_MAXEVENTS];
 
 
 #define EV_MAXEVENTS  16
 
 
 static int
-bags_remember(struct bag *bag) {
+bags_remember(struct bagS *bag) {
     int i;
 
     for (i = 0; i < EV_MAXEVENTS; i++) {
@@ -34,7 +34,7 @@ bags_remember(struct bag *bag) {
 
 
 void
-meloop_bag_free(struct bag *bag) {
+meloop_bag_free(struct bagS *bag) {
     int i;
 
     for (i = 0; i < EV_MAXEVENTS; i++) {
@@ -50,7 +50,7 @@ meloop_bag_free(struct bag *bag) {
 
 void
 meloop_bags_freeall() {
-    struct bag *bag;
+    struct bagS *bag;
     int i;
 
     for (i = 0; i < EV_MAXEVENTS; i++) {
@@ -67,9 +67,9 @@ meloop_bags_freeall() {
 }
 
 
-struct bag *
-meloop_bag_new(struct circuit *c, struct io *io, union any data) {
-    struct bag *bag = malloc(sizeof(struct bag));
+struct bagS *
+meloop_bag_new(struct circuitS *c, struct ioS *io, union any data) {
+    struct bagS *bag = malloc(sizeof(struct bagS));
     if (bag == NULL) {
         err(EXIT_FAILURE, "Out of memory");
     }
@@ -95,7 +95,7 @@ meloop_ev_init(int flags) {
     }
     
     _waitingbags = 0;
-    memset(_bags, 0, sizeof(struct bag*) * EV_MAXEVENTS);
+    memset(_bags, 0, sizeof(struct bagS*) * EV_MAXEVENTS);
 }
 
 
@@ -106,7 +106,7 @@ meloop_ev_deinit() {
 
 
 int 
-meloop_ev_arm(int fd, int op, struct bag *bag) {
+meloop_ev_arm(int fd, int op, struct bagS *bag) {
     struct epoll_event ev;
     
     ev.events = _epflags | op;

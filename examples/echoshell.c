@@ -11,8 +11,8 @@
 
 
 void 
-promptA(struct circuit *c, struct io *io, struct string buff) {
-    struct string s = meloop_vars_string_from_ptr(c);
+promptA(struct circuitS *c, struct ioS *io, struct stringS buff) {
+    struct stringS s = meloop_vars_string_from_ptr(c);
     memcpy(buff.data, s.data, s.size);
     buff.size = s.size;
     writeA(c, io, buff);
@@ -20,7 +20,7 @@ promptA(struct circuit *c, struct io *io, struct string buff) {
 
 
 void 
-echoA(struct circuit *c, struct io *io, struct string buff) {
+echoA(struct circuitS *c, struct ioS *io, struct stringS buff) {
     if ((buff.size == 1) && (buff.data[0] == '\n')) {
         buff.size = 0;
     }
@@ -29,13 +29,13 @@ echoA(struct circuit *c, struct io *io, struct string buff) {
 
 
 void
-errorcb(struct circuit *c, struct io *io, union any, const char *error) {
+errorcb(struct circuitS *c, struct ioS *io, union any, const char *error) {
     perror(error);
 }
 
 
 void
-successcb(struct circuit *c, struct io *io, int out) {
+successcb(struct circuitS *c, struct ioS *io, int out) {
     printf("Out: %d\n", out);
 }
 
@@ -44,21 +44,21 @@ int main() {
     meloop_io_init(0);
 
     char buff[BUFFSIZE] = "\0";
-    struct io state = {
+    struct ioS state = {
         .wfd = STDOUT_FILENO,
         .rfd = STDIN_FILENO,
         .readsize = BUFFSIZE,
     };
 
-    struct circuit *c = NEW_C(successcb, errorcb);
+    struct circuitS *c = NEW_C(successcb, errorcb);
 
-    struct element *e = APPEND_A(c, promptA, meloop_atos("me@loop:~$ "));
-                        APPEND_A(c, readA,   NULL);
-                        APPEND_A(c, echoA,   NULL);
-                        APPEND_A(c, writeA,  NULL);
+    struct elementS *e = APPEND_A(c, promptA, meloop_atos("me@loop:~$ "));
+                         APPEND_A(c, readA,   NULL);
+                         APPEND_A(c, echoA,   NULL);
+                         APPEND_A(c, writeA,  NULL);
     loopA(e);
 
-    /* Run circuit */
+    /* Run circuitS */
     RUN_A(c, &state, meloop_atos(buff)); 
 
     /* Start and wait for event loop */

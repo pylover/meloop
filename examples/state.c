@@ -10,15 +10,15 @@ struct state {
 
 
 void 
-addA(struct circuit *c, struct state *s, struct pair p) {
+addA(struct circuitS *c, struct state *s, struct pairS p) {
     printf("addA, left: %d, right: %d\n", p.left, p.right);
     RETURN_A(c, s, p.left + p.right);
 }
 
 
 void
-pairA(struct circuit *c, struct state *s, int value) {
-    struct pair p = {
+pairA(struct circuitS *c, struct state *s, int value) {
+    struct pairS p = {
         .left = value,
         .right = meloop_vars_int(c)
     };
@@ -29,7 +29,7 @@ pairA(struct circuit *c, struct state *s, int value) {
 
 
 void 
-divA(struct circuit *c, struct state *s, struct pair p) {
+divA(struct circuitS *c, struct state *s, struct pairS p) {
     if (p.right == 0) {
         ERROR_A(c, s, p, "Division by zero");
         return;
@@ -39,20 +39,20 @@ divA(struct circuit *c, struct state *s, struct pair p) {
 
 
 void
-cubeA(struct circuit *c, struct state *s, int x) {
+cubeA(struct circuitS *c, struct state *s, int x) {
     x = x * x * x;
     RETURN_A(c, s, x);
 }
 
 
 void
-errorcb(struct circuit *c, struct state *s, const char *error) {
+errorcb(struct circuitS *c, struct state *s, const char *error) {
     printf("Error: %s\n", error);
 }
 
 
 void
-successcb(struct circuit *c, struct state *s, int out) {
+successcb(struct circuitS *c, struct state *s, int out) {
     printf("Out: %d\n", out);
 }
 
@@ -64,7 +64,7 @@ main() {
         .pair = {6, 4}
     };
     
-    struct circuit *c = NEW_C(successcb, errorcb);
+    struct circuitS *c = NEW_C(successcb, errorcb);
     APPEND_A(c, addA,  NULL);
     APPEND_A(c, pairA, 2   );
     APPEND_A(c, divA,  NULL);

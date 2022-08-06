@@ -12,7 +12,7 @@
 
 
 void 
-randopenA(struct circuit *c, struct rand *s, struct string d) {
+randopenA(struct circuitS *c, struct randS *s, struct stringS d) {
     int fd = open("/dev/urandom", O_RDONLY | O_NONBLOCK);
     if (fd < 0) {
         ERROR_A(c, s, d, "open urandom");
@@ -24,7 +24,7 @@ randopenA(struct circuit *c, struct rand *s, struct string d) {
 
 
 void 
-randreadA(struct circuit *c, struct rand *s, struct string d) {
+randreadA(struct circuitS *c, struct randS *s, struct stringS d) {
     size_t size;
 
     /* Read from the file descriptor */
