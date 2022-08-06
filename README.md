@@ -17,12 +17,12 @@ Take a look at `examples` directory.
 ```bash
 cd examples
 
-make echo_shell
-./echo_shell
+make echoshell
+./echoshell
 
 
-make echo_server
-./echo_server
+make echoserver
+./echoserver
 ```
 
 ## Profiling
@@ -35,10 +35,10 @@ Run desired example, signal it with `CTRL+C`, then:
 ```bash
 cd examples
 
-make echo_server
-./echo_server
+make echoserver
+./echoserver
 
-gprof echo_server
+gprof echoserver
 ```
 
 ### valgrind
@@ -54,8 +54,8 @@ make valgrind
 Or
 
 ```bash
-valgrind --tool=memcheck --leak-check=full ./echo_server
-valgrind --tool=massif ./echo_server 
+valgrind --tool=memcheck --leak-check=full ./echoserver
+valgrind --tool=massif ./echoserver 
 ```
 
 Example output
@@ -64,7 +64,7 @@ Example output
 ==56319== Memcheck, a memory error detector
 ==56319== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
 ==56319== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
-==56319== Command: ./echo_server
+==56319== Command: ./echoserver
 ==56319==
 127.0.0.1:42658 Connected.
 127.0.0.1:42658 Disconnected.
