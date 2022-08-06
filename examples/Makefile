@@ -9,7 +9,7 @@ objects = $(patsubst %.c,%.o,$(wildcard ../meloop/*.c))
 
 
 # all: echo_client
-all: state echoshell echoserver
+all: state echoshell echoserver random
 
 
 %: %.c $(objects)
@@ -33,6 +33,7 @@ clean::
 	- rm echoshell 
 	- rm echoserver 
 	- rm state 
+	- rm random 
 	- rm massif.out.*
 	- rm gmon.out
 	- rm *.o

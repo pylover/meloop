@@ -23,6 +23,7 @@ struct string {
 
 union any {
     int sint;
+    char *charptr;
     void *ptr;
     struct pair pair;
     struct string string;

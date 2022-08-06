@@ -2,17 +2,12 @@
 #define MELOOP_RANDOM_H
 
 
-struct rand{
-    struct io;
-};
+void 
+random_openA(struct circuit *c, struct io *state, struct string d);
 
 
 void 
-urandom_openA(struct circuit *c, struct rand *state, struct string d);
-
-
-void 
-urandom_readA(struct circuit *c, struct rand *state, struct string d);
+random_readA(struct circuit *c, struct io *state, struct string d);
 
 
 #endif
