@@ -29,7 +29,7 @@ echoA(struct circuit *c, struct io *io, struct string buff) {
 
 
 void
-errorcb(struct circuit *c, struct io *io, const char *error) {
+errorcb(struct circuit *c, struct io *io, union any, const char *error) {
     perror(error);
 }
 
@@ -65,7 +65,6 @@ int main() {
     if (meloop_io_loop(NULL)) {
         err(1, "meloop_io_loop");
     }
-    printf("after loop\n");
     
     meloop_io_deinit();
     freeC(c);

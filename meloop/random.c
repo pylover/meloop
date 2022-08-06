@@ -12,28 +12,28 @@
 
 
 void 
-random_openA(struct circuit *c, struct io *s, struct string d) {
+random_openA(struct circuit *c, struct rand *s, struct string d) {
     int fd = open("/dev/urandom", O_RDONLY | O_NONBLOCK);
     if (fd < 0) {
         ERROR_A(c, s, d, "open urandom");
         return;
     }
-    s->rfd = fd;
+    s->randfd = fd;
     RETURN_A(c, s, d);
 }
 
 
 void 
-random_readA(struct circuit *c, struct io *s, struct string d) {
+random_readA(struct circuit *c, struct rand *s, struct string d) {
     size_t size;
 
     /* Read from the file descriptor */
-    size = read(s->rfd, d.data, s->readsize);
+    size = read(s->randfd, d.data, s->readsize);
 
     /* Check for error */
     if (size < 0) {
         if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
-            WAIT_A(c, s, d, s->rfd, EPOLLIN);
+            WAIT_A(c, s, d, s->randfd, EPOLLIN);
         }
         else {
             ERROR_A(c, s, d, "read urandom");

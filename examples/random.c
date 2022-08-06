@@ -8,7 +8,7 @@
 #include <unistd.h>
 
 
-#define BUFFSIZE 16
+#define BUFFSIZE 32
 
 
 void 
@@ -16,13 +16,25 @@ promptA(struct circuit *c, struct io *io, struct string buff) {
     struct string s = meloop_vars_string_from_ptr(c);
     memcpy(buff.data, s.data, s.size);
     buff.size = s.size;
+    writeA(c, io, buff);
+}
+
+
+void
+encodeA(struct circuit *c, struct io *io, struct string buff) {
+    int i;
+    unsigned int t;
+    for (i = 0; i < buff.size; i++) {
+        t = buff.data[i];
+        buff.data[i] = (t % 26) + 97;
+    }
     RETURN_A(c, io, buff);
 }
 
 
 void
-errorcb(struct circuit *c, struct io *io, const char *error) {
-    perror(error);
+errorcb(struct circuit *c, struct io *io, struct string d, const char *e) {
+    perror(e);
 }
 
 
@@ -36,19 +48,21 @@ int main() {
     meloop_io_init(0);
 
     char buff[BUFFSIZE] = "\0";
-    struct io state = {
+    struct rand state = {
         .wfd = STDOUT_FILENO,
         .rfd = STDIN_FILENO,
         .readsize = BUFFSIZE,
+        .randfd = -1,
     };
 
     struct circuit *c = NEW_C(successcb, errorcb);
 
-                        APPEND_A(c, random_openA,   NULL      );
-    struct element *e = APPEND_A(c, promptA,        "random$ ");
-                        APPEND_A(c, readA,          NULL      );
-                        APPEND_A(c, writeA,         NULL      );
-    loopA(e);
+                        APPEND_A(c, random_openA, NULL      );
+    struct element *e = APPEND_A(c, readA,        NULL      );
+                        APPEND_A(c, random_readA, NULL      );
+                        APPEND_A(c, encodeA,      NULL      );
+                        APPEND_A(c, writeA,       NULL      );
+              loopA(e);
 
     /* Run circuit */
     runA(c, &state, any_string(string_from_char(buff))); 
@@ -57,7 +71,6 @@ int main() {
     if (meloop_io_loop(NULL)) {
         err(1, "meloop_io_loop");
     }
-    printf("after loop\n");
     
     meloop_io_deinit();
     freeC(c);
