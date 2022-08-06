@@ -2,5 +2,6 @@ state
 random
 echoshell
 echoserver
+echoclient
 gmon.out
 massif.out.*

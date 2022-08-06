@@ -9,22 +9,10 @@ objects = $(patsubst %.c,%.o,$(wildcard ../meloop/*.c))
 
 
 # all: echo_client
-all: state echoshell echoserver random
+all: state echoshell echoserver echoclient random
 
 
 %: %.c $(objects)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
-
-
-echoshell: echoshell.c $(objects)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
-
-
-echoserver: echoserver.c $(objects)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
-
-
-echo_client: echo_client.c $(objects)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 
@@ -32,6 +20,7 @@ echo_client: echo_client.c $(objects)
 clean:: 
 	- rm echoshell 
 	- rm echoserver 
+	- rm echoclinet
 	- rm state 
 	- rm random 
 	- rm massif.out.*

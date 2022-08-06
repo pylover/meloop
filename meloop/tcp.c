@@ -63,3 +63,10 @@ acceptA(struct circuitS *c, struct tcpserverS *s, union any data) {
     }
     returnA(c, s, data);
 }
+
+
+void 
+connectA(struct circuitS *c, struct tcpclientS *s, union any data) {
+
+
+}

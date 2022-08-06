@@ -11,6 +11,7 @@
 
 
 struct tcpserverS;
+struct tcpclientS;
 
 
 struct connS {
@@ -20,15 +21,26 @@ struct connS {
 };
 
 
-typedef void (*conn_event) (struct circuitS*, struct tcpserverS*, int fd, 
-        struct sockaddr *);
+typedef void (*meloop_tcpserver_conn_event) (struct circuitS*, 
+        struct tcpserverS*, int fd, struct sockaddr *);
+
+
+typedef void (*meloop_tcpclient_conn_event) (struct circuitS*, 
+        struct tcpclientS*, struct sockaddr *);
 
 
 struct tcpserverS {
     struct ioS;
     struct sockaddr bind;
     int backlog;
-    conn_event client_connected;
+    meloop_tcpserver_conn_event client_connected;
+};
+
+
+struct tcpclientS {
+    struct ioS;
+    struct sockaddr host;
+    meloop_tcpclient_conn_event connected;
 };
 
 
@@ -38,6 +50,10 @@ listenA(struct circuitS *c, struct tcpserverS *s, union any data);
 
 void 
 acceptA(struct circuitS *c, struct tcpserverS *s, union any data);
+
+
+void 
+connectA(struct circuitS *c, struct tcpclientS *s, union any data);
 
 
 #endif
