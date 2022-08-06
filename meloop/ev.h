@@ -1,8 +1,8 @@
-#ifndef ARROW_EV_H
-#define ARROW_EV_H
+#ifndef MELOOP_EV_H
+#define MELOOP_EV_H
 
 
-#include "arrow/types.h"
+#include "meloop/types.h"
 
 #include <sys/epoll.h>
 
@@ -10,7 +10,7 @@
 #define EV_MAXEVENTS  16
 
 
-/* A simple bag which used by waitA to hold arrow's essential data 
+/* A simple bag which used by waitA to hold meloop's essential data 
    until the underlying file descriptor becomes ready for read or write. */
 struct bag {
     struct circuit *circuit;

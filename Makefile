@@ -9,7 +9,7 @@ CFLAGS += -g
 
 
 # Internal variables
-objects = $(patsubst %.c,%.o,$(wildcard arrow/*.c))
+objects = $(patsubst %.c,%.o,$(wildcard meloop/*.c))
 
 
 .PHONY: all
@@ -23,4 +23,4 @@ all: $(objects)
 
 .PHONY: clean
 clean:: 
-	- rm arrow/*.o
+	- rm meloop/*.o

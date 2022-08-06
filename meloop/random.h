@@ -1,5 +1,5 @@
-#ifndef ARROW_RANDOM_H
-#define ARROW_RANDOM_H
+#ifndef MELOOP_RANDOM_H
+#define MELOOP_RANDOM_H
 
 
 struct rand{

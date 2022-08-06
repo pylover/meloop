@@ -1,9 +1,9 @@
-#ifndef ARROW_IO_H
-#define ARROW_IO_H
+#ifndef MELOOP_IO_H
+#define MELOOP_IO_H
 
 
-#include <arrow/types.h>
-#include <arrow/arrow.h>
+#include <meloop/types.h>
+#include <meloop/arrow.h>
 
 #include <stdlib.h>
 
@@ -33,14 +33,14 @@ void
 readA(struct circuit *c, struct io *io, struct string p);
 
 
-void arrow_io_init(int flags);
+void meloop_io_init(int flags);
 
 
-void arrow_io_deinit();
+void meloop_io_deinit();
 
 
 int 
-arrow_io_loop(volatile int *status);
+meloop_io_loop(volatile int *status);
 
 
 /* Helper macros */

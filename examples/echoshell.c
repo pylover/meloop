@@ -1,5 +1,5 @@
-#include "arrow/arrow.h"
-#include "arrow/io.h"
+#include "meloop/arrow.h"
+#include "meloop/io.h"
 
 #include <err.h>
 #include <errno.h>
@@ -12,7 +12,7 @@
 
 void 
 promptA(struct circuit *c, struct io *io, struct string buff) {
-    struct string s = arrow_vars_string_from_ptr(c);
+    struct string s = meloop_vars_string_from_ptr(c);
     memcpy(buff.data, s.data, s.size);
     buff.size = s.size;
     writeA(c, io, buff);
@@ -41,7 +41,7 @@ successcb(struct circuit *c, struct io *io, int out) {
 
 
 int main() {
-    arrow_io_init(0);
+    meloop_io_init(0);
 
     char buff[BUFFSIZE] = "\0";
     struct io state = {
@@ -62,12 +62,12 @@ int main() {
     runA(c, &state, any_string(string_from_char(buff))); 
 
     /* Start and wait for event loop */
-    if (arrow_io_loop(NULL)) {
-        err(1, "arrow_io_loop");
+    if (meloop_io_loop(NULL)) {
+        err(1, "meloop_io_loop");
     }
     printf("after loop\n");
     
-    arrow_io_deinit();
+    meloop_io_deinit();
     freeC(c);
     return EXIT_SUCCESS;
 }

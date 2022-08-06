@@ -5,7 +5,7 @@ CFLAGS = \
 	-D_GNU_SOURCE=1
 
 # LDFLAGS = -pg
-objects = $(patsubst %.c,%.o,$(wildcard ../arrow/*.c))
+objects = $(patsubst %.c,%.o,$(wildcard ../meloop/*.c))
 
 
 # all: echo_client

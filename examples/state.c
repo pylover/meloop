@@ -1,4 +1,4 @@
-#include "arrow/arrow.h"
+#include "meloop/arrow.h"
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -20,7 +20,7 @@ void
 pairA(struct circuit *c, struct state *s, int value) {
     struct pair p = {
         .left = value,
-        .right = arrow_vars_int(c)
+        .right = meloop_vars_int(c)
     };
     
     printf("pairA, left: %d, right: %d\n", p.left, p.right);

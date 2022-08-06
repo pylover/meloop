@@ -1,6 +1,6 @@
-#include "arrow/arrow.h"
-#include "arrow/io.h"
-#include "arrow/ev.h"
+#include "meloop/arrow.h"
+#include "meloop/io.h"
+#include "meloop/ev.h"
 
 #include <err.h>
 #include <errno.h>
@@ -66,12 +66,12 @@ readA(struct circuit *c, struct io *io, struct string p) {
 }
 
 
-void arrow_io_init(int flags) {
+void meloop_io_init(int flags) {
     ev_init(flags);
 }
 
 
-void arrow_io_deinit() {
+void meloop_io_deinit() {
     ev_deinit();
     bags_freeall();
 }
@@ -79,7 +79,7 @@ void arrow_io_deinit() {
 
 /* Start event loop */
 int 
-arrow_io_loop(volatile int *status) {
+meloop_io_loop(volatile int *status) {
     struct epoll_event events[EV_MAXEVENTS];
     struct epoll_event ev;
     struct bag *bag;

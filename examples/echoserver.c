@@ -1,6 +1,6 @@
-#include "arrow/io.h"
-#include "arrow/tcp.h"
-#include "arrow/addr.h"
+#include "meloop/io.h"
+#include "meloop/tcp.h"
+#include "meloop/addr.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -97,7 +97,7 @@ client_connected (struct circuit *c, struct tcpserver *s, int fd,
 
 int main() {
     catch_signal();
-    arrow_io_init(0);
+    meloop_io_init(0);
 
     /* A circuit to run for each new connection */
     worker = NEW_C(NULL, client_error);
@@ -127,12 +127,12 @@ int main() {
     runA(circ, &server, any_null()); 
 
     /* Start and wait for event loop */
-    if (arrow_io_loop(&status)) {
-        perror("arrow_io_loop");
+    if (meloop_io_loop(&status)) {
+        perror("meloop_io_loop");
         status = EXIT_SUCCESS;
     }
 
-    arrow_io_deinit();
+    meloop_io_deinit();
     freeC(worker);
     freeC(circ);
     return status;

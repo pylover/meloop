@@ -1,3 +1,5 @@
+#include "meloop/arrow.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -6,14 +8,11 @@
 #include <err.h>
 
 
-#include "arrow/arrow.h"
-
-    
-#define ARROW_ERROR_BUFFSIZE    1024
+#define MELOOP_ERROR_BUFFSIZE    1024
 
 
 struct element {
-    arrow run;
+    meloop run;
     union any vars;
     bool last;
     struct element *next;
@@ -21,15 +20,15 @@ struct element {
 
 
 struct circuit {
-    arrow_okcb ok;
-    arrow_errcb err;
+    meloop_okcb ok;
+    meloop_errcb err;
     struct element *current;
     struct element *nets;
 };
 
 
 struct circuit * 
-newC(arrow_okcb ok, arrow_errcb error) {
+newC(meloop_okcb ok, meloop_errcb error) {
     struct circuit *c = malloc(sizeof(struct circuit));
     if (c == NULL) {
         err(EXIT_FAILURE, "Out of memory");
@@ -46,7 +45,7 @@ newC(arrow_okcb ok, arrow_errcb error) {
 /** 
   Make element e2 from conputation and bind it to c. returns e2.
 
-  c     arrow   result
+  c     meloop   result
 
   o-o   O       o-o-O 
 
@@ -55,7 +54,7 @@ newC(arrow_okcb ok, arrow_errcb error) {
 
 */
 struct element * 
-appendA(struct circuit *c, arrow f, union any vars) {
+appendA(struct circuit *c, meloop f, union any vars) {
     struct element *e2 = malloc(sizeof(struct element));
     if (e2 == NULL) {
         err(EXIT_FAILURE, "Out of memory");
@@ -222,14 +221,14 @@ returnA(struct circuit *c, void *state, union any result) {
 void 
 errorA(struct circuit *c, void *state, union any data, 
         const char *format, ...) {
-    char buff[ARROW_ERROR_BUFFSIZE]; 
+    char buff[MELOOP_ERROR_BUFFSIZE]; 
     char *msg;
     va_list args;
 
     /* var args */
     if (format != NULL) {
         va_start(args, format);
-        vsnprintf(buff, ARROW_ERROR_BUFFSIZE, format, args);
+        vsnprintf(buff, MELOOP_ERROR_BUFFSIZE, format, args);
         va_end(args);
         msg = buff;
     }
@@ -256,12 +255,12 @@ runA(struct circuit *c, void *state, union any args) {
 
 
 int
-arrow_vars_int(struct circuit *c) {
+meloop_vars_int(struct circuit *c) {
     return c->current->vars.sint;
 }
 
 
 struct string
-arrow_vars_string_from_ptr(struct circuit *c) {
+meloop_vars_string_from_ptr(struct circuit *c) {
     return c->current->vars.string;
 }

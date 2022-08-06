@@ -1,5 +1,5 @@
-#ifndef ARROW_TYPES_H
-#define ARROW_TYPES_H
+#ifndef MELOOP_TYPES_H
+#define MELOOP_TYPES_H
 
 
 #include <string.h>
