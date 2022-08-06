@@ -49,7 +49,7 @@ successcb(struct circuit *c, struct tcpserver *s, int out) {
 void
 client_error(struct circuit *c, struct conn *conn, struct string buff, 
         const char *error) {
-    printf("Clinet disconnected: %s -- %s\n", addr_dump(&(conn->addr)), error);
+    printf("Clinet disconnected: %s -- %s\n", meloop_addr_dump(&(conn->addr)), error);
    
     if (buff.data != NULL) {
         free(buff.data);
@@ -64,7 +64,7 @@ void
 client_connected (struct circuit *c, struct tcpserver *s, int fd, 
         struct sockaddr *addr) {
     
-    printf("Client connected: %s\n", addr_dump(addr));
+    printf("Client connected: %s\n", meloop_addr_dump(addr));
 
     /* Will be free at tcp: client_free() */
     struct conn *conn = malloc(sizeof(struct conn));
@@ -91,7 +91,7 @@ client_connected (struct circuit *c, struct tcpserver *s, int fd,
         return;
     }
     conn->server = s;
-    runA(worker, conn, any_string(buff));
+    RUN_A(worker, conn, buff);
 }
 
 
@@ -114,7 +114,7 @@ int main() {
     };
 
     /* Parse listen address */
-    addr_parse(&(server.bind), "127.0.0.1", 9090);
+    meloop_addr_parse(&(server.bind), "127.0.0.1", 9090);
     
     /* Server init -> loop circuit */
     struct circuit *circ = NEW_C(successcb, errorcb);
@@ -124,7 +124,7 @@ int main() {
               loopA(acpt);
 
     /* Run server circuit */
-    runA(circ, &server, any_null()); 
+    RUN_A(circ, &server, NULL); 
 
     /* Start and wait for event loop */
     if (meloop_io_loop(&status)) {

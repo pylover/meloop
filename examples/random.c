@@ -57,15 +57,15 @@ int main() {
 
     struct circuit *c = NEW_C(successcb, errorcb);
 
-                        APPEND_A(c, random_openA, NULL      );
-    struct element *e = APPEND_A(c, readA,        NULL      );
-                        APPEND_A(c, random_readA, NULL      );
-                        APPEND_A(c, encodeA,      NULL      );
-                        APPEND_A(c, writeA,       NULL      );
+                        APPEND_A(c, randopenA, NULL);
+    struct element *e = APPEND_A(c, readA,     NULL);
+                        APPEND_A(c, randreadA, NULL);
+                        APPEND_A(c, encodeA,   NULL);
+                        APPEND_A(c, writeA,    NULL);
               loopA(e);
 
     /* Run circuit */
-    runA(c, &state, any_string(string_from_char(buff))); 
+    RUN_A(c, &state, meloop_atos(buff)); 
 
     /* Start and wait for event loop */
     if (meloop_io_loop(NULL)) {

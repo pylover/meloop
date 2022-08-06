@@ -52,14 +52,14 @@ int main() {
 
     struct circuit *c = NEW_C(successcb, errorcb);
 
-    struct element *e = APPEND_A(c, promptA, string_from_char("me@loop:~$ "));
+    struct element *e = APPEND_A(c, promptA, meloop_atos("me@loop:~$ "));
                         APPEND_A(c, readA,   NULL);
                         APPEND_A(c, echoA,   NULL);
                         APPEND_A(c, writeA,  NULL);
     loopA(e);
 
     /* Run circuit */
-    runA(c, &state, any_string(string_from_char(buff))); 
+    RUN_A(c, &state, meloop_atos(buff)); 
 
     /* Start and wait for event loop */
     if (meloop_io_loop(NULL)) {

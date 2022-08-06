@@ -32,10 +32,6 @@ struct tcpserver {
 };
 
 
-int
-parse_sockaddr(struct sockaddr *addr, const char *host, unsigned short port);
-
-
 void 
 listenA(struct circuit *c, struct tcpserver *s, union any data);
 

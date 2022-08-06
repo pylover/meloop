@@ -31,15 +31,7 @@ union any {
 
 
 struct string 
-string_from_char(char *s);
-
-
-union any
-any_null();
-
-
-union any
-any_string(struct string s);
+meloop_atos(char *s);
 
 
 #endif

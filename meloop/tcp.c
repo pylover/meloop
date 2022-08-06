@@ -25,14 +25,14 @@ listenA(struct circuit *c, struct tcpserver *s, union any data) {
     /* Bind to tcp port */
     res = bind(fd, &(s->bind), sizeof(s->bind)); 
     if (res) {
-        ERROR_A(c, s, data, "Cannot bind on: %s", addr_dump(addr));
+        ERROR_A(c, s, data, "Cannot bind on: %s", meloop_addr_dump(addr));
         return;
     }
     
     /* Listen */
     res = listen(fd, s->backlog); 
     if (res) {
-        ERROR_A(c, s, data, "Cannot listen on: %s", addr_dump(addr));
+        ERROR_A(c, s, data, "Cannot listen on: %s", meloop_addr_dump(addr));
         return;
     }
     s->rfd = fd;

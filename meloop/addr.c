@@ -9,7 +9,7 @@ static char addrtemp[256];
 
 
 char *
-addr_dump(struct sockaddr *addr) {
+meloop_addr_dump(struct sockaddr *addr) {
     struct sockaddr_in *addrin = (struct sockaddr_in*) addr;
     sprintf(addrtemp, "%s:%d", 
             inet_ntoa(addrin->sin_addr),
@@ -19,7 +19,8 @@ addr_dump(struct sockaddr *addr) {
 
 
 int
-addr_parse(struct sockaddr *addr, const char *host, unsigned short port) {
+meloop_addr_parse(struct sockaddr *addr, const char *host, 
+        unsigned short port) {
     struct sockaddr_in *addrin = (struct sockaddr_in*)addr;
 
     memset(addrin, 0, sizeof(struct sockaddr_in));

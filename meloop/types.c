@@ -2,7 +2,7 @@
 
 
 struct string 
-string_from_char(char *s) {
+meloop_atos(char *s) {
     struct string out = {
         .size = 0,
         .data = NULL
@@ -14,26 +14,5 @@ string_from_char(char *s) {
 
     out.size = strlen(s);
     out.data = s;
-    return out;
-}
-
-
-
-union any
-any_null() {
-    union any out = {
-        .ptr = NULL
-    };
-
-    return out;
-}
-
-
-union any
-any_string(struct string s) {
-    union any out = {
-        .string = s
-    };
-
     return out;
 }

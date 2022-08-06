@@ -34,7 +34,7 @@ bags_remember(struct bag *bag) {
 
 
 void
-bag_free(struct bag *bag) {
+meloop_bag_free(struct bag *bag) {
     int i;
 
     for (i = 0; i < EV_MAXEVENTS; i++) {
@@ -49,7 +49,7 @@ bag_free(struct bag *bag) {
 
 
 void
-bags_freeall() {
+meloop_bags_freeall() {
     struct bag *bag;
     int i;
 
@@ -68,7 +68,7 @@ bags_freeall() {
 
 
 struct bag *
-bag_new(struct circuit *c, struct io *io, union any data) {
+meloop_bag_new(struct circuit *c, struct io *io, union any data) {
     struct bag *bag = malloc(sizeof(struct bag));
     if (bag == NULL) {
         err(EXIT_FAILURE, "Out of memory");
@@ -84,7 +84,7 @@ bag_new(struct circuit *c, struct io *io, union any data) {
 
 
 void 
-ev_init(int flags) {
+meloop_ev_init(int flags) {
     if (_epfd != -1) {
         return;
     }
@@ -100,13 +100,13 @@ ev_init(int flags) {
 
 
 void 
-ev_deinit() {
+meloop_ev_deinit() {
     close(_epfd);
 }
 
 
 int 
-ev_arm(int fd, int op, struct bag *bag) {
+meloop_ev_arm(int fd, int op, struct bag *bag) {
     struct epoll_event ev;
     
     ev.events = _epflags | op;
@@ -130,7 +130,7 @@ ev_arm(int fd, int op, struct bag *bag) {
 
 
 int 
-ev_dearm(int fd) {
+meloop_ev_dearm(int fd) {
     if (epoll_ctl(_epfd, EPOLL_CTL_DEL, fd, NULL) != OK) {
         return ERR;
     }
@@ -139,12 +139,12 @@ ev_dearm(int fd) {
 
 
 int
-ev_more() {
+meloop_ev_more() {
     return _waitingbags;
 }
 
 
 int 
-ev_wait(struct epoll_event *events) {
+meloop_ev_wait(struct epoll_event *events) {
     return epoll_wait(_epfd, events, EV_MAXEVENTS, -1);
 }

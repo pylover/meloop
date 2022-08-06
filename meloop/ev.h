@@ -20,39 +20,39 @@ struct bag {
 
 
 void 
-ev_init(int flags);
+meloop_ev_init(int flags);
 
 
 void 
-ev_deinit();
+meloop_ev_deinit();
 
 
 int 
-ev_arm(int fd, int op, struct bag *bag);
+meloop_ev_arm(int fd, int op, struct bag *bag);
 
 
 int 
-ev_dearm(int fd);
+meloop_ev_dearm(int fd);
 
 
 void
-bag_free(struct bag *bag);
+meloop_bag_free(struct bag *bag);
 
 
 void
-bags_freeall();
+meloop_bags_freeall();
 
 
 struct bag *
-bag_new(struct circuit *c, struct io *io, union any data);
+meloop_bag_new(struct circuit *c, struct io *io, union any data);
 
 
 int
-ev_more();
+meloop_ev_more();
 
 
 int 
-ev_wait(struct epoll_event *events);
+meloop_ev_wait(struct epoll_event *events);
 
 
 #endif

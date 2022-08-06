@@ -64,6 +64,7 @@ meloop_vars_string_from_ptr(struct circuit *c);
 #define APPEND_A(c, a, v) appendA(c, (meloop)(a), (union any)(v))
 #define RETURN_A(c, s, r) returnA(c, s, (union any)(r))
 #define ERROR_A(c, s, r, ...) errorA(c, s, (union any)(r), __VA_ARGS__)
+#define RUN_A(c, s, d) runA(c, s, (union any)(d))
 
 
 #endif

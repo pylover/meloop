@@ -11,10 +11,10 @@
 
 void 
 waitA(struct circuit *c, struct io *io, union any data, int fd, int op) {
-    struct bag *bag = bag_new(c, io, data);
+    struct bag *bag = meloop_bag_new(c, io, data);
     
-    if (ev_arm(fd, op | io->epollflags, bag)) {
-        perror("ev_arm"); 
+    if (meloop_ev_arm(fd, op | io->epollflags, bag)) {
+        perror("meloop_ev_arm"); 
         ERROR_A(c, io, data, "_arm");
     }
 }
@@ -67,13 +67,13 @@ readA(struct circuit *c, struct io *io, struct string p) {
 
 
 void meloop_io_init(int flags) {
-    ev_init(flags);
+    meloop_ev_init(flags);
 }
 
 
 void meloop_io_deinit() {
-    ev_deinit();
-    bags_freeall();
+    meloop_ev_deinit();
+    meloop_bags_freeall();
 }
 
 
@@ -91,8 +91,9 @@ meloop_io_loop(volatile int *status) {
     struct io *tmpio;
     union any tmpdata;
 
-    while (((status == NULL) || (*status > EXIT_FAILURE)) && ev_more()) {
-        nfds = ev_wait(events);
+    while (((status == NULL) || (*status > EXIT_FAILURE)) && 
+            meloop_ev_more()) {
+        nfds = meloop_ev_wait(events);
         if (nfds < 0) {
             ret = ERR;
             break;
@@ -111,15 +112,15 @@ meloop_io_loop(volatile int *status) {
             tmpio = bag->io;
             tmpdata = bag->data;
             fd = (ev.events && EPOLLIN) ? tmpio->rfd : tmpio->wfd;
-            bag_free(bag);
+            meloop_bag_free(bag);
 
             if (ev.events & EPOLLRDHUP) {
-                ev_dearm(fd);
+                meloop_ev_dearm(fd);
                 close(fd);
                 ERROR_A(tmpcirc, tmpio, tmpdata, "Remote hanged up");
             }
             else if (ev.events & EPOLLERR) {
-                ev_dearm(fd);
+                meloop_ev_dearm(fd);
                 close(fd);
                 ERROR_A(tmpcirc, tmpio, tmpdata, "Connection Error");
             }

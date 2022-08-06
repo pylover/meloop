@@ -9,11 +9,11 @@ struct rand {
 
 
 void 
-random_openA(struct circuit *c, struct rand *state, struct string d);
+randopenA(struct circuit *c, struct rand *state, struct string d);
 
 
 void 
-random_readA(struct circuit *c, struct rand *state, struct string d);
+randreadA(struct circuit *c, struct rand *state, struct string d);
 
 
 #endif
