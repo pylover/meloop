@@ -16,6 +16,7 @@
 
 
 void connected(struct circuitS *c, struct tcpclientS *s, struct sockaddr *a) {
+    printf("Connected\n");
 }
 
 
@@ -41,11 +42,10 @@ int main() {
         .epollflags = EPOLLET,
         .readsize = 1024,
         .connected = connected,
+        .hostname = "127.0.0.1",
+        .port = "9090"
     };
 
-    /* Parse host address */
-    meloop_addr_parse(&(client.host), "127.0.0.1", 9090);
-    
     /* Initialize the buffer */
     static char b[CHUNK_SIZE];
     struct stringS buff = {

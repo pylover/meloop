@@ -39,8 +39,11 @@ struct tcpserverS {
 
 struct tcpclientS {
     struct ioS;
-    struct sockaddr host;
+    const char *hostname;
+    const char *port;
+    struct sockaddr hostaddr;
     meloop_tcpclient_conn_event connected;
+    int status;
 };
 
 
