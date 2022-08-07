@@ -16,4 +16,8 @@ void
 randreadA(struct circuitS *c, struct randS *state, struct stringS d);
 
 
+void
+randencA(struct circuitS *c, struct ioS *io, struct stringS buff);
+
+
 #endif

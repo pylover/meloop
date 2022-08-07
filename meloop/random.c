@@ -43,3 +43,15 @@ randreadA(struct circuitS *c, struct randS *s, struct stringS d) {
     d.size = size;
     RETURN_A(c, s, d);
 }
+
+
+void
+randencA(struct circuitS *c, struct ioS *io, struct stringS buff) {
+    int i;
+    unsigned int t;
+    for (i = 0; i < buff.size; i++) {
+        t = buff.data[i];
+        buff.data[i] = (t % 26) + 97;
+    }
+    RETURN_A(c, io, buff);
+}

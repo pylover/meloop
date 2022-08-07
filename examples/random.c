@@ -21,18 +21,6 @@ promptA(struct circuitS *c, struct ioS *io, struct stringS buff) {
 
 
 void
-encodeA(struct circuitS *c, struct ioS *io, struct stringS buff) {
-    int i;
-    unsigned int t;
-    for (i = 0; i < buff.size; i++) {
-        t = buff.data[i];
-        buff.data[i] = (t % 26) + 97;
-    }
-    RETURN_A(c, io, buff);
-}
-
-
-void
 errorcb(struct circuitS *c, struct ioS *io, struct stringS d, const char *e) {
     perror(e);
 }
@@ -60,7 +48,7 @@ int main() {
                          APPEND_A(c, randopenA, NULL);
     struct elementS *e = APPEND_A(c, readA,     NULL);
                          APPEND_A(c, randreadA, NULL);
-                         APPEND_A(c, encodeA,   NULL);
+                         APPEND_A(c, randencA,  NULL);
                          APPEND_A(c, writeA,    NULL);
               loopA(e);
 

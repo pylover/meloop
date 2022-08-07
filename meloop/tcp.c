@@ -108,7 +108,7 @@ _connect_continue(struct circuitS *c, struct tcpclientS *s, union any data) {
 
 void 
 connectA(struct circuitS *c, struct tcpclientS *s, union any data) {
-    if (s->status == _CONNECTED) {
+    if (s->status == _CONNECTING) {
         _connect_continue(c, s, data);
         return;
     }
@@ -153,15 +153,6 @@ connectA(struct circuitS *c, struct tcpclientS *s, union any data) {
 
         if (errno == EINPROGRESS) {
             /* Waiting to connect */
-            /* The socket is nonblocking and the connection cannot be
-               completed immediately. It is possible to epoll(2) for
-               completion by selecting the socket for writing.
-            */
-            s->hostaddr = *(try->ai_addr);
-            s->status = _CONNECTING;
-            s->rfd = fd;
-            s->wfd = fd;
-            WAIT_A(c, s, data, s->wfd, EPOLLOUT);
             break;
         }
 
@@ -171,19 +162,29 @@ connectA(struct circuitS *c, struct tcpclientS *s, union any data) {
 
     /* No longer needed */
     freeaddrinfo(result);
-
     if (fd < 0) {
         ERROR_A(c, s, data, "TCP connect");
         return;
     }
-    else {
-        /* Connection success */
-        /* Update state */
-        s->hostaddr = *(try->ai_addr);
-        s->status = _CONNECTED;
-        s->rfd = fd;
-        s->wfd = fd;
+
+    /* Connection success */
+    /* Update state */
+    s->hostaddr = *(try->ai_addr);
+    s->rfd = fd;
+    s->wfd = fd;
+
+    if (errno == EINPROGRESS) {
+        /* Waiting to connect */
+        /* The socket is nonblocking and the connection cannot be
+           completed immediately. It is possible to epoll(2) for
+           completion by selecting the socket for writing.
+        */
+        s->status = _CONNECTING;
+        WAIT_A(c, s, data, s->wfd, EPOLLOUT);
+        return;
     }
+
     /* Seems everything is ok. */
+    s->status = _CONNECTED;
     RETURN_A(c, s, data);
 }

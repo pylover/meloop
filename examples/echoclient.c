@@ -12,7 +12,14 @@
 #include <sys/epoll.h>
 
 
-#define CHUNK_SIZE  1024
+#define CHUNK_SIZE  32
+
+void
+newlineA(struct circuitS *c, struct ioS *io, struct stringS buff) {
+    buff.data[buff.size] = '\n';
+    buff.size++;
+    RETURN_A(c, io, buff);
+}
 
 
 void connected(struct circuitS *c, struct tcpclientS *s, struct sockaddr *a) {
@@ -23,7 +30,8 @@ void connected(struct circuitS *c, struct tcpclientS *s, struct sockaddr *a) {
 void
 errorcb(struct circuitS *c, struct tcpserverS *s, union any data, 
         const char *error) {
-    perror(error);
+    printf("%s\n", error);
+    //perror(error);
 }
 
 
@@ -40,25 +48,27 @@ int main() {
     /* Initialize TCP Server */
     static struct tcpclientS client = {
         .epollflags = EPOLLET,
-        .readsize = 1024,
+        .readsize = CHUNK_SIZE,
         .connected = connected,
         .hostname = "127.0.0.1",
         .port = "9090"
     };
 
     /* Initialize the buffer */
-    static char b[CHUNK_SIZE];
+    static char b[CHUNK_SIZE + 1];
     struct stringS buff = {
-        .size = CHUNK_SIZE,
+        .size = 0,
         .data = b,
     };
 
     /* Server init -> loop circuitS */
     struct circuitS *circ = NEW_C(successcb, errorcb);
 
-    //                         APPEND_A(circ, connectA,  NULL);
+                            APPEND_A(circ, connectA,  NULL);
                             APPEND_A(circ, randopenA, NULL);
     struct elementS *work = APPEND_A(circ, randreadA, NULL);
+                            APPEND_A(circ, randencA,  NULL);
+                            APPEND_A(circ, newlineA,  NULL);
                             APPEND_A(circ, writeA,    NULL);
                             APPEND_A(circ, readA,     NULL);
     //                         APPEND_A(circ, printA,    NULL);
