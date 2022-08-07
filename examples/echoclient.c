@@ -22,6 +22,13 @@ newlineA(struct circuitS *c, struct ioS *io, struct stringS buff) {
 }
 
 
+void
+printA(struct circuitS *c, struct ioS *io, struct stringS buff) {
+    printf("%.*s", (int)buff.size, buff.data);
+    RETURN_A(c, io, buff);
+}
+
+
 void connected(struct circuitS *c, struct tcpclientS *s, struct sockaddr *a) {
     printf("Connected\n");
 }
@@ -71,7 +78,7 @@ int main() {
                             APPEND_A(circ, newlineA,  NULL);
                             APPEND_A(circ, writeA,    NULL);
                             APPEND_A(circ, readA,     NULL);
-    //                         APPEND_A(circ, printA,    NULL);
+                            APPEND_A(circ, printA,    NULL);
     //                         APPEND_A(circ, sleepA,    1000);
                loopA(work);
 
