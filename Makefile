@@ -16,7 +16,7 @@ objects = $(patsubst %.c,%.o,$(wildcard meloop/*.c))
 all: $(objects)
 
 
-# Implicit rule for other modules
+# Implicit rule for modules
 %.o: %.c %.h
 	$(CC) -c $(CFLAGS) $< -o $@ 
 

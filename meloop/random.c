@@ -12,28 +12,30 @@
 
 
 void 
-randopenA(struct circuitS *c, struct randS *s, struct stringS d) {
+randopenA(struct circuitS *c, struct ioS *s, struct stringS d) {
+    struct randS *r = (struct randS*) meloop_priv_ptr(c);
     int fd = open("/dev/urandom", O_RDONLY | O_NONBLOCK);
     if (fd < 0) {
         ERROR_A(c, s, d, "open urandom");
         return;
     }
-    s->randfd = fd;
+    r->fd = fd;
     RETURN_A(c, s, d);
 }
 
 
 void 
-randreadA(struct circuitS *c, struct randS *s, struct stringS d) {
+randreadA(struct circuitS *c, struct ioS *s, struct stringS d) {
+    struct randS *r = (struct randS*) meloop_priv_ptr(c);
     size_t size;
 
     /* Read from the file descriptor */
-    size = read(s->randfd, d.data, s->readsize);
+    size = read(r->fd, d.data, s->readsize);
 
     /* Check for error */
     if (size < 0) {
         if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
-            WAIT_A(c, s, d, s->randfd, EPOLLIN);
+            WAIT_A(c, s, d, r->fd, EPOLLIN);
         }
         else {
             ERROR_A(c, s, d, "read urandom");

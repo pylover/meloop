@@ -3,17 +3,16 @@
 
 
 struct randS {
-    struct ioS;
-    int randfd;
+    int fd;
 };
 
 
 void 
-randopenA(struct circuitS *c, struct randS *state, struct stringS d);
+randopenA(struct circuitS *c, struct ioS *state, struct stringS d);
 
 
 void 
-randreadA(struct circuitS *c, struct randS *state, struct stringS d);
+randreadA(struct circuitS *c, struct ioS *state, struct stringS d);
 
 
 void

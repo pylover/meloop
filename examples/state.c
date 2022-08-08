@@ -20,7 +20,7 @@ void
 pairA(struct circuitS *c, struct state *s, int value) {
     struct pairS p = {
         .left = value,
-        .right = meloop_vars_int(c)
+        .right = meloop_priv_int(c)
     };
     
     printf("pairA, left: %d, right: %d\n", p.left, p.right);

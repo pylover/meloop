@@ -12,7 +12,7 @@
 
 void 
 promptA(struct circuitS *c, struct ioS *io, struct stringS buff) {
-    struct stringS s = meloop_vars_string_from_ptr(c);
+    struct stringS s = meloop_priv_string_from_ptr(c);
     memcpy(buff.data, s.data, s.size);
     buff.size = s.size;
     writeA(c, io, buff);

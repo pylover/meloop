@@ -13,7 +13,7 @@
 
 void 
 promptA(struct circuitS *c, struct ioS *io, struct stringS buff) {
-    struct stringS s = meloop_vars_string_from_ptr(c);
+    struct stringS s = meloop_priv_string_from_ptr(c);
     memcpy(buff.data, s.data, s.size);
     buff.size = s.size;
     writeA(c, io, buff);
@@ -36,18 +36,21 @@ int main() {
     meloop_io_init(0);
 
     char buff[BUFFSIZE] = "\0";
-    struct randS state = {
+    struct randS rand = {
+        .fd = -1,
+    };
+
+    struct ioS state = {
         .wfd = STDOUT_FILENO,
         .rfd = STDIN_FILENO,
         .readsize = BUFFSIZE,
-        .randfd = -1,
     };
 
     struct circuitS *c = NEW_C(successcb, errorcb);
 
-                         APPEND_A(c, randopenA, NULL);
+                         APPEND_A(c, randopenA, (void *)&rand);
     struct elementS *e = APPEND_A(c, readA,     NULL);
-                         APPEND_A(c, randreadA, NULL);
+                         APPEND_A(c, randreadA, (void *)&rand);
                          APPEND_A(c, randencA,  NULL);
                          APPEND_A(c, writeA,    NULL);
               loopA(e);

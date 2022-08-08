@@ -1,26 +1,34 @@
+SRC = ../meloop
 CFLAGS = \
 	-I.. \
 	-g \
 	-fms-extensions \
 	-D_GNU_SOURCE=1
 
-# LDFLAGS = -pg
-objects = $(patsubst %.c,%.o,$(wildcard ../meloop/*.c))
+LDFLAGS = -L$(SRC)
 
 
-# all: echo_client
-all: state echoshell echoserver echoclient random
+objects = $(patsubst %.c,%.o,$(wildcard $(SRC)/*.c))
+execs = state echoshell echoserver echoclient random
 
 
-%: %.c $(objects)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+all: $(execs)
+
+
+# Implicit rule for meloop modules
+$(SRC)/%.o: $(SRC)/%.c $(SRC)/%.h
+	$(CC) -c $(CFLAGS) $< -o $@ 
+
+
+$(execs):%: %.c $(objects)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
 
 
 .PHONY: clean
 clean:: 
 	- rm echoshell 
 	- rm echoserver 
-	- rm echoclinet
+	- rm echoclient
 	- rm state 
 	- rm random 
 	- rm massif.out.*

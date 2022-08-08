@@ -13,7 +13,7 @@
 
 struct elementS {
     meloop run;
-    union any vars;
+    union any priv;
     bool last;
     struct elementS *next;
 };
@@ -54,7 +54,7 @@ newC(meloop_okcb ok, meloop_errcb error) {
 
 */
 struct elementS * 
-appendA(struct circuitS *c, meloop f, union any vars) {
+appendA(struct circuitS *c, meloop f, union any priv) {
     struct elementS *e2 = malloc(sizeof(struct elementS));
     if (e2 == NULL) {
         err(EXIT_FAILURE, "Out of memory");
@@ -62,7 +62,7 @@ appendA(struct circuitS *c, meloop f, union any vars) {
     
     /* Initialize new elementS */
     e2->run = f;
-    e2->vars = vars;
+    e2->priv = priv;
     e2->last = true;
     e2->next = NULL;
     
@@ -255,12 +255,18 @@ runA(struct circuitS *c, void *state, union any args) {
 
 
 int
-meloop_vars_int(struct circuitS *c) {
-    return c->current->vars.sint;
+meloop_priv_int(struct circuitS *c) {
+    return c->current->priv.sint;
+}
+
+
+void *
+meloop_priv_ptr(struct circuitS *c) {
+    return c->current->priv.ptr;
 }
 
 
 struct stringS
-meloop_vars_string_from_ptr(struct circuitS *c) {
-    return c->current->vars.string;
+meloop_priv_string_from_ptr(struct circuitS *c) {
+    return c->current->priv.string;
 }

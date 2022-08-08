@@ -2,6 +2,7 @@
 #include "meloop/tcp.h"
 #include "meloop/random.h"
 #include "meloop/addr.h"
+#include "meloop/timer.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,6 +11,7 @@
 #include <errno.h>
 #include <err.h>
 #include <sys/epoll.h>
+#include <sys/timerfd.h>
 
 
 #define CHUNK_SIZE  32
@@ -52,6 +54,7 @@ int main() {
     int status;
     meloop_io_init(0);
 
+    // TODO: move to private params
     /* Initialize TCP Server */
     static struct tcpclientS client = {
         .epollflags = EPOLLET,
@@ -59,6 +62,18 @@ int main() {
         .connected = connected,
         .hostname = "127.0.0.1",
         .port = "9090"
+    };
+    
+    /* Initialize random settings. */
+    static struct randS rand = {
+        .fd = -1
+    };
+
+    /* Initialize timer settings. */
+    static struct timerS timer = {
+        .clockid = CLOCK_REALTIME,
+        .flags = 0,
+        .fd = -1,
     };
 
     /* Initialize the buffer */

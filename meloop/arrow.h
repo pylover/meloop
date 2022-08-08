@@ -31,7 +31,7 @@ bindA(struct elementS *e1, struct elementS *e2);
 
 
 struct elementS * 
-appendA(struct circuitS *c, meloop f, union any vars);
+appendA(struct circuitS *c, meloop f, union any priv);
 
 
 int 
@@ -52,11 +52,15 @@ runA(struct circuitS *c, void *state, union any);
 
 
 int
-meloop_vars_int(struct circuitS *c);
+meloop_priv_int(struct circuitS *c);
+
+
+void *
+meloop_priv_ptr(struct circuitS *c);
 
 
 struct stringS
-meloop_vars_string_from_ptr(struct circuitS *c);
+meloop_priv_string_from_ptr(struct circuitS *c);
 
 
 /* Helper macros */
