@@ -47,11 +47,10 @@ successcb(struct circuitS *c, struct tcpserverS *s, int out) {
 
 
 void
-client_error(struct circuitS *c, struct ioS *s, struct stringS buff, 
+client_error(struct circuitS *c, struct tcpconnS *s, struct stringS buff, 
         const char *error) {
-    struct tcpclientS *priv = meloop_priv_ptr(c);
     printf("Clinet disconnected: %s -- %s\n", 
-            meloop_addr_dump(&(priv->hostaddr)), error);
+            meloop_addr_dump(&(s->addr)), error);
    
     if (buff.data != NULL) {
         free(buff.data);
@@ -129,7 +128,7 @@ int main() {
                loopA(acpt);
 
     /* Run server circuitS */
-    RUN_A(circ, &server, NULL); 
+    RUN_A(circ, &state, NULL); 
 
     /* Start and wait for event loop */
     if (meloop_io_loop(&status)) {

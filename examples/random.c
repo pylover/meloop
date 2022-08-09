@@ -53,7 +53,7 @@ int main() {
                          APPEND_A(c, randreadA, meloop_ptr(&rand));
                          APPEND_A(c, randencA,  meloop_ptr(&rand));
                          APPEND_A(c, writeA,    NULL);
-              loopA(e);
+               loopA(e);
 
     /* Run circuitS */
     RUN_A(c, &state, meloop_string(buff)); 
