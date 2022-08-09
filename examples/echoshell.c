@@ -1,4 +1,5 @@
 #include "meloop/arrow.h"
+#include "meloop/types.h"
 #include "meloop/io.h"
 
 #include <err.h>
@@ -52,14 +53,14 @@ int main() {
 
     struct circuitS *c = NEW_C(successcb, errorcb);
 
-    struct elementS *e = APPEND_A(c, promptA, meloop_atos("me@loop:~$ "));
+    struct elementS *e = APPEND_A(c, promptA, meloop_string("me@loop:~$ "));
                          APPEND_A(c, readA,   NULL);
                          APPEND_A(c, echoA,   NULL);
                          APPEND_A(c, writeA,  NULL);
     loopA(e);
 
     /* Run circuitS */
-    RUN_A(c, &state, meloop_atos(buff)); 
+    RUN_A(c, &state, meloop_string(buff)); 
 
     /* Start and wait for event loop */
     if (meloop_io_loop(NULL)) {

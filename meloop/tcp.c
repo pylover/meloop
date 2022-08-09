@@ -15,11 +15,12 @@
 
 
 void 
-listenA(struct circuitS *c, struct tcpserverS *s, union any data) {
+listenA(struct circuitS *c, struct ioS *s, union any data) {
+    struct tcpserverS *priv = meloop_priv_ptr(c);
     int fd;
     int option = 1;
     int res;
-    struct sockaddr *addr = &(s->bind);
+    struct sockaddr *addr = &(priv->bind);
     
     /* Create socket */
     fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
@@ -28,14 +29,14 @@ listenA(struct circuitS *c, struct tcpserverS *s, union any data) {
     setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
 
     /* Bind to tcp port */
-    res = bind(fd, &(s->bind), sizeof(s->bind)); 
+    res = bind(fd, addr, sizeof(priv->bind)); 
     if (res) {
         ERROR_A(c, s, data, "Cannot bind on: %s", meloop_addr_dump(addr));
         return;
     }
     
     /* Listen */
-    res = listen(fd, s->backlog); 
+    res = listen(fd, priv->backlog); 
     if (res) {
         ERROR_A(c, s, data, "Cannot listen on: %s", meloop_addr_dump(addr));
         return;
@@ -47,7 +48,8 @@ listenA(struct circuitS *c, struct tcpserverS *s, union any data) {
 
 
 void 
-acceptA(struct circuitS *c, struct tcpserverS *s, union any data) {
+acceptA(struct circuitS *c, struct ioS *s, union any data) {
+    struct tcpserverS *priv = meloop_priv_ptr(c);
     int fd;
     socklen_t addrlen = sizeof(struct sockaddr);
     struct sockaddr addr; 
@@ -63,10 +65,10 @@ acceptA(struct circuitS *c, struct tcpserverS *s, union any data) {
         return;
     }
    
-    if (s->client_connected != NULL) {
-        s->client_connected(c, s, fd, &addr);
+    if (priv->client_connected != NULL) {
+        priv->client_connected(c, s, fd, &addr);
     }
-    returnA(c, s, data);
+    RETURN_A(c, s, data);
 }
 
 
@@ -77,22 +79,23 @@ acceptA(struct circuitS *c, struct tcpserverS *s, union any data) {
 
 
 static void
-_connect_continue(struct circuitS *c, struct tcpclientS *s, union any data) {
+_connect_continue(struct circuitS *c, struct ioS *s, union any data) {
     /* After epoll(2) indicates writability, use getsockopt(2) to read the
        SO_ERROR option at level SOL_SOCKET to determine whether connect()
        completed successfully (SO_ERROR is zero) or unsuccessfully
        (SO_ERROR is one of the usual error codes listed here,
        explaining the reason for the failure).
     */
+    struct tcpclientS *priv = meloop_priv_ptr(c);
     int err;
     int l = 4;
     if (getsockopt(s->rfd, SOL_SOCKET, SO_ERROR, &err, &l) != OK) {
-        s->status = _FAILED;
+        priv->status = _FAILED;
         ERROR_A(c, s, data, "getsockopt");
         return;
     }
     if (err != OK) {
-        s->status = _FAILED;
+        priv->status = _FAILED;
         errno = err;
         ERROR_A(c, s, data, "TCP connect");
         meloop_ev_dearm(s->rfd);
@@ -101,14 +104,15 @@ _connect_continue(struct circuitS *c, struct tcpclientS *s, union any data) {
     }
 
     /* Hooray, Connected! */
-    s->status = _CONNECTED;
+    priv->status = _CONNECTED;
     RETURN_A(c, s, data);
 }
 
 
 void 
-connectA(struct circuitS *c, struct tcpclientS *s, union any data) {
-    if (s->status == _CONNECTING) {
+connectA(struct circuitS *c, struct ioS *s, union any data) {
+    struct tcpclientS *priv = meloop_priv_ptr(c);
+    if (priv->status == _CONNECTING) {
         _connect_continue(c, s, data);
         return;
     }
@@ -126,7 +130,7 @@ connectA(struct circuitS *c, struct tcpclientS *s, union any data) {
     hints.ai_socktype = SOCK_STREAM; /* Datagram socket */
     hints.ai_flags = AI_NUMERICSERV;
     hints.ai_protocol = 0;
-    if (getaddrinfo(s->hostname, s->port, &hints, &result) != 0) {
+    if (getaddrinfo(priv->hostname, priv->port, &hints, &result) != 0) {
         ERROR_A(c, s, data, "Name resolution failed.");
         return;
     }
@@ -169,7 +173,7 @@ connectA(struct circuitS *c, struct tcpclientS *s, union any data) {
 
     /* Connection success */
     /* Update state */
-    s->hostaddr = *(try->ai_addr);
+    priv->hostaddr = *(try->ai_addr);
     s->rfd = fd;
     s->wfd = fd;
 
@@ -179,12 +183,12 @@ connectA(struct circuitS *c, struct tcpclientS *s, union any data) {
            completed immediately. It is possible to epoll(2) for
            completion by selecting the socket for writing.
         */
-        s->status = _CONNECTING;
+        priv->status = _CONNECTING;
         WAIT_A(c, s, data, s->wfd, EPOLLOUT);
         return;
     }
 
     /* Seems everything is ok. */
-    s->status = _CONNECTED;
+    priv->status = _CONNECTED;
     RETURN_A(c, s, data);
 }

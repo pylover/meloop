@@ -2,7 +2,7 @@
 
 
 struct stringS 
-meloop_atos(char *s) {
+meloop_string(char *s) {
     struct stringS out = {
         .size = 0,
         .data = NULL
@@ -15,4 +15,10 @@ meloop_atos(char *s) {
     out.size = strlen(s);
     out.data = s;
     return out;
+}
+
+
+void *
+meloop_ptr(void *p) {
+    return p;
 }

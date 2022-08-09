@@ -47,27 +47,30 @@ successcb(struct circuitS *c, struct tcpserverS *s, int out) {
 
 
 void
-client_error(struct circuitS *c, struct connS *conn, struct stringS buff, 
+client_error(struct circuitS *c, struct ioS *s, struct stringS buff, 
         const char *error) {
-    printf("Clinet disconnected: %s -- %s\n", meloop_addr_dump(&(conn->addr)), error);
+    struct tcpclientS *priv = meloop_priv_ptr(c);
+    printf("Clinet disconnected: %s -- %s\n", 
+            meloop_addr_dump(&(priv->hostaddr)), error);
    
     if (buff.data != NULL) {
         free(buff.data);
     }
-    if (conn != NULL) {
-        free(conn);
+    if (s != NULL) {
+        free(s);
     }
 }
 
 
 void 
-client_connected (struct circuitS *c, struct tcpserverS *s, int fd, 
+client_connected (struct circuitS *c, struct ioS *s, int fd, 
         struct sockaddr *addr) {
     
+    struct tcpclientS *priv = meloop_priv_ptr(c);
     printf("Client connected: %s\n", meloop_addr_dump(addr));
 
     /* Will be free at tcp: client_free() */
-    struct connS *conn = malloc(sizeof(struct connS));
+    struct tcpconnS *conn = malloc(sizeof(struct tcpconnS));
     if (conn == NULL) {
         close(fd);
         ERROR_A(c, s, NULL, "Out of memory");
@@ -78,7 +81,7 @@ client_connected (struct circuitS *c, struct tcpserverS *s, int fd,
     conn->wfd = fd; 
     conn->epollflags = EPOLLET;
     conn->readsize = s->readsize; 
-    memcpy(&(conn->addr), addr, sizeof(addr));
+    memcpy(&(conn->addr), addr, sizeof(struct sockaddr));
 
     /* Will be free at tcp.c: client_free() */
     struct stringS buff = {
@@ -90,7 +93,6 @@ client_connected (struct circuitS *c, struct tcpserverS *s, int fd,
         ERROR_A(c, s, NULL, "Out of memory");
         return;
     }
-    conn->server = s;
     RUN_A(worker, conn, buff);
 }
 
@@ -107,10 +109,13 @@ int main() {
 
     /* Initialize TCP Server */
     static struct tcpserverS server = {
-        .epollflags = EPOLLET,
-        .readsize = 1024,
         .backlog = 2,
         .client_connected = client_connected,
+    };
+    
+    static struct ioS state = {
+        .epollflags = EPOLLET,
+        .readsize = 1024,
     };
 
     /* Parse listen address */
@@ -119,8 +124,8 @@ int main() {
     /* Server init -> loop circuitS */
     struct circuitS *circ = NEW_C(successcb, errorcb);
 
-                            APPEND_A(circ, listenA, NULL);
-    struct elementS *acpt = APPEND_A(circ, acceptA, NULL);
+                            APPEND_A(circ, listenA, (void*)&server);
+    struct elementS *acpt = APPEND_A(circ, acceptA, (void*)&server);
                loopA(acpt);
 
     /* Run server circuitS */

@@ -48,15 +48,15 @@ int main() {
 
     struct circuitS *c = NEW_C(successcb, errorcb);
 
-                         APPEND_A(c, randopenA, (void *)&rand);
+                         APPEND_A(c, randopenA, meloop_ptr(&rand));
     struct elementS *e = APPEND_A(c, readA,     NULL);
-                         APPEND_A(c, randreadA, (void *)&rand);
-                         APPEND_A(c, randencA,  NULL);
+                         APPEND_A(c, randreadA, meloop_ptr(&rand));
+                         APPEND_A(c, randencA,  meloop_ptr(&rand));
                          APPEND_A(c, writeA,    NULL);
               loopA(e);
 
     /* Run circuitS */
-    RUN_A(c, &state, meloop_atos(buff)); 
+    RUN_A(c, &state, meloop_string(buff)); 
 
     /* Start and wait for event loop */
     if (meloop_io_loop(NULL)) {

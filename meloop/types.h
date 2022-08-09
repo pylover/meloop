@@ -30,7 +30,11 @@ union any {
 
 
 struct stringS 
-meloop_atos(char *s);
+meloop_string(char *s);
+
+
+void *
+meloop_ptr(void *p);
 
 
 #endif
