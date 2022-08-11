@@ -11,9 +11,6 @@ int logging_fd = STDERR_FILENO;
 enum logging_verbosity logging_verbosity = LOGGING_DEBUG;
 
 
-#define CR "\n"
-
-
 const char * logging_verbosities[] = {
     "silent",   // 0
     "errr",    // 1

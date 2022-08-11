@@ -23,6 +23,7 @@ static struct circuitS *worker;
 
 
 void sighandler(int s) {
+    PRINTE(CR);
     status = EXIT_SUCCESS;
 }
 

@@ -90,6 +90,7 @@ client_connected (struct circuitS *c, struct ioS *s, int fd,
 
 
 int main() {
+    logging_verbosity = LOGGING_DEBUG;
     catch_signal();
     meloop_io_init(0);
 

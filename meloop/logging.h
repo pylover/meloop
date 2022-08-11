@@ -33,11 +33,12 @@ logging_log(
     logging_log(l, __FILE__, __LINE__ , __FUNCTION__, __VA_ARGS__)
 
 
+#define CR "\n"
 #define DEBUG(...)   LOG(LOGGING_DEBUG,   __VA_ARGS__)
 #define INFO(...)    LOG(LOGGING_INFO,    __VA_ARGS__)
 #define WARNING(...) LOG(LOGGING_WARNING, __VA_ARGS__)
 #define ERROR(...)   LOG(LOGGING_ERROR,   __VA_ARGS__)
 #define FATAL(...)   LOG(LOGGING_ERROR,   __VA_ARGS__); exit(EXIT_FAILURE)
-
+#define PRINTE(...)  dprintf(STDERR_FILENO, __VA_ARGS__)
 
 #endif
