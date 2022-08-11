@@ -13,6 +13,7 @@
 /* A simple bag which used by waitA to hold meloop's essential data 
    until the underlying file descriptor becomes ready for read or write. */
 struct bagS {
+    int fd;
     struct circuitS *circuit;
     struct ioS *io;
     union any data;
@@ -28,7 +29,7 @@ meloop_ev_deinit();
 
 
 int 
-meloop_ev_arm(int fd, int op, struct bagS *bag);
+meloop_ev_arm(int op, struct bagS *bag);
 
 
 int 
@@ -44,7 +45,7 @@ meloop_bags_freeall();
 
 
 struct bagS *
-meloop_bag_new(struct circuitS *c, struct ioS *io, union any data);
+meloop_bag_new(int fd, struct circuitS *c, struct ioS *io, union any data);
 
 
 int

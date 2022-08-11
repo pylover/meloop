@@ -68,12 +68,13 @@ meloop_bags_freeall() {
 
 
 struct bagS *
-meloop_bag_new(struct circuitS *c, struct ioS *io, union any data) {
+meloop_bag_new(int fd, struct circuitS *c, struct ioS *io, union any data) {
     struct bagS *bag = malloc(sizeof(struct bagS));
     if (bag == NULL) {
         err(EXIT_FAILURE, "Out of memory");
     }
     
+    bag->fd = fd;
     bag->circuit = c;
     bag->io = io;
     bag->data = data;
@@ -106,17 +107,17 @@ meloop_ev_deinit() {
 
 
 int 
-meloop_ev_arm(int fd, int op, struct bagS *bag) {
+meloop_ev_arm(int op, struct bagS *bag) {
     struct epoll_event ev;
     
     ev.events = _epflags | op;
     ev.data.ptr = bag;
     
-    if (epoll_ctl(_epfd, EPOLL_CTL_MOD, fd, &ev) != OK) {
+    if (epoll_ctl(_epfd, EPOLL_CTL_MOD, bag->fd, &ev) != OK) {
         if (errno == ENOENT) {
             errno = 0;
             /* File descriptor is not exists yet */
-            if (epoll_ctl(_epfd, EPOLL_CTL_ADD, fd, &ev) != OK) {
+            if (epoll_ctl(_epfd, EPOLL_CTL_ADD, bag->fd, &ev) != OK) {
                 return ERR;
             }
         }

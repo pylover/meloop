@@ -11,9 +11,9 @@
 
 void 
 waitA(struct circuitS *c, struct ioS *io, union any data, int fd, int op) {
-    struct bagS *bag = meloop_bag_new(c, io, data);
+    struct bagS *bag = meloop_bag_new(fd, c, io, data);
     
-    if (meloop_ev_arm(fd, op | io->epollflags, bag)) {
+    if (meloop_ev_arm(op | io->epollflags, bag)) {
         perror("meloop_ev_arm"); 
         ERROR_A(c, io, data, "_arm");
     }
@@ -111,8 +111,7 @@ meloop_io_loop(volatile int *status) {
             tmpcirc = bag->circuit;
             tmpio = bag->io;
             tmpdata = bag->data;
-            // FIXME: How to retrieve the true fd.
-            fd = (ev.events && EPOLLIN) ? tmpio->rfd : tmpio->wfd;
+            fd = bag->fd;
             meloop_bag_free(bag);
 
             if (ev.events & EPOLLRDHUP) {

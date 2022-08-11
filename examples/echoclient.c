@@ -80,7 +80,7 @@ int main() {
         .clockid = CLOCK_REALTIME,
         .flags = 0,
         .fd = -1,
-        .interval_ns = 1 * MS,
+        .interval_ns = 300 * MS,
     };
 
     /* Initialize the buffer */
