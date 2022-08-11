@@ -41,4 +41,5 @@ logging_log(
 #define FATAL(...)   LOG(LOGGING_ERROR,   __VA_ARGS__); exit(EXIT_FAILURE)
 #define PRINTE(...)  dprintf(STDERR_FILENO, __VA_ARGS__)
 
+
 #endif
