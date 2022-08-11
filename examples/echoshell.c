@@ -1,6 +1,7 @@
 #include "meloop/arrow.h"
 #include "meloop/types.h"
 #include "meloop/io.h"
+#include "meloop/logging.h"
 
 #include <err.h>
 #include <errno.h>
@@ -31,17 +32,12 @@ echoA(struct circuitS *c, struct ioS *io, struct stringS buff) {
 
 void
 errorcb(struct circuitS *c, struct ioS *io, union any, const char *error) {
-    perror(error);
-}
-
-
-void
-successcb(struct circuitS *c, struct ioS *io, int out) {
-    printf("Out: %d\n", out);
+    ERROR(error);
 }
 
 
 int main() {
+    logging_verbosity = LOGGING_DEBUG;
     meloop_io_init(0);
 
     char buff[BUFFSIZE] = "\0";
@@ -51,7 +47,7 @@ int main() {
         .readsize = BUFFSIZE,
     };
 
-    struct circuitS *c = NEW_C(successcb, errorcb);
+    struct circuitS *c = NEW_C(NULL, errorcb);
 
     struct elementS *e = APPEND_A(c, promptA, meloop_string("me@loop:~$ "));
                          APPEND_A(c, readA,   NULL);

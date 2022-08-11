@@ -60,7 +60,7 @@ meloop_bags_freeall() {
             continue;
         }
 
-        ERROR_A(bag->circuit, bag->io, bag->data, "bag_free");
+        // ERROR_A(bag->circuit, bag->io, bag->data, "bag_free");
         free(bag);
         _bags[i] = NULL;
     }

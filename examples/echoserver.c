@@ -1,6 +1,7 @@
 #include "meloop/io.h"
 #include "meloop/tcp.h"
 #include "meloop/addr.h"
+#include "meloop/logging.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,7 +20,6 @@ static struct circuitS *worker;
 
 
 void sighandler(int s) {
-    printf("\nSIGINT detected: %d\n", s);
     status = EXIT_SUCCESS;
 }
 
@@ -35,22 +35,15 @@ void catch_signal() {
 void
 errorcb(struct circuitS *c, struct tcpserverS *s, union any data, 
         const char *error) {
-    perror(error);
+    ERROR("%s", error);
     status = EXIT_FAILURE;
-}
-
-
-void
-successcb(struct circuitS *c, struct tcpserverS *s, int out) {
-    printf("Out: %d\n", out);
 }
 
 
 void
 client_error(struct circuitS *c, struct tcpconnS *s, struct stringS buff, 
         const char *error) {
-    printf("Clinet disconnected: %s -- %s\n", 
-            meloop_addr_dump(&(s->addr)), error);
+    INFO("%s, %s", meloop_addr_dump(&(s->addr)), error);
    
     if (buff.data != NULL) {
         free(buff.data);
@@ -66,7 +59,7 @@ client_connected (struct circuitS *c, struct ioS *s, int fd,
         struct sockaddr *addr) {
     
     struct tcpclientS *priv = meloop_priv_ptr(c);
-    printf("Client connected: %s\n", meloop_addr_dump(addr));
+    INFO("%s", meloop_addr_dump(addr));
 
     /* Will be free at tcp: client_free() */
     struct tcpconnS *conn = malloc(sizeof(struct tcpconnS));
@@ -121,7 +114,7 @@ int main() {
     meloop_addr_parse(&(server.bind), "127.0.0.1", 9090);
     
     /* Server init -> loop circuitS */
-    struct circuitS *circ = NEW_C(successcb, errorcb);
+    struct circuitS *circ = NEW_C(NULL, errorcb);
 
                             APPEND_A(circ, listenA, (void*)&server);
     struct elementS *acpt = APPEND_A(circ, acceptA, (void*)&server);

@@ -3,6 +3,7 @@
 #include "meloop/random.h"
 #include "meloop/addr.h"
 #include "meloop/timer.h"
+#include "meloop/logging.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,7 +23,6 @@ static struct circuitS *worker;
 
 
 void sighandler(int s) {
-    printf("\nSIGINT detected: %d\n", s);
     status = EXIT_SUCCESS;
 }
 
@@ -49,31 +49,16 @@ printA(struct circuitS *c, struct ioS *io, struct stringS buff) {
 }
 
 
-void connected(struct circuitS *c, struct ioS *s, struct sockaddr *a) {
-    printf("Connected\n");
-}
-
-
 void
 errorcb(struct circuitS *c, struct ioS *s, union any data, 
         const char *error) {
-    dprintf(STDERR_FILENO, "Error: %s", error);
-    if (errno) {
-        perror(NULL);
-    }
-    else {
-        dprintf(STDERR_FILENO, "\n");
-    }
-}
-
-
-void
-successcb(struct circuitS *c, struct ioS *s, int out) {
-    printf("Out: %d\n", out);
+    ERROR("%s", error);
+    status = EXIT_FAILURE;
 }
 
 
 int main() {
+    logging_verbosity = LOGGING_DEBUG;
     catch_signal();
     meloop_io_init(0);
 
@@ -86,7 +71,6 @@ int main() {
 
     /* Initialize TCP Client */
     static struct tcpclientS tcp = {
-        .connected = connected,
         .hostname = "127.0.0.1",
         .port = "9090"
     };
@@ -103,9 +87,8 @@ int main() {
         .clockid = CLOCK_REALTIME,
         .flags = 0,
         .fd = -1,
-        .interval_ns = 3 * S,
+        .interval_ns = S,
     };
-    printf("interval_ns: %lu\n", timer.interval_ns);
 
     /* Initialize the buffer */
     static char b[CHUNK_SIZE];
@@ -115,7 +98,7 @@ int main() {
     };
 
     /* Server init -> loop circuitS */
-    struct circuitS *circ = NEW_C(successcb, errorcb);
+    struct circuitS *circ = NEW_C(NULL, errorcb);
 
                             APPEND_A(circ, timeropenA,  meloop_ptr(&timer));
                             APPEND_A(circ, connectA,    meloop_ptr(&tcp));
@@ -134,13 +117,13 @@ int main() {
 
     /* Start and wait for event loop */
     if (meloop_io_loop(&status)) {
-        perror("meloop_io_loop");
+        ERROR("meloop_io_loop");
         status = EXIT_FAILURE;
     }
     else {
         status = EXIT_SUCCESS;
     }
-
+    
     meloop_io_deinit();
     freeC(circ);
     return status;
