@@ -15,6 +15,24 @@
 
 
 #define CHUNK_SIZE  32
+#define WORKING 9999
+static volatile int status = WORKING;
+static struct sigaction old_action;
+static struct circuitS *worker;
+
+
+void sighandler(int s) {
+    printf("\nSIGINT detected: %d\n", s);
+    status = EXIT_SUCCESS;
+}
+
+
+void catch_signal() {
+    struct sigaction new_action = {sighandler, 0, 0, 0, 0};
+    if (sigaction(SIGINT, &new_action, &old_action) != 0) {
+        err(EXIT_FAILURE, NULL);
+    }
+}
 
 
 void
@@ -39,8 +57,13 @@ void connected(struct circuitS *c, struct ioS *s, struct sockaddr *a) {
 void
 errorcb(struct circuitS *c, struct ioS *s, union any data, 
         const char *error) {
-    printf("%s\n", error);
-    perror(error);
+    dprintf(STDERR_FILENO, "Error: %s", error);
+    if (errno) {
+        perror(NULL);
+    }
+    else {
+        dprintf(STDERR_FILENO, "\n");
+    }
 }
 
 
@@ -51,7 +74,7 @@ successcb(struct circuitS *c, struct ioS *s, int out) {
 
 
 int main() {
-    int status;
+    catch_signal();
     meloop_io_init(0);
 
     // TODO: move to private params
@@ -74,14 +97,15 @@ int main() {
     };
 
     /* Initialize timer settings. */
-    #define S  1000000000 
-    #define MS 1000000 
+    #define S  ((long)1000000000)
+    #define MS ((long)1000000)
     static struct timerS timer = {
         .clockid = CLOCK_REALTIME,
         .flags = 0,
         .fd = -1,
-        .interval_ns = 300 * MS,
+        .interval_ns = 3 * S,
     };
+    printf("interval_ns: %lu\n", timer.interval_ns);
 
     /* Initialize the buffer */
     static char b[CHUNK_SIZE];
@@ -109,7 +133,7 @@ int main() {
     RUN_A(circ, &conn, buff); 
 
     /* Start and wait for event loop */
-    if (meloop_io_loop(NULL)) {
+    if (meloop_io_loop(&status)) {
         perror("meloop_io_loop");
         status = EXIT_FAILURE;
     }

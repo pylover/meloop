@@ -164,18 +164,18 @@ connectA(struct circuitS *c, struct ioS *s, union any data) {
         fd = -1;
     }
 
-    /* No longer needed */
-    freeaddrinfo(result);
     if (fd < 0) {
+        freeaddrinfo(result);
         ERROR_A(c, s, data, "TCP connect");
         return;
     }
 
     /* Connection success */
     /* Update state */
-    priv->hostaddr = *(try->ai_addr);
+    memcpy(&(priv->hostaddr), try->ai_addr, sizeof(struct sockaddr));
     s->rfd = fd;
     s->wfd = fd;
+    freeaddrinfo(result);
 
     if (errno == EINPROGRESS) {
         /* Waiting to connect */

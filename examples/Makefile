@@ -42,14 +42,14 @@ debug-echoshell: echoshell
 	gdb ./$^
 
 
-.PHONY: valgrind
-valgrind: all
+.PHONY: valgrind-%
+valgrind-%: %
 	valgrind \
 		--tool=memcheck \
 		--leak-check=full \
 		--track-origins=yes \
 		--gen-suppressions=all \
-		./echoserver
+		./$^
 
 # --suppressions=.valgrind.supp \
 # .valgrind.supp file:
