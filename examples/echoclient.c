@@ -16,10 +16,10 @@
 
 #define CHUNK_SIZE  32
 
+
 void
 newlineA(struct circuitS *c, struct ioS *io, struct stringS buff) {
-    buff.data[buff.size] = '\n';
-    buff.size++;
+    buff.data[buff.size - 1] = '\n';
     RETURN_A(c, io, buff);
 }
 
@@ -40,7 +40,7 @@ void
 errorcb(struct circuitS *c, struct ioS *s, union any data, 
         const char *error) {
     printf("%s\n", error);
-    //perror(error);
+    perror(error);
 }
 
 
@@ -55,7 +55,7 @@ int main() {
     meloop_io_init(0);
 
     // TODO: move to private params
-    static struct tcpconnS io = {
+    static struct tcpconnS conn = {
         .epollflags = EPOLLET,
         .readsize = CHUNK_SIZE,
     };
@@ -74,14 +74,17 @@ int main() {
     };
 
     /* Initialize timer settings. */
+    #define S  1000000000 
+    #define MS 1000000 
     static struct timerS timer = {
         .clockid = CLOCK_REALTIME,
         .flags = 0,
         .fd = -1,
+        .interval_ns = 1 * MS,
     };
 
     /* Initialize the buffer */
-    static char b[CHUNK_SIZE + 1];
+    static char b[CHUNK_SIZE];
     struct stringS buff = {
         .size = 0,
         .data = b,
@@ -90,19 +93,20 @@ int main() {
     /* Server init -> loop circuitS */
     struct circuitS *circ = NEW_C(successcb, errorcb);
 
-                            APPEND_A(circ, connectA,  meloop_ptr(&tcp));
-                            APPEND_A(circ, randopenA, meloop_ptr(&rand));
-    struct elementS *work = APPEND_A(circ, randreadA, meloop_ptr(&rand));
-                            APPEND_A(circ, randencA,  meloop_ptr(&rand));
-                            APPEND_A(circ, newlineA,  NULL);
-                            APPEND_A(circ, writeA,    NULL);
-                            APPEND_A(circ, readA,     NULL);
-                            APPEND_A(circ, printA,    NULL);
-    //                         APPEND_A(circ, sleepA,    1000);
+                            APPEND_A(circ, timeropenA,  meloop_ptr(&timer));
+                            APPEND_A(circ, connectA,    meloop_ptr(&tcp));
+                            APPEND_A(circ, randopenA,   meloop_ptr(&rand));
+    struct elementS *work = APPEND_A(circ, randreadA,   meloop_ptr(&rand));
+                            APPEND_A(circ, randencA,    meloop_ptr(&rand));
+                            APPEND_A(circ, newlineA,    NULL);
+                            APPEND_A(circ, writeA,      NULL);
+                            APPEND_A(circ, readA,       NULL);
+                            APPEND_A(circ, printA,      NULL);
+                            APPEND_A(circ, timersleepA, meloop_ptr(&timer));
                loopA(work);
 
     /* Run server circuitS */
-    RUN_A(circ, &io, buff); 
+    RUN_A(circ, &conn, buff); 
 
     /* Start and wait for event loop */
     if (meloop_io_loop(NULL)) {

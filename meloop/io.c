@@ -111,6 +111,7 @@ meloop_io_loop(volatile int *status) {
             tmpcirc = bag->circuit;
             tmpio = bag->io;
             tmpdata = bag->data;
+            // FIXME: How to retrieve the true fd.
             fd = (ev.events && EPOLLIN) ? tmpio->rfd : tmpio->wfd;
             meloop_bag_free(bag);
 
