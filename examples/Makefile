@@ -5,7 +5,8 @@ CFLAGS = \
 	-fms-extensions \
 	-D_GNU_SOURCE=1
 
-LDFLAGS = -L$(SRC)
+
+LDFLAGS = `pkg-config --libs openssl`
 
 
 objects = $(patsubst %.c,%.o,$(wildcard $(SRC)/*.c))
@@ -21,7 +22,7 @@ $(SRC)/%.o: $(SRC)/%.c $(SRC)/%.h
 
 
 $(execs):%: %.c $(objects)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) 
 
 
 .PHONY: clean
