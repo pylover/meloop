@@ -12,10 +12,10 @@ enum logging_verbosity logging_verbosity = LOGGING_DEBUG;
 
 
 const char * logging_verbosities[] = {
-    "silent",   // 0
+    "silent",  // 0
     "errr",    // 1
-    "warn",     // 2
-    "info",     // 3
+    "warn",    // 2
+    "info",    // 3
     "dbug",    // 4
 };
 
