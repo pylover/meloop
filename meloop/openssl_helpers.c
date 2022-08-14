@@ -1,3 +1,10 @@
+/*
+- https://www.openssl.org/docs/man3.0/man7/migration_guide.html
+- https://www.feistyduck.com/library/openssl-cookbook/online/
+- https://stackoverflow.com/questions/23518079/epoll-based-non-blocking-ssl-read-stuck-in-a-loop
+- https://developer.ibm.com/tutorials/l-openssl/
+- https://www.openssl.org/docs/man3.0/man3/SSL_get_fd.html
+*/
 #include "meloop/types.h"
 #include "meloop/logging.h"
 #include "meloop/openssl_helpers.h"
@@ -15,7 +22,8 @@ const char* const PREFERRED_CIPHERS =
     "HIGH:!aNULL:!kRSA:!SRP:!PSK:!CAMELLIA:!RC4:!MD5:!DSS";
 
 
-openssl_err openssl_preconnect(SSL_CTX *ctx, SSL **ssl_, int fd,
+openssl_err 
+openssl_preconnect(SSL_CTX *ctx, SSL **ssl_, int fd,
         const char * hostname) {
     SSL *ssl;
     int res;
@@ -138,7 +146,8 @@ DNS, CA, and Web Hosters from the equation) or implement a Trust-On-First-Use
 (TOFU) scheme like Perspectives or SSH. But before you TOFU, you still have to 
 make the customary checks to ensure the certifcate passes the sniff test.             
 */                                                                                   
-openssl_err openssl_verify(SSL_CTX *ctx, SSL *ssl) {
+openssl_err 
+openssl_verify(SSL_CTX *ctx, SSL *ssl) {
     int res;
     openssl_err sslerr;
 
@@ -172,7 +181,8 @@ openssl_err openssl_verify(SSL_CTX *ctx, SSL *ssl) {
 }
 
 
-void inline openssl_error(unsigned long err, const char * const label) {
+void inline 
+openssl_error(unsigned long err, const char * const label) {
     const char* const str = ERR_reason_error_string(err);
     if (str) {
         ERROR("%s", str);
@@ -183,7 +193,8 @@ void inline openssl_error(unsigned long err, const char * const label) {
 }
 
 
-static int openssl_verify_callback(int preverify, X509_STORE_CTX* x509_ctx) {
+static int 
+openssl_verify_callback(int preverify, X509_STORE_CTX* x509_ctx) {
     /* For error codes, see http://www.openssl.org/docs/apps/verify.html  */
     
     int depth = X509_STORE_CTX_get_error_depth(x509_ctx);
@@ -216,7 +227,8 @@ static int openssl_verify_callback(int preverify, X509_STORE_CTX* x509_ctx) {
 }
 
 
-openssl_err openssl_init(SSL_CTX ** ctx_) {
+openssl_err 
+openssl_init(SSL_CTX ** ctx_) {
     int res;
     unsigned long sslerr;
     SSL_CTX *ctx = NULL;
@@ -278,9 +290,10 @@ openssl_err openssl_init(SSL_CTX ** ctx_) {
 
 /* CIPHERS
 
+ https://www.openssl.org/docs/manmaster/man1/ciphers.html
+
     "kEECDH:kEDH:kRSA:AESGCM:AES256:AES128:3DES:SHA256:SHA84:SHA1:!aNULL:" \
     "!eNULL:!EXP:!LOW:!MEDIUM!ADH:!AECDH";
-NULL;
 
 TLS 1.2 only
 "ECDHE-ECDSA-AES256-GCM-SHA384:"

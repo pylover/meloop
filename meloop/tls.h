@@ -15,7 +15,15 @@ struct tlsclientS {
 
 
 void 
-tlsconnectA(struct circuitS *c, struct ioS *s, union any data);
+meloop_tls_init();
+
+
+void 
+meloop_tls_deinit();
+
+
+void 
+tlsA(struct circuitS *c, struct ioS *s, union any data);
 
 
 #endif
