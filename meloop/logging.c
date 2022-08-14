@@ -20,7 +20,6 @@ const char * logging_verbosities[] = {
 };
 
 
-
 void
 logging_log(
         enum logging_verbosity level, 
