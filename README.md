@@ -4,6 +4,9 @@
 ## Features
 
 - Async/non-blocking IO
+- IO: read, write, wait(using epoll)
+- TCP client: connectA
+- TCP server: listenA, acceptA
 - SSL/TLS client using openssl
 - Timer using linux timerfd
 - Random using /dev/urandom
@@ -32,9 +35,22 @@ make echoserver
 ./echoserver
 
 
+make echoclient
+./echoclient
+
+
 make tlsclient
 ./tlsclient
+
+
+make random
+./random
+
+
+make state
+./state
 ```
+
 
 ## Profiling
 
