@@ -8,8 +8,8 @@
 - TCP client: connectA
 - TCP server: listenA, acceptA
 - SSL/TLS: tlsA, tlsreadA, tlswriteA
-- Timer using linux timerfd
-- Random using /dev/urandom
+- Timer using linux timerfd: timeropenA, timersleepA
+- Random using /dev/urandom: randopenA, randreadA, randencA
 
 ## Build
 
