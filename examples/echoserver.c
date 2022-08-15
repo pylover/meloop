@@ -126,7 +126,7 @@ int main() {
 
     /* Start and wait for event loop */
     if (meloop_io_loop(&status)) {
-        perror("meloop_io_loop");
+        ERROR("meloop_io_loop");
         status = EXIT_FAILURE;
     }
     else {
