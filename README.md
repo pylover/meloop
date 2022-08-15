@@ -1,6 +1,13 @@
 # meloop (Monadic Event Loop)
 
 
+## Features
+
+- Async/non-blocking IO
+- SSL/TLS client using openssl
+- Timer using linux timerfd
+- Random using /dev/urandom
+
 ## Build
 
 
@@ -23,6 +30,10 @@ make echoshell
 
 make echoserver
 ./echoserver
+
+
+make tlsclient
+./tlsclient
 ```
 
 ## Profiling
