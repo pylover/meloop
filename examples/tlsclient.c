@@ -104,7 +104,7 @@ int main() {
         .data = b,
     };
 
-    /* Server init -> loop circuitS */
+    /* Client init -> loop circuitS */
     struct circuitS *circ = NEW_C(NULL, errorcb);
 
                             APPEND_A(circ, connectA,  meloop_ptr(&tls));
