@@ -5,11 +5,12 @@ CFLAGS = \
 	-fms-extensions \
 	-D_GNU_SOURCE=1
 
-LDFLAGS = -L$(SRC)
+
+LDFLAGS = `pkg-config --libs openssl`
 
 
 objects = $(patsubst %.c,%.o,$(wildcard $(SRC)/*.c))
-execs = state echoshell echoserver echoclient random
+execs = state echoshell echoserver echoclient tlsclient random
 
 
 all: $(execs)
@@ -21,7 +22,7 @@ $(SRC)/%.o: $(SRC)/%.c $(SRC)/%.h
 
 
 $(execs):%: %.c $(objects)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) 
 
 
 .PHONY: clean
@@ -29,6 +30,7 @@ clean::
 	- rm echoshell 
 	- rm echoserver 
 	- rm echoclient
+	- rm tlsclient
 	- rm state 
 	- rm random 
 	- rm massif.out.*

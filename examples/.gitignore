@@ -3,5 +3,6 @@ random
 echoshell
 echoserver
 echoclient
+tlsclient
 gmon.out
 massif.out.*

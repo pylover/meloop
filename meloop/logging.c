@@ -49,7 +49,7 @@ logging_log(
         va_end(args);
     }
 
-    if (errno && (level != LOGGING_INFO)) {
+    if (errno && (level == LOGGING_ERROR || level == LOGGING_WARNING)) {
         dprintf(logging_fd, " -- %s. errno: %d", strerror(errno), errno);
     }
 
