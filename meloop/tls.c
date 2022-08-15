@@ -25,8 +25,10 @@ tlsA(struct circuitS *c, struct ioS *s, union any data) {
     DEBUG("tlsA: %d %p", s->rfd, ctx);
     if (priv->tlsstatus != _CONNECTING) {
         /* Prepare for ssl handshake */
-        if (openssl_prepare(ctx, &(priv->ssl), s->rfd, priv->hostname) != OK) {
-            ERROR_A(c, s, data, "Openssl: prepare error");; 
+        sslerr = openssl_prepare(ctx, &(priv->ssl), s->rfd, priv->hostname);
+        if (sslerr != OK) {
+            ERROR_A(c, s, data, "Openssl: prepare error -- %s", 
+                    OPENSSL_REASON(sslerr)); 
             return;
         }
         priv->tlsstatus = _CONNECTING;
@@ -60,11 +62,6 @@ tlsA(struct circuitS *c, struct ioS *s, union any data) {
     INFO("SSL Connected");
     priv->tlsstatus = _CONNECTED;
     RETURN_A(c, s, data);
-    // 
-    // /* TODO: verify */
-    // /* Connection Success, registering fd write */
-    // tls_want_write(t, t->callback, t->ptr);
-
 }
 
 
