@@ -63,6 +63,7 @@ int main() {
     logging_verbosity = LOGGING_DEBUG;
     catch_signal();
     meloop_io_init(0);
+    meloop_tls_init();
 
     // TODO: move to private params
     static struct tcpconnS conn = {
@@ -73,7 +74,7 @@ int main() {
     /* Initialize TCP Client */
     static struct tlsclientS tls = {
         .hostname = "google.com",
-        .port = "443"
+        .port = "443",
     };
     
     /* Initialize the buffer */
@@ -86,11 +87,11 @@ int main() {
     /* Server init -> loop circuitS */
     struct circuitS *circ = NEW_C(NULL, errorcb);
 
-                            APPEND_A(circ, connectA,   meloop_ptr(&tls));
-                            APPEND_A(circ, tlsA,       meloop_ptr(&tls));
-    struct elementS *work = APPEND_A(circ, writeA,      NULL);
-                            APPEND_A(circ, readA,       NULL);
-                            APPEND_A(circ, printA,      NULL);
+                            APPEND_A(circ, connectA,  meloop_ptr(&tls));
+                            APPEND_A(circ, tlsA,      meloop_ptr(&tls));
+    struct elementS *work = APPEND_A(circ, writeA, NULL);
+                            APPEND_A(circ, readA,  NULL);
+                            APPEND_A(circ, printA,    NULL);
                loopA(work);
 
     /* Run server circuitS */
@@ -105,6 +106,7 @@ int main() {
         status = EXIT_SUCCESS;
     }
     
+    meloop_tls_deinit();
     meloop_io_deinit();
     freeC(circ);
     return status;

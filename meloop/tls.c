@@ -5,50 +5,65 @@
 #include <openssl/bio.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <sys/epoll.h>
 
 
 static SSL_CTX *ctx;
 
 
+#define _NEW        1
+#define _CONNECTING 2
+#define _CONNECTED  3
+
+
 void 
 tlsA(struct circuitS *c, struct ioS *s, union any data) {
+    struct tlsclientS *priv = meloop_priv_ptr(c);
+    int res;
     openssl_err sslerr;
-
-    /* Prepare for ssl handshake */
-    if (openssl_preconnect(ctx, &(t->ssl), tcp_fd(t->tcp), 
-                t->hostname) != OK) {
-        FATAL("Openssl: connect error");; 
+    
+    DEBUG("tlsA: %d %p", s->rfd, ctx);
+    if (priv->tlsstatus != _CONNECTING) {
+        /* Prepare for ssl handshake */
+        if (openssl_prepare(ctx, &(priv->ssl), s->rfd, priv->hostname) != OK) {
+            ERROR_A(c, s, data, "Openssl: prepare error");; 
+            return;
+        }
+        priv->tlsstatus = _CONNECTING;
     }
     
-    
     /* https://www.openssl.org/docs/man1.1.1/man3/SSL_connect.html */
-    res = SSL_connect(t->ssl);
+    res = SSL_connect(priv->ssl);
     if (res != 1) {
-        sslerr = SSL_get_error(t->ssl, res);
+        sslerr = SSL_get_error(priv->ssl, res);
         
         /* Non-blocking operation did not complete. Try again later. */
         switch (sslerr) {
             case OK:
                 INFO("SSL OK");
+                break;
             case SSL_ERROR_WANT_READ:
-                tls_want_read(t, (tcp_callback) _tls_tryconnect, t);
-                break;
+                WAIT_A(c, s, data, s->rfd, EPOLLIN);
+                return;
             case SSL_ERROR_WANT_WRITE:
-                tls_want_write(t, (tcp_callback) _tls_tryconnect, t);
-                break;
+                WAIT_A(c, s, data, s->wfd, EPOLLOUT);
+                return;
             case SSL_ERROR_WANT_X509_LOOKUP:
                 // TODO: use timerfd_create(2) to retry
-                FATAL("SSL_ERROR_WANT_X509_LOOKUP");
-                break;
+                ERROR_A(c, s, data, "SSL_ERROR_WANT_X509_LOOKUP");
+                return;
             default:
-                FATAL("Error SSL_connect: %ld", sslerr);
-                break;
+                ERROR_A(c, s, data, "Error SSL_connect: %ld", sslerr);
+                return;
         }
     }
-    
-    /* TODO: verify */
-    /* Connection Success, registering fd write */
-    tls_want_write(t, t->callback, t->ptr);
+    INFO("SSL Connected");
+    priv->tlsstatus = _CONNECTED;
+    RETURN_A(c, s, data);
+    // 
+    // /* TODO: verify */
+    // /* Connection Success, registering fd write */
+    // tls_want_write(t, t->callback, t->ptr);
 
 }
 

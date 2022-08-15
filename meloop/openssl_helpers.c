@@ -23,8 +23,7 @@ const char* const PREFERRED_CIPHERS =
 
 
 openssl_err 
-openssl_preconnect(SSL_CTX *ctx, SSL **ssl_, int fd,
-        const char * hostname) {
+openssl_prepare(SSL_CTX *ctx, SSL **ssl_, int fd, const char * hostname) {
     SSL *ssl;
     int res;
     openssl_err sslerr;

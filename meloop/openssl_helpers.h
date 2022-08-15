@@ -25,8 +25,7 @@ openssl_verify(SSL_CTX *ctx, SSL *ssl);
 
 
 openssl_err 
-openssl_preconnect(SSL_CTX *ctx, SSL **ssl_, int fd,
-        const char * hostname);
+openssl_prepare(SSL_CTX *ctx, SSL **ssl_, int fd, const char * hostname);
 
 
 #endif

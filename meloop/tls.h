@@ -11,6 +11,7 @@
 struct tlsclientS {
     struct tcpclientS;
     SSL *ssl;
+    int tlsstatus;
 };
 
 
@@ -24,6 +25,14 @@ meloop_tls_deinit();
 
 void 
 tlsA(struct circuitS *c, struct ioS *s, union any data);
+
+
+void
+tlswriteA(struct circuitS *c, struct ioS *io, struct stringS p);
+
+
+void
+tlsreadA(struct circuitS *c, struct ioS *io, struct stringS p);
 
 
 #endif
