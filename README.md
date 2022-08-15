@@ -119,8 +119,6 @@ Terminating TCP Server
 
 ## Coding Convention
 
-- Opaque objects: PascalCase
 - C Macros: UPPER_CASE
-- Monads: fooM
-- Monad factories: fooF
-- All others: lowercase
+- Monads/Arrows: fooA
+- All others: lowercase with `meloop_` prefix.
