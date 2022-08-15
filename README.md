@@ -7,11 +7,18 @@
 - IO: read, write, wait(using epoll)
 - TCP client: connectA
 - TCP server: listenA, acceptA
-- SSL/TLS client using openssl
+- SSL/TLS: tlsA, tlsreadA, tlswriteA
 - Timer using linux timerfd
 - Random using /dev/urandom
 
 ## Build
+
+
+### Dependencies
+
+```bash
+sudo apt install build-essential pkgconf openssl
+```
 
 
 ```bash
