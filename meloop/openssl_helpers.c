@@ -168,6 +168,15 @@ openssl_init(SSL_CTX ** ctx_) {
 }
 
 
+void
+openssl_deinit(SSL_CTX * c) {
+    if (c == NULL) {
+        return;
+    }
+    SSL_CTX_free(c);
+}
+
+
 /* CIPHERS
 
  https://www.openssl.org/docs/manmaster/man1/ciphers.html

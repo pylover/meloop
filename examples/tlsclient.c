@@ -16,7 +16,7 @@
 #include <sys/timerfd.h>
 
 
-#define CHUNK_SIZE  32
+#define CHUNK_SIZE  1440
 #define WORKING 9999
 static volatile int status = WORKING;
 static struct sigaction old_action;
@@ -38,6 +38,24 @@ void catch_signal() {
 
 
 void
+httpreqA(struct circuitS *c, struct ioS *io, struct stringS buff) {
+    struct tlsclientS *priv = meloop_priv_ptr(c);
+    char *b = buff.data;
+    size_t s = 0;
+    #define HCR "\r\n"
+    s += sprintf(b + s, "GET / HTTP/1.1"HCR);
+    s += sprintf(b + s, "Host: %s"HCR, priv->hostname);
+    s += sprintf(b + s, "User-Agent: meloop/0.1 curl"HCR);
+    s += sprintf(b + s, "Connection: close"HCR);
+    s += sprintf(b + s, "Content-Length: 0"HCR);
+    s += sprintf(b + s, "Accept: */*"HCR);
+    s += sprintf(b + s, HCR);
+    buff.size = s;
+    RETURN_A(c, io, buff);
+}
+
+
+void
 newlineA(struct circuitS *c, struct ioS *io, struct stringS buff) {
     buff.data[buff.size - 1] = '\n';
     RETURN_A(c, io, buff);
@@ -47,6 +65,7 @@ newlineA(struct circuitS *c, struct ioS *io, struct stringS buff) {
 void
 printA(struct circuitS *c, struct ioS *io, struct stringS buff) {
     printf("%.*s", (int)buff.size, buff.data);
+    buff.size = 0;
     RETURN_A(c, io, buff);
 }
 
@@ -73,7 +92,8 @@ int main() {
 
     /* Initialize TCP Client */
     static struct tlsclientS tls = {
-        .hostname = "google.com",
+        //.hostname = "google.com",
+        .hostname = "wttr.in",
         .port = "443",
     };
     
@@ -89,10 +109,11 @@ int main() {
 
                             APPEND_A(circ, connectA,  meloop_ptr(&tls));
                             APPEND_A(circ, tlsA,      meloop_ptr(&tls));
-    struct elementS *work = APPEND_A(circ, writeA, NULL);
-                            APPEND_A(circ, readA,  NULL);
+    struct elementS *req  = APPEND_A(circ, httpreqA,  meloop_ptr(&tls));
+                            APPEND_A(circ, tlswriteA, meloop_ptr(&tls));
+    struct elementS *read = APPEND_A(circ, tlsreadA,  meloop_ptr(&tls));
                             APPEND_A(circ, printA,    NULL);
-               loopA(work);
+               loopA(read);
 
     /* Run server circuitS */
     RUN_A(circ, &conn, buff); 

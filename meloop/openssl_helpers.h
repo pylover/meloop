@@ -8,9 +8,12 @@
 typedef unsigned long openssl_err;
 
 
-// TODO: deinit function
 openssl_err 
 openssl_init(SSL_CTX ** ctx_);
+
+
+void
+openssl_deinit(SSL_CTX * ctx_);
 
 
 openssl_err 

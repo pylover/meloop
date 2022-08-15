@@ -16,18 +16,69 @@ static SSL_CTX *ctx;
 #define _CONNECTED  3
 
 
+void
+tlsreadA(struct circuitS *c, struct ioS *io, struct stringS p) {
+    struct tlsclientS *priv = meloop_priv_ptr(c);
+    int size;
+    unsigned long sslerr;
+    
+    size = SSL_read(priv->ssl, p.data, io->readsize);
+    // DEBUG("SSL read: %d bytes", size);
+    if (size <= 0) {
+        sslerr = ERR_get_error();
+        if (sslerr = SSL_ERROR_WANT_READ) {
+            // DEBUG("ssl want read: %d", sslerr);
+            WAIT_A(c, io, p, io->rfd, EPOLLIN);
+        }
+        else {
+            ERROR_A(c, io, p, OPENSSL_REASON(ERR_get_error()));
+        }
+        return;
+    }
+    p.size = size;
+    RETURN_A(c, io, p);
+}
+
+
+void
+tlswriteA(struct circuitS *c, struct ioS *io, struct stringS p) {
+    struct tlsclientS *priv = meloop_priv_ptr(c);
+    int size;
+    unsigned long sslerr;
+    
+    if (p.size == 0) {
+        ERROR_A(c, io, p, "Nothing to write");
+        return;
+    }
+    
+    size = SSL_write(priv->ssl, p.data, p.size);
+    // DEBUG("SSL write: %d bytes", size);
+    if (size <= 0) {
+        sslerr = ERR_get_error();
+        if (sslerr = SSL_ERROR_WANT_WRITE) {
+            // DEBUG("ssl want write: %d", sslerr);
+            WAIT_A(c, io, p, io->wfd, EPOLLOUT);
+        }
+        else {
+            ERROR_A(c, io, p, OPENSSL_REASON(ERR_get_error()));
+        }
+        return;
+    }
+    RETURN_A(c, io, p);
+}
+
+
 void 
 tlsA(struct circuitS *c, struct ioS *s, union any data) {
     struct tlsclientS *priv = meloop_priv_ptr(c);
     int res;
     openssl_err sslerr;
     
-    DEBUG("tlsA: %d %p", s->rfd, ctx);
     if (priv->tlsstatus != _CONNECTING) {
         /* Prepare for ssl handshake */
         sslerr = openssl_prepare(ctx, &(priv->ssl), s->rfd, priv->hostname);
         if (sslerr != OK) {
-            ERROR_A(c, s, data, "Openssl: prepare error -- %s", 
+            ERROR_A(c, s, data, "openssl_prepare -- %s", 
                     OPENSSL_REASON(sslerr)); 
             return;
         }
@@ -61,6 +112,7 @@ tlsA(struct circuitS *c, struct ioS *s, union any data) {
     }
     INFO("SSL Connected");
     priv->tlsstatus = _CONNECTED;
+    errno = 0;
     RETURN_A(c, s, data);
 }
 
@@ -80,9 +132,5 @@ meloop_tls_init() {
 
 void 
 meloop_tls_deinit() {
-    if (ctx == NULL) {
-        return;
-    }
-
-    SSL_CTX_free(ctx);
+    openssl_deinit(ctx);
 }
