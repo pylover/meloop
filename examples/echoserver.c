@@ -61,7 +61,7 @@ client_connected (struct circuitS *c, struct ioS *s, int fd,
     struct tcpclientS *priv = meloop_priv_ptr(c);
     INFO("%s", meloop_addr_dump(addr));
 
-    /* Will be free at tcp: client_free() */
+    /* Will be free at client_error() */
     struct tcpconnS *conn = malloc(sizeof(struct tcpconnS));
     if (conn == NULL) {
         close(fd);
