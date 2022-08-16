@@ -12,7 +12,7 @@
 
 
 void 
-randopenA(struct circuitS *c, struct ioS *s, struct stringS d) {
+randopenA(struct circuitS *c, struct fileS *s, struct stringS d) {
     struct randS *r = (struct randS*) meloop_priv_ptr(c);
     int fd = open("/dev/urandom", O_RDONLY | O_NONBLOCK);
     if (fd < 0) {
@@ -25,7 +25,7 @@ randopenA(struct circuitS *c, struct ioS *s, struct stringS d) {
 
 
 void 
-randreadA(struct circuitS *c, struct ioS *s, struct stringS d) {
+randreadA(struct circuitS *c, struct fileS *s, struct stringS d) {
     struct randS *r = (struct randS*) meloop_priv_ptr(c);
     size_t size;
 
@@ -48,7 +48,7 @@ randreadA(struct circuitS *c, struct ioS *s, struct stringS d) {
 
 
 void
-randencA(struct circuitS *c, struct ioS *io, struct stringS buff) {
+randencA(struct circuitS *c, struct fileS *io, struct stringS buff) {
     int i;
     unsigned int t;
     for (i = 0; i < buff.size; i++) {

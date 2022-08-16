@@ -14,7 +14,7 @@
 
 
 void
-timeropenA(struct circuitS *c, struct ioS *s, struct stringS d) {
+timeropenA(struct circuitS *c, struct fileS *s, struct stringS d) {
     struct itimerspec ispec;
     struct timerS *t = (struct timerS*) meloop_priv_ptr(c);
     time_t sec = t->interval_ns / NS;
@@ -43,7 +43,7 @@ timeropenA(struct circuitS *c, struct ioS *s, struct stringS d) {
 
 
 void 
-timersleepA(struct circuitS *c, struct ioS *s, struct stringS d) {
+timersleepA(struct circuitS *c, struct fileS *s, struct stringS d) {
     struct timerS *t = (struct timerS*) meloop_priv_ptr(c);
     ssize_t size;
     uint64_t res;

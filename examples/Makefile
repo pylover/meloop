@@ -10,7 +10,8 @@ LDFLAGS = `pkg-config --libs openssl`
 
 
 objects = $(patsubst %.c,%.o,$(wildcard $(SRC)/*.c))
-execs = state echoshell echoserver echoclient tlsclient random
+# execs = state echoshell echoserver echoclient tlsclient random
+execs = state echoserver echoclient tlsclient
 
 
 all: $(execs)

@@ -55,7 +55,7 @@ client_error(struct circuitS *c, struct tcpconnS *s, struct stringS buff,
 
 
 void 
-client_connected (struct circuitS *c, struct ioS *s, int fd, 
+client_connected (struct circuitS *c, struct fileS *s, int fd, 
         struct sockaddr *addr) {
     
     struct tcpclientS *priv = meloop_priv_ptr(c);
@@ -69,8 +69,7 @@ client_connected (struct circuitS *c, struct ioS *s, int fd,
         return;
     }
 
-    conn->rfd = fd; 
-    conn->wfd = fd; 
+    conn->fd = fd; 
     conn->epollflags = EPOLLET;
     conn->readsize = s->readsize; 
     memcpy(&(conn->addr), addr, sizeof(struct sockaddr));
@@ -106,7 +105,7 @@ int main() {
         .client_connected = client_connected,
     };
     
-    static struct ioS state = {
+    static struct fileS state = {
         .epollflags = EPOLLET,
         .readsize = 1024,
     };

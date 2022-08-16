@@ -12,7 +12,7 @@
 
 
 void 
-promptA(struct circuitS *c, struct ioS *io, struct stringS buff) {
+promptA(struct circuitS *c, struct fileS *io, struct stringS buff) {
     struct stringS s = meloop_priv_string_from_ptr(c);
     memcpy(buff.data, s.data, s.size);
     buff.size = s.size;
@@ -21,13 +21,13 @@ promptA(struct circuitS *c, struct ioS *io, struct stringS buff) {
 
 
 void
-errorcb(struct circuitS *c, struct ioS *io, struct stringS d, const char *e) {
+errorcb(struct circuitS *c, struct fileS *io, struct stringS d, const char *e) {
     perror(e);
 }
 
 
 void
-successcb(struct circuitS *c, struct ioS *io, int out) {
+successcb(struct circuitS *c, struct fileS *io, int out) {
     printf("Out: %d\n", out);
 }
 
@@ -40,7 +40,7 @@ int main() {
         .fd = -1,
     };
 
-    struct ioS state = {
+    struct fileS state = {
         .wfd = STDOUT_FILENO,
         .rfd = STDIN_FILENO,
         .readsize = BUFFSIZE,

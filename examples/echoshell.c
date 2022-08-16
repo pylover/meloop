@@ -41,7 +41,7 @@ int main() {
     meloop_io_init(0);
 
     char buff[BUFFSIZE] = "\0";
-    struct ioS state = {
+    struct pipeS state = {
         .wfd = STDOUT_FILENO,
         .rfd = STDIN_FILENO,
         .readsize = BUFFSIZE,

@@ -38,7 +38,7 @@ void catch_signal() {
 
 
 void
-httpreqA(struct circuitS *c, struct ioS *io, struct stringS buff) {
+httpreqA(struct circuitS *c, struct fileS *io, struct stringS buff) {
     struct tlsclientS *priv = meloop_priv_ptr(c);
     char *b = buff.data;
     size_t s = 0;
@@ -56,14 +56,14 @@ httpreqA(struct circuitS *c, struct ioS *io, struct stringS buff) {
 
 
 void
-newlineA(struct circuitS *c, struct ioS *io, struct stringS buff) {
+newlineA(struct circuitS *c, struct fileS *io, struct stringS buff) {
     buff.data[buff.size - 1] = '\n';
     RETURN_A(c, io, buff);
 }
 
 
 void
-printA(struct circuitS *c, struct ioS *io, struct stringS buff) {
+printA(struct circuitS *c, struct fileS *io, struct stringS buff) {
     printf("%.*s", (int)buff.size, buff.data);
     buff.size = 0;
     RETURN_A(c, io, buff);
@@ -71,7 +71,7 @@ printA(struct circuitS *c, struct ioS *io, struct stringS buff) {
 
 
 void
-errorcb(struct circuitS *c, struct ioS *s, union any data, 
+errorcb(struct circuitS *c, struct fileS *s, union any data, 
         const char *error) {
     ERROR("%s", error);
     status = EXIT_FAILURE;

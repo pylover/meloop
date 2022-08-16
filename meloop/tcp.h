@@ -15,15 +15,15 @@ struct tcpclientS;
 
 
 typedef void (*meloop_tcpserver_conn_event) (struct circuitS*, 
-        struct ioS*, int fd, struct sockaddr *);
+        struct fileS*, int fd, struct sockaddr *);
 
 
 typedef void (*meloop_tcpclient_conn_event) (struct circuitS*, 
-        struct ioS*, struct sockaddr *);
+        struct fileS*, struct sockaddr *);
 
 
 struct tcpconnS {
-    struct ioS;
+    struct fileS;
     struct sockaddr addr;
 };
 
@@ -45,15 +45,15 @@ struct tcpclientS {
 
 
 void 
-listenA(struct circuitS *c, struct ioS *s, union any data);
+listenA(struct circuitS *c, struct fileS *s, union any data);
 
 
 void 
-acceptA(struct circuitS *c, struct ioS *s, union any data);
+acceptA(struct circuitS *c, struct fileS *s, union any data);
 
 
 void 
-connectA(struct circuitS *c, struct ioS *s, union any data);
+connectA(struct circuitS *c, struct fileS *s, union any data);
 
 
 #endif

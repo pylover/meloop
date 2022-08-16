@@ -15,7 +15,7 @@
 struct bagS {
     int fd;
     struct circuitS *circuit;
-    struct ioS *io;
+    struct fileS *io;
     union any data;
 };
 
@@ -45,7 +45,7 @@ meloop_bags_freeall();
 
 
 struct bagS *
-meloop_bag_new(int fd, struct circuitS *c, struct ioS *io, union any data);
+meloop_bag_new(int fd, struct circuitS *c, struct fileS *io, union any data);
 
 
 int

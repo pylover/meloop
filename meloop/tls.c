@@ -17,7 +17,7 @@ static SSL_CTX *ctx;
 
 
 void
-tlsreadA(struct circuitS *c, struct ioS *io, struct stringS p) {
+tlsreadA(struct circuitS *c, struct fileS *io, struct stringS p) {
     struct tlsclientS *priv = meloop_priv_ptr(c);
     int size;
     unsigned long sslerr;
@@ -28,7 +28,7 @@ tlsreadA(struct circuitS *c, struct ioS *io, struct stringS p) {
         sslerr = ERR_get_error();
         if (sslerr = SSL_ERROR_WANT_READ) {
             // DEBUG("ssl want read: %d", sslerr);
-            WAIT_A(c, io, p, io->rfd, EPOLLIN);
+            WAIT_A(c, io, p, io->fd, EPOLLIN);
         }
         else {
             ERROR_A(c, io, p, OPENSSL_REASON(ERR_get_error()));
@@ -41,7 +41,7 @@ tlsreadA(struct circuitS *c, struct ioS *io, struct stringS p) {
 
 
 void
-tlswriteA(struct circuitS *c, struct ioS *io, struct stringS p) {
+tlswriteA(struct circuitS *c, struct fileS *io, struct stringS p) {
     struct tlsclientS *priv = meloop_priv_ptr(c);
     int size;
     unsigned long sslerr;
@@ -57,7 +57,7 @@ tlswriteA(struct circuitS *c, struct ioS *io, struct stringS p) {
         sslerr = ERR_get_error();
         if (sslerr = SSL_ERROR_WANT_WRITE) {
             // DEBUG("ssl want write: %d", sslerr);
-            WAIT_A(c, io, p, io->wfd, EPOLLOUT);
+            WAIT_A(c, io, p, io->fd, EPOLLOUT);
         }
         else {
             ERROR_A(c, io, p, OPENSSL_REASON(ERR_get_error()));
@@ -69,14 +69,14 @@ tlswriteA(struct circuitS *c, struct ioS *io, struct stringS p) {
 
 
 void 
-tlsA(struct circuitS *c, struct ioS *s, union any data) {
+tlsA(struct circuitS *c, struct fileS *s, union any data) {
     struct tlsclientS *priv = meloop_priv_ptr(c);
     int res;
     openssl_err sslerr;
     
     if (priv->tlsstatus != _CONNECTING) {
         /* Prepare for ssl handshake */
-        sslerr = openssl_prepare(ctx, &(priv->ssl), s->rfd, priv->hostname);
+        sslerr = openssl_prepare(ctx, &(priv->ssl), s->fd, priv->hostname);
         if (sslerr != OK) {
             ERROR_A(c, s, data, "openssl_prepare -- %s", 
                     OPENSSL_REASON(sslerr)); 
@@ -96,10 +96,10 @@ tlsA(struct circuitS *c, struct ioS *s, union any data) {
                 INFO("SSL OK");
                 break;
             case SSL_ERROR_WANT_READ:
-                WAIT_A(c, s, data, s->rfd, EPOLLIN);
+                WAIT_A(c, s, data, s->fd, EPOLLIN);
                 return;
             case SSL_ERROR_WANT_WRITE:
-                WAIT_A(c, s, data, s->wfd, EPOLLOUT);
+                WAIT_A(c, s, data, s->fd, EPOLLOUT);
                 return;
             case SSL_ERROR_WANT_X509_LOOKUP:
                 // TODO: use timerfd_create(2) to retry
