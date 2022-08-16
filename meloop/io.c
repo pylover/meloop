@@ -10,59 +10,61 @@
 
 
 void 
-waitA(struct circuitS *c, struct fileS *io, union any data, int fd, int op) {
-    struct bagS *bag = meloop_bag_new(fd, c, io, data);
+waitA(struct circuitS *c, void *s, union any data, int fd, int op) {
+    struct ioS *priv = meloop_priv_ptr(c);
+    struct bagS *bag = meloop_bag_new(fd, c, s, data);
     
-    if (meloop_ev_arm(op | io->epollflags, bag)) {
+    if (meloop_ev_arm(op | priv->epollflags, bag)) {
         perror("meloop_ev_arm"); 
-        ERROR_A(c, io, data, "_arm");
+        ERROR_A(c, s, data, "_arm");
     }
 }
 
 
 void
-writeA(struct circuitS *c, struct fileS *io, struct stringS p) {
+writeA(struct circuitS *c, void *s, struct fileS f) {
     ssize_t size;
     
-    size = write(io->fd, p.data, p.size);
+    size = write(f.fd, f.data, f.size);
     if (size < 0) {
         if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
-            WAIT_A(c, io, p, io->fd, EPOLLOUT);
+            WAIT_A(c, s, f, f.fd, EPOLLOUT);
         }
         else {
-            ERROR_A(c, io, p, "write");
+            ERROR_A(c, s, f, "write");
         }
         return;
     }
-    RETURN_A(c, io, p);
+    RETURN_A(c, s, f);
 }
 
 
 void
-readA(struct circuitS *c, struct fileS *io, struct stringS p) {
+readA(struct circuitS *c, void *s, struct fileS f) {
+    struct ioS *priv = meloop_priv_ptr(c);
     ssize_t size;
 
     /* Read from the file descriptor */
-    size = read(io->fd, p.data, io->readsize);
+    size = read(f.fd, f.data, priv->readsize);
 
     /* Check for EOF */
     if (size == 0) {
-        ERROR_A(c, io, p, "EOF");
+        ERROR_A(c, s, f, "EOF");
         return;
     }
 
     /* Error | wait */
     if (size < 0) {
         if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
-            WAIT_A(c, io, p, io->fd, EPOLLIN);
+            WAIT_A(c, s, f, f.fd, EPOLLIN);
         }
         else {
-            ERROR_A(c, io, p, "read");
+            ERROR_A(c, s, f, "read");
         }
         return;
     }
-    p.size = size;
-    RETURN_A(c, io, p);
+    f.size = size;
+    RETURN_A(c, s, f);
 }
 
 
@@ -88,7 +90,7 @@ meloop_io_loop(volatile int *status) {
     int fd;
     int ret = OK;
     struct circuitS *tmpcirc;
-    struct fileS *tmpio;
+    void *tmpstate;
     union any tmpdata;
 
     while (((status == NULL) || (*status > EXIT_FAILURE)) && 
@@ -109,7 +111,7 @@ meloop_io_loop(volatile int *status) {
             ev = events[i];
             bag = (struct bagS *) ev.data.ptr;
             tmpcirc = bag->circuit;
-            tmpio = bag->io;
+            tmpstate = bag->state;
             tmpdata = bag->data;
             fd = bag->fd;
             meloop_bag_free(bag);
@@ -117,15 +119,15 @@ meloop_io_loop(volatile int *status) {
             if (ev.events & EPOLLRDHUP) {
                 meloop_ev_dearm(fd);
                 close(fd);
-                ERROR_A(tmpcirc, tmpio, tmpdata, "Remote hanged up");
+                ERROR_A(tmpcirc, tmpstate, tmpdata, "Remote hanged up");
             }
             else if (ev.events & EPOLLERR) {
                 meloop_ev_dearm(fd);
                 close(fd);
-                ERROR_A(tmpcirc, tmpio, tmpdata, "Connection Error");
+                ERROR_A(tmpcirc, tmpstate, tmpdata, "Connection Error");
             }
             else {
-                runA(tmpcirc, tmpio, tmpdata);
+                runA(tmpcirc, tmpstate, tmpdata);
             }
         }
     }

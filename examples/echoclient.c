@@ -58,26 +58,31 @@ errorcb(struct circuitS *c, struct fileS *s, union any data,
 }
 
 
+// struct state {
+//     unsigned int lines;
+// };
+
+
 int main() {
     logging_verbosity = LOGGING_DEBUG;
     catch_signal();
     meloop_io_init(0);
-
-    // TODO: move to private params
+    
     static struct tcpconnS conn = {
-        .epollflags = EPOLLET,
-        .readsize = CHUNK_SIZE,
     };
-
 
     /* Initialize TCP Client */
     static struct tcpclientS tcp = {
+        .epollflags = EPOLLET,
+        .readsize = CHUNK_SIZE,
         .hostname = "127.0.0.1",
         .port = "9090"
     };
     
     /* Initialize random settings. */
     static struct randS rand = {
+        .epollflags = EPOLLET,
+        .readsize = CHUNK_SIZE,
         .fd = -1
     };
 
@@ -107,8 +112,8 @@ int main() {
     struct elementS *work = APPEND_A(circ, randreadA,   meloop_ptr(&rand));
                             APPEND_A(circ, randencA,    meloop_ptr(&rand));
                             APPEND_A(circ, newlineA,    NULL);
-                            APPEND_A(circ, writeA,      NULL);
-                            APPEND_A(circ, readA,       NULL);
+                            APPEND_A(circ, writeA,      meloop_ptr(&tcp));
+                            APPEND_A(circ, readA,       meloop_ptr(&tcp));
                             APPEND_A(circ, printA,      NULL);
                             APPEND_A(circ, timersleepA, meloop_ptr(&timer));
                loopA(work);

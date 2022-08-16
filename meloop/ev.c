@@ -68,7 +68,7 @@ meloop_bags_freeall() {
 
 
 struct bagS *
-meloop_bag_new(int fd, struct circuitS *c, struct fileS *io, union any data) {
+meloop_bag_new(int fd, struct circuitS *c, void *s, union any data) {
     struct bagS *bag = malloc(sizeof(struct bagS));
     if (bag == NULL) {
         err(EXIT_FAILURE, "Out of memory");
@@ -76,7 +76,7 @@ meloop_bag_new(int fd, struct circuitS *c, struct fileS *io, union any data) {
     
     bag->fd = fd;
     bag->circuit = c;
-    bag->io = io;
+    bag->state = s;
     bag->data = data;
     
     bags_remember(bag);

@@ -17,37 +17,37 @@ static SSL_CTX *ctx;
 
 
 void
-tlsreadA(struct circuitS *c, struct fileS *io, struct stringS p) {
+tlsreadA(struct circuitS *c, struct fileS *f, struct stringS p) {
     struct tlsclientS *priv = meloop_priv_ptr(c);
     int size;
     unsigned long sslerr;
     
-    size = SSL_read(priv->ssl, p.data, io->readsize);
+    size = SSL_read(priv->ssl, p.data, priv->readsize);
     // DEBUG("SSL read: %d bytes", size);
     if (size <= 0) {
         sslerr = ERR_get_error();
         if (sslerr = SSL_ERROR_WANT_READ) {
             // DEBUG("ssl want read: %d", sslerr);
-            WAIT_A(c, io, p, io->fd, EPOLLIN);
+            WAIT_A(c, f, p, f->fd, EPOLLIN);
         }
         else {
-            ERROR_A(c, io, p, OPENSSL_REASON(ERR_get_error()));
+            ERROR_A(c, f, p, OPENSSL_REASON(ERR_get_error()));
         }
         return;
     }
     p.size = size;
-    RETURN_A(c, io, p);
+    RETURN_A(c, f, p);
 }
 
 
 void
-tlswriteA(struct circuitS *c, struct fileS *io, struct stringS p) {
+tlswriteA(struct circuitS *c, struct fileS *f, struct stringS p) {
     struct tlsclientS *priv = meloop_priv_ptr(c);
     int size;
     unsigned long sslerr;
     
     if (p.size == 0) {
-        ERROR_A(c, io, p, "Nothing to write");
+        ERROR_A(c, f, p, "Nothing to write");
         return;
     }
     
@@ -57,14 +57,14 @@ tlswriteA(struct circuitS *c, struct fileS *io, struct stringS p) {
         sslerr = ERR_get_error();
         if (sslerr = SSL_ERROR_WANT_WRITE) {
             // DEBUG("ssl want write: %d", sslerr);
-            WAIT_A(c, io, p, io->fd, EPOLLOUT);
+            WAIT_A(c, f, p, f->fd, EPOLLOUT);
         }
         else {
-            ERROR_A(c, io, p, OPENSSL_REASON(ERR_get_error()));
+            ERROR_A(c, f, p, OPENSSL_REASON(ERR_get_error()));
         }
         return;
     }
-    RETURN_A(c, io, p);
+    RETURN_A(c, f, p);
 }
 
 

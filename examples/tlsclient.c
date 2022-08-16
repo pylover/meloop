@@ -86,12 +86,12 @@ int main() {
 
     // TODO: move to private params
     static struct tcpconnS conn = {
-        .epollflags = EPOLLET,
-        .readsize = CHUNK_SIZE,
     };
 
     /* Initialize TCP Client */
     static struct tlsclientS tls = {
+        .epollflags = EPOLLET,
+        .readsize = CHUNK_SIZE,
         //.hostname = "google.com",
         .hostname = "wttr.in",
         .port = "443",

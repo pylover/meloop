@@ -36,6 +36,7 @@ struct tcpserverS {
 
 
 struct tcpclientS {
+    struct ioS;
     const char *hostname;
     const char *port;
     struct sockaddr hostaddr;
@@ -45,15 +46,15 @@ struct tcpclientS {
 
 
 void 
-listenA(struct circuitS *c, struct fileS *s, union any data);
+listenA(struct circuitS *c, void *s, struct fileS f);
 
 
 void 
-acceptA(struct circuitS *c, struct fileS *s, union any data);
+acceptA(struct circuitS *c, void *s, struct fileS f);
 
 
 void 
-connectA(struct circuitS *c, struct fileS *s, union any data);
+connectA(struct circuitS *c, void *s, struct fileS f);
 
 
 #endif

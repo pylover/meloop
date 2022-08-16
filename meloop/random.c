@@ -30,7 +30,7 @@ randreadA(struct circuitS *c, struct fileS *s, struct stringS d) {
     size_t size;
 
     /* Read from the file descriptor */
-    size = read(r->fd, d.data, s->readsize);
+    size = read(r->fd, d.data, r->readsize);
 
     /* Check for error */
     if (size < 0) {

@@ -3,6 +3,7 @@
 
 
 struct randS {
+    struct ioS;
     int fd;
 };
 

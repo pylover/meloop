@@ -21,11 +21,18 @@ struct stringS {
 };
 
 
+struct fileS {
+    struct stringS;
+    int fd;
+};
+
+
 union any {
     int sint;
     void *ptr;
     struct pairS pair;
     struct stringS string;
+    struct fileS file;
 };
 
 

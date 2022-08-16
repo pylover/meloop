@@ -8,28 +8,22 @@
 #include <stdlib.h>
 
 
-struct fileS {
-    /* epoll */
+struct ioS {
     int epollflags;
-
-    /* Behaviour */
     size_t readsize;
-
-    /* File descriptor */
-    int fd;
 };
 
 
 void 
-waitA(struct circuitS *c, struct fileS *io, union any data, int fd, int op);
+waitA(struct circuitS *c, void *s, union any data, int fd, int op);
 
 
 void
-writeA(struct circuitS *c, struct fileS *io, struct stringS p);
+writeA(struct circuitS *c, void *s, struct fileS f);
 
 
 void
-readA(struct circuitS *c, struct fileS *io, struct stringS p);
+readA(struct circuitS *c, void *s, struct fileS f);
 
 
 void meloop_io_init(int flags);

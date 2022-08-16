@@ -58,7 +58,6 @@ void
 client_connected (struct circuitS *c, struct fileS *s, int fd, 
         struct sockaddr *addr) {
     
-    struct tcpclientS *priv = meloop_priv_ptr(c);
     INFO("%s", meloop_addr_dump(addr));
 
     /* Will be free at client_error() */
@@ -70,14 +69,12 @@ client_connected (struct circuitS *c, struct fileS *s, int fd,
     }
 
     conn->fd = fd; 
-    conn->epollflags = EPOLLET;
-    conn->readsize = s->readsize; 
     memcpy(&(conn->addr), addr, sizeof(struct sockaddr));
 
     /* Will be free at tcp.c: client_free() */
     struct stringS buff = {
         .size = 0,
-        .data = malloc(s->readsize),
+        .data = malloc(CHUNK_SIZE),
     };
 
     if (buff.data == NULL) {
@@ -88,15 +85,24 @@ client_connected (struct circuitS *c, struct fileS *s, int fd,
 }
 
 
+struct state {
+    size_t clients;
+};
+
+
 int main() {
     logging_verbosity = LOGGING_DEBUG;
     catch_signal();
     meloop_io_init(0);
 
     /* A circuitS to run for each new connection */
+    struct ioS io = {
+        .epollflags = EPOLLET,
+        .readsize = CHUNK_SIZE,
+    };
     worker = NEW_C(NULL, client_error);
-    struct elementS *e = APPEND_A(worker, readA,  NULL);
-                         APPEND_A(worker, writeA, NULL);
+    struct elementS *e = APPEND_A(worker, readA,  meloop_ptr(&io));
+                         APPEND_A(worker, writeA, meloop_ptr(&io));
                loopA(e);
 
     /* Initialize TCP Server */
@@ -105,9 +111,12 @@ int main() {
         .client_connected = client_connected,
     };
     
-    static struct fileS state = {
-        .epollflags = EPOLLET,
-        .readsize = 1024,
+    static struct fileS file = {
+        .fd = -1
+    };
+
+    static struct state state = {
+        .clients = 0 
     };
 
     /* Parse listen address */
@@ -121,7 +130,7 @@ int main() {
                loopA(acpt);
 
     /* Run server circuitS */
-    RUN_A(circ, &state, NULL); 
+    RUN_A(circ, &state, file); 
 
     /* Start and wait for event loop */
     if (meloop_io_loop(&status)) {
