@@ -44,7 +44,7 @@ listenA(struct circuitS *c, void *s, struct fileS *f) {
         return;
     }
     f->fd = fd;
-    RETURN_A(c, s, NULL);
+    RETURN_A(c, s, f);
 }
 
 
@@ -55,7 +55,6 @@ acceptA(struct circuitS *c, void *s, struct fileS *f) {
     socklen_t addrlen = sizeof(struct sockaddr);
     struct sockaddr addr; 
 
-    DEBUG("fd: %d", f->fd);
     fd = accept4(f->fd, &addr, &addrlen, SOCK_NONBLOCK);
     if (fd == -1) {
         if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {

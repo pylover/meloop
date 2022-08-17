@@ -53,9 +53,6 @@ client_error(struct circuitS *c, struct state *state, struct tcpconnS *conn,
     if (conn->buffer != NULL) {
         free(conn->buffer);
     }
-    if (state != NULL) {
-        free(state);
-    }
 }
 
 
