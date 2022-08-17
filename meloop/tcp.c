@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <string.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -16,7 +17,7 @@
 
 
 void 
-listenA(struct circuitS *c, void *s, struct fileS f) {
+listenA(struct circuitS *c, void *s, struct fileS *f) {
     struct tcpserverS *priv = meloop_priv_ptr(c);
     int fd;
     int option = 1;
@@ -42,23 +43,23 @@ listenA(struct circuitS *c, void *s, struct fileS f) {
         ERROR_A(c, s, f, "Cannot listen on: %s", meloop_addr_dump(addr));
         return;
     }
-    f.fd = fd;
+    f->fd = fd;
     RETURN_A(c, s, NULL);
 }
 
 
 void 
-acceptA(struct circuitS *c, void *s, struct fileS f) {
+acceptA(struct circuitS *c, void *s, struct fileS *f) {
     struct tcpserverS *priv = meloop_priv_ptr(c);
     int fd;
     socklen_t addrlen = sizeof(struct sockaddr);
     struct sockaddr addr; 
 
-    DEBUG("fd: %d", f.fd);
-    fd = accept4(f.fd, &addr, &addrlen, SOCK_NONBLOCK);
+    DEBUG("fd: %d", f->fd);
+    fd = accept4(f->fd, &addr, &addrlen, SOCK_NONBLOCK);
     if (fd == -1) {
         if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
-            WAIT_A(c, s, f, f.fd, EPOLLIN);
+            WAIT_A(c, s, f, f->fd, EPOLLIN);
         }
         else {
             ERROR_A(c, s, f, "accept4");
@@ -80,7 +81,7 @@ acceptA(struct circuitS *c, void *s, struct fileS f) {
 
 
 static void
-_connect_continue(struct circuitS *c, void *s, struct fileS f) {
+_connect_continue(struct circuitS *c, void *s, struct fileS *f) {
     /* After epoll(2) indicates writability, use getsockopt(2) to read the
        SO_ERROR option at level SOL_SOCKET to determine whether connect()
        completed successfully (SO_ERROR is zero) or unsuccessfully
@@ -90,7 +91,7 @@ _connect_continue(struct circuitS *c, void *s, struct fileS f) {
     struct tcpclientS *priv = meloop_priv_ptr(c);
     int err;
     int l = 4;
-    if (getsockopt(f.fd, SOL_SOCKET, SO_ERROR, &err, &l) != OK) {
+    if (getsockopt(f->fd, SOL_SOCKET, SO_ERROR, &err, &l) != OK) {
         priv->status = _FAILED;
         ERROR_A(c, s, f, "getsockopt");
         return;
@@ -99,8 +100,8 @@ _connect_continue(struct circuitS *c, void *s, struct fileS f) {
         priv->status = _FAILED;
         errno = err;
         ERROR_A(c, s, f, "TCP connect");
-        meloop_ev_dearm(f.fd);
-        close(f.fd);
+        meloop_ev_dearm(f->fd);
+        close(f->fd);
         return;
     }
 
@@ -111,7 +112,7 @@ _connect_continue(struct circuitS *c, void *s, struct fileS f) {
 
 
 void 
-connectA(struct circuitS *c, void *s, struct fileS f) {
+connectA(struct circuitS *c, void *s, struct fileS *f) {
     struct tcpclientS *priv = meloop_priv_ptr(c);
     if (priv->status == _CONNECTING) {
         _connect_continue(c, s, f);
@@ -174,7 +175,7 @@ connectA(struct circuitS *c, void *s, struct fileS f) {
     /* Connection success */
     /* Update state */
     memcpy(&(priv->hostaddr), try->ai_addr, sizeof(struct sockaddr));
-    f.fd = fd;
+    f->fd = fd;
     freeaddrinfo(result);
 
     if (errno == EINPROGRESS) {
@@ -184,7 +185,7 @@ connectA(struct circuitS *c, void *s, struct fileS f) {
            completion by selecting the socket for writing.
         */
         priv->status = _CONNECTING;
-        WAIT_A(c, s, f, f.fd, EPOLLOUT);
+        WAIT_A(c, s, f, f->fd, EPOLLOUT);
         return;
     }
 

@@ -5,8 +5,8 @@
 - https://developer.ibm.com/tutorials/l-openssl/
 - https://www.openssl.org/docs/man3.0/man3/SSL_get_fd.html
 */
-#include "meloop/types.h"
 #include "meloop/logging.h"
+#include "meloop/arrow.h"
 #include "meloop/openssl_helpers.h"
 
 #include <openssl/bio.h>

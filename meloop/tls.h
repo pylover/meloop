@@ -24,15 +24,15 @@ meloop_tls_deinit();
 
 
 void 
-tlsA(struct circuitS *c, struct fileS *s, union any data);
+tlsA(struct circuitS *c, void *s, struct fileS *f);
 
 
 void
-tlswriteA(struct circuitS *c, struct fileS *io, struct stringS p);
+tlswriteA(struct circuitS *c, void *s, struct fileS *f);
 
 
 void
-tlsreadA(struct circuitS *c, struct fileS *io, struct stringS p);
+tlsreadA(struct circuitS *c, void *s, struct fileS *f);
 
 
 #endif

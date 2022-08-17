@@ -14,7 +14,7 @@
 
 
 void
-timeropenA(struct circuitS *c, struct fileS *s, struct stringS d) {
+timeropenA(struct circuitS *c, struct fileS *s, void *data) {
     struct itimerspec ispec;
     struct timerS *t = (struct timerS*) meloop_priv_ptr(c);
     time_t sec = t->interval_ns / NS;
@@ -22,7 +22,7 @@ timeropenA(struct circuitS *c, struct fileS *s, struct stringS d) {
     int fd = timerfd_create(t->clockid, t->flags | TFD_NONBLOCK);
 
     if (fd < 0) {
-        ERROR_A(c, s, d, "timerfd_create");
+        ERROR_A(c, s, data, "timerfd_create");
         return;
     }
     
@@ -34,22 +34,22 @@ timeropenA(struct circuitS *c, struct fileS *s, struct stringS d) {
 
     if (timerfd_settime(fd, 0, &ispec, NULL)) {
         close(fd);
-        ERROR_A(c, s, d, "timerfd_settime");
+        ERROR_A(c, s, data, "timerfd_settime");
         return;
     }
     t->status = IDLE;        
-    RETURN_A(c, s, d);
+    RETURN_A(c, s, data);
 }
 
 
 void 
-timersleepA(struct circuitS *c, struct fileS *s, struct stringS d) {
+timersleepA(struct circuitS *c, struct fileS *s, void *data) {
     struct timerS *t = (struct timerS*) meloop_priv_ptr(c);
     ssize_t size;
     uint64_t res;
 
     if (t->status == IDLE) {
-        WAIT_A(c, s, d, t->fd, EPOLLIN);
+        WAIT_A(c, s, data, t->fd, EPOLLIN);
         t->status = WAITING;
         return;
     }
@@ -60,19 +60,19 @@ timersleepA(struct circuitS *c, struct fileS *s, struct stringS d) {
 
     /* Check for EOF */
     if (size == 0) {
-        ERROR_A(c, s, d, "EOF");
+        ERROR_A(c, s, data, "EOF");
         return;
     }
 
     /* Error | wait */
     if (size < 0) {
         if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
-            WAIT_A(c, s, d, t->fd, EPOLLIN);
+            WAIT_A(c, s, data, t->fd, EPOLLIN);
         }
         else {
-            ERROR_A(c, s, d, "read timerfd");
+            ERROR_A(c, s, data, "read timerfd");
         }
         return;
     }
-    RETURN_A(c, s, d);
+    RETURN_A(c, s, data);
 }

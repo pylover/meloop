@@ -36,23 +36,26 @@ void catch_signal() {
 }
 
 
+struct state {
+};
+
+
 void
-newlineA(struct circuitS *c, struct fileS *io, struct stringS buff) {
-    buff.data[buff.size - 1] = '\n';
-    RETURN_A(c, io, buff);
+newlineA(struct circuitS *c, struct state *state, struct stringS *data) {
+    data->buffer[data->size - 1] = '\n';
+    RETURN_A(c, state, data);
 }
 
 
 void
-printA(struct circuitS *c, struct fileS *io, struct stringS buff) {
-    printf("%.*s", (int)buff.size, buff.data);
-    RETURN_A(c, io, buff);
+printA(struct circuitS *c, struct state *state, struct stringS *data) {
+    printf("%.*s", (int)data->size, data->buffer);
+    RETURN_A(c, state, data);
 }
 
 
 void
-errorcb(struct circuitS *c, struct fileS *s, union any data, 
-        const char *error) {
+errorcb(struct circuitS *c, struct fileS *s, void *data, const char *error) {
     ERROR("%s", error);
     status = EXIT_FAILURE;
 }
@@ -68,7 +71,15 @@ int main() {
     catch_signal();
     meloop_io_init(0);
     
+    static struct state state = {
+    };
+
+    /* Initialize the buffer */
+    static char b[CHUNK_SIZE];
     static struct tcpconnS conn = {
+        .size = 0,
+        .buffer = b,
+        .fd = -1,
     };
 
     /* Initialize TCP Client */
@@ -96,30 +107,23 @@ int main() {
         .interval_ns = S,
     };
 
-    /* Initialize the buffer */
-    static char b[CHUNK_SIZE];
-    struct stringS buff = {
-        .size = 0,
-        .data = b,
-    };
-
     /* Client init -> loop circuitS */
     struct circuitS *circ = NEW_C(NULL, errorcb);
 
-                            APPEND_A(circ, timeropenA,  meloop_ptr(&timer));
-                            APPEND_A(circ, connectA,    meloop_ptr(&tcp));
-                            APPEND_A(circ, randopenA,   meloop_ptr(&rand));
-    struct elementS *work = APPEND_A(circ, randreadA,   meloop_ptr(&rand));
-                            APPEND_A(circ, randencA,    meloop_ptr(&rand));
-                            APPEND_A(circ, newlineA,    NULL);
-                            APPEND_A(circ, writeA,      meloop_ptr(&tcp));
-                            APPEND_A(circ, readA,       meloop_ptr(&tcp));
-                            APPEND_A(circ, printA,      NULL);
-                            APPEND_A(circ, timersleepA, meloop_ptr(&timer));
+                            APPEND_A(circ, timeropenA,  &timer);
+                            APPEND_A(circ, connectA,    &tcp  );
+                            APPEND_A(circ, randopenA,   &rand );
+    struct elementS *work = APPEND_A(circ, randreadA,   &rand );
+                            APPEND_A(circ, randencA,    &rand );
+                            APPEND_A(circ, newlineA,    NULL  );
+                            APPEND_A(circ, writeA,      &tcp  );
+                            APPEND_A(circ, readA,       &tcp  );
+                            APPEND_A(circ, printA,      NULL  );
+                            APPEND_A(circ, timersleepA, &timer);
                loopA(work);
 
     /* Run server circuitS */
-    RUN_A(circ, &conn, buff); 
+    RUN_A(circ, &state, &conn); 
 
     /* Start and wait for event loop */
     if (meloop_io_loop(&status)) {

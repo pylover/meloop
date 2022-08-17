@@ -15,11 +15,11 @@ struct timerS {
 
 
 void
-timeropenA(struct circuitS *c, struct fileS *io, struct stringS buff);
+timeropenA(struct circuitS *c, struct fileS *io, void *data);
 
 
 void 
-timersleepA(struct circuitS *c, struct fileS *s, struct stringS d);
+timersleepA(struct circuitS *c, struct fileS *s, void *data);
 
 
 #endif

@@ -3,6 +3,7 @@
 
 #include <err.h>
 #include <errno.h>
+#include <string.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/epoll.h>
@@ -68,7 +69,7 @@ meloop_bags_freeall() {
 
 
 struct bagS *
-meloop_bag_new(int fd, struct circuitS *c, void *s, union any data) {
+meloop_bag_new(int fd, struct circuitS *c, void *s, void *data) {
     struct bagS *bag = malloc(sizeof(struct bagS));
     if (bag == NULL) {
         err(EXIT_FAILURE, "Out of memory");

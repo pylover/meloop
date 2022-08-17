@@ -19,6 +19,11 @@ static struct sigaction old_action;
 static struct circuitS *worker;
 
 
+struct state {
+    size_t clients;
+};
+
+
 void sighandler(int s) {
     status = EXIT_SUCCESS;
 }
@@ -33,7 +38,7 @@ void catch_signal() {
 
 
 void
-errorcb(struct circuitS *c, struct tcpserverS *s, union any data, 
+errorcb(struct circuitS *c, struct tcpserverS *s, void *data, 
         const char *error) {
     ERROR("%s", error);
     status = EXIT_FAILURE;
@@ -41,21 +46,21 @@ errorcb(struct circuitS *c, struct tcpserverS *s, union any data,
 
 
 void
-client_error(struct circuitS *c, struct tcpconnS *s, struct stringS buff, 
+client_error(struct circuitS *c, struct state *state, struct tcpconnS *conn, 
         const char *error) {
-    INFO("%s, %s", meloop_addr_dump(&(s->addr)), error);
+    INFO("%s, %s", meloop_addr_dump(&(conn->addr)), error);
    
-    if (buff.data != NULL) {
-        free(buff.data);
+    if (conn->buffer != NULL) {
+        free(conn->buffer);
     }
-    if (s != NULL) {
-        free(s);
+    if (state != NULL) {
+        free(state);
     }
 }
 
 
 void 
-client_connected (struct circuitS *c, struct fileS *s, int fd, 
+client_connected (struct circuitS *c, struct state *state, int fd, 
         struct sockaddr *addr) {
     
     INFO("%s", meloop_addr_dump(addr));
@@ -64,7 +69,7 @@ client_connected (struct circuitS *c, struct fileS *s, int fd,
     struct tcpconnS *conn = malloc(sizeof(struct tcpconnS));
     if (conn == NULL) {
         close(fd);
-        ERROR_A(c, s, NULL, "Out of memory");
+        ERROR_A(c, state, NULL, "Out of memory");
         return;
     }
 
@@ -72,22 +77,15 @@ client_connected (struct circuitS *c, struct fileS *s, int fd,
     memcpy(&(conn->addr), addr, sizeof(struct sockaddr));
 
     /* Will be free at tcp.c: client_free() */
-    struct stringS buff = {
-        .size = 0,
-        .data = malloc(CHUNK_SIZE),
-    };
-
-    if (buff.data == NULL) {
-        ERROR_A(c, s, NULL, "Out of memory");
+    conn->buffer = malloc(CHUNK_SIZE);
+    conn->size = 0;
+    
+    if (conn->buffer == NULL) {
+        ERROR_A(c, state, NULL, "Out of memory");
         return;
     }
-    RUN_A(worker, conn, buff);
+    RUN_A(worker, state, conn);
 }
-
-
-struct state {
-    size_t clients;
-};
 
 
 int main() {
@@ -101,14 +99,14 @@ int main() {
         .readsize = CHUNK_SIZE,
     };
     worker = NEW_C(NULL, client_error);
-    struct elementS *e = APPEND_A(worker, readA,  meloop_ptr(&io));
-                         APPEND_A(worker, writeA, meloop_ptr(&io));
+    struct elementS *e = APPEND_A(worker, readA,  &io);
+                         APPEND_A(worker, writeA, &io);
                loopA(e);
 
     /* Initialize TCP Server */
     static struct tcpserverS server = {
         .backlog = 2,
-        .client_connected = client_connected,
+        .client_connected = (meloop_tcpserver_conn_event)client_connected,
     };
     
     static struct fileS file = {
@@ -125,12 +123,12 @@ int main() {
     /* Server init -> loop circuitS */
     struct circuitS *circ = NEW_C(NULL, errorcb);
 
-                            APPEND_A(circ, listenA, (void*)&server);
-    struct elementS *acpt = APPEND_A(circ, acceptA, (void*)&server);
+                            APPEND_A(circ, listenA, &server);
+    struct elementS *acpt = APPEND_A(circ, acceptA, &server);
                loopA(acpt);
 
     /* Run server circuitS */
-    RUN_A(circ, &state, file); 
+    RUN_A(circ, &state, &file); 
 
     /* Start and wait for event loop */
     if (meloop_io_loop(&status)) {

@@ -17,68 +17,68 @@ static SSL_CTX *ctx;
 
 
 void
-tlsreadA(struct circuitS *c, struct fileS *f, struct stringS p) {
+tlsreadA(struct circuitS *c, void *s, struct fileS *f) {
     struct tlsclientS *priv = meloop_priv_ptr(c);
     int size;
     unsigned long sslerr;
     
-    size = SSL_read(priv->ssl, p.data, priv->readsize);
+    size = SSL_read(priv->ssl, f->buffer, priv->readsize);
     // DEBUG("SSL read: %d bytes", size);
     if (size <= 0) {
         sslerr = ERR_get_error();
         if (sslerr = SSL_ERROR_WANT_READ) {
             // DEBUG("ssl want read: %d", sslerr);
-            WAIT_A(c, f, p, f->fd, EPOLLIN);
+            WAIT_A(c, s, f, f->fd, EPOLLIN);
         }
         else {
-            ERROR_A(c, f, p, OPENSSL_REASON(ERR_get_error()));
+            ERROR_A(c, s, f, OPENSSL_REASON(ERR_get_error()));
         }
         return;
     }
-    p.size = size;
-    RETURN_A(c, f, p);
+    f->size = size;
+    RETURN_A(c, s, f);
 }
 
 
 void
-tlswriteA(struct circuitS *c, struct fileS *f, struct stringS p) {
+tlswriteA(struct circuitS *c, void *s, struct fileS *f) {
     struct tlsclientS *priv = meloop_priv_ptr(c);
     int size;
     unsigned long sslerr;
     
-    if (p.size == 0) {
-        ERROR_A(c, f, p, "Nothing to write");
+    if (f->size == 0) {
+        ERROR_A(c, s, f, "Nothing to write");
         return;
     }
     
-    size = SSL_write(priv->ssl, p.data, p.size);
+    size = SSL_write(priv->ssl, f->buffer, f->size);
     // DEBUG("SSL write: %d bytes", size);
     if (size <= 0) {
         sslerr = ERR_get_error();
         if (sslerr = SSL_ERROR_WANT_WRITE) {
             // DEBUG("ssl want write: %d", sslerr);
-            WAIT_A(c, f, p, f->fd, EPOLLOUT);
+            WAIT_A(c, s, f, f->fd, EPOLLOUT);
         }
         else {
-            ERROR_A(c, f, p, OPENSSL_REASON(ERR_get_error()));
+            ERROR_A(c, s, f, OPENSSL_REASON(ERR_get_error()));
         }
         return;
     }
-    RETURN_A(c, f, p);
+    RETURN_A(c, s, f);
 }
 
 
 void 
-tlsA(struct circuitS *c, struct fileS *s, union any data) {
+tlsA(struct circuitS *c, void *s, struct fileS *f) {
     struct tlsclientS *priv = meloop_priv_ptr(c);
     int res;
     openssl_err sslerr;
     
     if (priv->tlsstatus != _CONNECTING) {
         /* Prepare for ssl handshake */
-        sslerr = openssl_prepare(ctx, &(priv->ssl), s->fd, priv->hostname);
+        sslerr = openssl_prepare(ctx, &(priv->ssl), f->fd, priv->hostname);
         if (sslerr != OK) {
-            ERROR_A(c, s, data, "openssl_prepare -- %s", 
+            ERROR_A(c, s, f, "openssl_prepare -- %s", 
                     OPENSSL_REASON(sslerr)); 
             return;
         }
@@ -96,24 +96,24 @@ tlsA(struct circuitS *c, struct fileS *s, union any data) {
                 INFO("SSL OK");
                 break;
             case SSL_ERROR_WANT_READ:
-                WAIT_A(c, s, data, s->fd, EPOLLIN);
+                WAIT_A(c, s, f, f->fd, EPOLLIN);
                 return;
             case SSL_ERROR_WANT_WRITE:
-                WAIT_A(c, s, data, s->fd, EPOLLOUT);
+                WAIT_A(c, s, f, f->fd, EPOLLOUT);
                 return;
             case SSL_ERROR_WANT_X509_LOOKUP:
                 // TODO: use timerfd_create(2) to retry
-                ERROR_A(c, s, data, "SSL_ERROR_WANT_X509_LOOKUP");
+                ERROR_A(c, s, f, "SSL_ERROR_WANT_X509_LOOKUP");
                 return;
             default:
-                ERROR_A(c, s, data, "Error SSL_connect: %ld", sslerr);
+                ERROR_A(c, s, f, "Error SSL_connect: %ld", sslerr);
                 return;
         }
     }
     INFO("SSL Connected");
     priv->tlsstatus = _CONNECTED;
     errno = 0;
-    RETURN_A(c, s, data);
+    RETURN_A(c, s, f);
 }
 
 

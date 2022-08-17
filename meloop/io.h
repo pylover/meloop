@@ -2,10 +2,21 @@
 #define MELOOP_IO_H
 
 
-#include <meloop/types.h>
 #include <meloop/arrow.h>
 
 #include <stdlib.h>
+
+
+struct stringS {
+    char *buffer;
+    size_t size;
+};
+
+
+struct fileS {
+    struct stringS;
+    int fd;
+};
 
 
 struct ioS {
@@ -15,15 +26,15 @@ struct ioS {
 
 
 void 
-waitA(struct circuitS *c, void *s, union any data, int fd, int op);
+waitA(struct circuitS *c, void *s, void *data, int fd, int op);
 
 
 void
-writeA(struct circuitS *c, void *s, struct fileS f);
+writeA(struct circuitS *c, void *s, struct fileS *f);
 
 
 void
-readA(struct circuitS *c, void *s, struct fileS f);
+readA(struct circuitS *c, void *s, struct fileS *f);
 
 
 void meloop_io_init(int flags);
@@ -38,7 +49,7 @@ meloop_io_loop(volatile int *status);
 
 /* Helper macros */
 #define WAIT_A(c, s, d, f, op) \
-    waitA(c, (struct fileS*)(s), (union any)(d), f, op);
+    waitA(c, (struct fileS*)(s), (void*)(d), f, op);
 
 
 #endif

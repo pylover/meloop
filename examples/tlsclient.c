@@ -38,40 +38,40 @@ void catch_signal() {
 
 
 void
-httpreqA(struct circuitS *c, struct fileS *io, struct stringS buff) {
+httpreqA(struct circuitS *c, void *s, struct stringS *data) {
     struct tlsclientS *priv = meloop_priv_ptr(c);
-    char *b = buff.data;
-    size_t s = 0;
+    char *b = data->buffer;
+    size_t l = 0;
     #define HCR "\r\n"
-    s += sprintf(b + s, "GET / HTTP/1.1"HCR);
-    s += sprintf(b + s, "Host: %s"HCR, priv->hostname);
-    s += sprintf(b + s, "User-Agent: meloop/0.1 curl"HCR);
-    s += sprintf(b + s, "Connection: close"HCR);
-    s += sprintf(b + s, "Content-Length: 0"HCR);
-    s += sprintf(b + s, "Accept: */*"HCR);
-    s += sprintf(b + s, HCR);
-    buff.size = s;
-    RETURN_A(c, io, buff);
+    l += sprintf(b + l, "GET / HTTP/1.1"HCR);
+    l += sprintf(b + l, "Host: %s"HCR, priv->hostname);
+    l += sprintf(b + l, "User-Agent: meloop/0.1 curl"HCR);
+    l += sprintf(b + l, "Connection: close"HCR);
+    l += sprintf(b + l, "Content-Length: 0"HCR);
+    l += sprintf(b + l, "Accept: */*"HCR);
+    l += sprintf(b + l, HCR);
+    data->size = l;
+    RETURN_A(c, s, data);
 }
 
 
 void
-newlineA(struct circuitS *c, struct fileS *io, struct stringS buff) {
-    buff.data[buff.size - 1] = '\n';
-    RETURN_A(c, io, buff);
+newlineA(struct circuitS *c, void *s, struct stringS *data) {
+    data->buffer[data->size - 1] = '\n';
+    RETURN_A(c, s, data);
 }
 
 
 void
-printA(struct circuitS *c, struct fileS *io, struct stringS buff) {
-    printf("%.*s", (int)buff.size, buff.data);
-    buff.size = 0;
-    RETURN_A(c, io, buff);
+printA(struct circuitS *c, void *s, struct stringS *data) {
+    printf("%.*s", (int)data->size, data->buffer);
+    data->size = 0;
+    RETURN_A(c, s, data);
 }
 
 
 void
-errorcb(struct circuitS *c, struct fileS *s, union any data, 
+errorcb(struct circuitS *c, struct fileS *s, void *data, 
         const char *error) {
     ERROR("%s", error);
     status = EXIT_FAILURE;
@@ -101,22 +101,22 @@ int main() {
     static char b[CHUNK_SIZE];
     struct stringS buff = {
         .size = 0,
-        .data = b,
+        .buffer = b,
     };
 
     /* Client init -> loop circuitS */
     struct circuitS *circ = NEW_C(NULL, errorcb);
 
-                            APPEND_A(circ, connectA,  meloop_ptr(&tls));
-                            APPEND_A(circ, tlsA,      meloop_ptr(&tls));
-    struct elementS *req  = APPEND_A(circ, httpreqA,  meloop_ptr(&tls));
-                            APPEND_A(circ, tlswriteA, meloop_ptr(&tls));
-    struct elementS *read = APPEND_A(circ, tlsreadA,  meloop_ptr(&tls));
+                            APPEND_A(circ, connectA,  &tls);
+                            APPEND_A(circ, tlsA,      &tls);
+    struct elementS *req  = APPEND_A(circ, httpreqA,  &tls);
+                            APPEND_A(circ, tlswriteA, &tls);
+    struct elementS *read = APPEND_A(circ, tlsreadA,  &tls);
                             APPEND_A(circ, printA,    NULL);
                loopA(read);
 
     /* Run server circuitS */
-    RUN_A(circ, &conn, buff); 
+    RUN_A(circ, NULL, &conn); 
 
     /* Start and wait for event loop */
     if (meloop_io_loop(&status)) {

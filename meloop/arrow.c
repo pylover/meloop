@@ -13,7 +13,7 @@
 
 struct elementS {
     meloop run;
-    union any priv;
+    void *priv;
     bool last;
     struct elementS *next;
 };
@@ -54,7 +54,7 @@ newC(meloop_okcb ok, meloop_errcb error) {
 
 */
 struct elementS * 
-appendA(struct circuitS *c, meloop f, union any priv) {
+appendA(struct circuitS *c, meloop f, void *priv) {
     struct elementS *e2 = malloc(sizeof(struct elementS));
     if (e2 == NULL) {
         err(EXIT_FAILURE, "Out of memory");
@@ -202,11 +202,11 @@ loopA(struct elementS *e) {
 
 
 void 
-returnA(struct circuitS *c, void *state, union any result) {
+returnA(struct circuitS *c, void *state, void *data) {
     struct elementS *curr = c->current;
     if (curr->next == NULL) {
         if (c->ok != NULL) {
-            c->ok(c, state, result);
+            c->ok(c, state, data);
         }
         c->current = NULL;
         return;
@@ -214,13 +214,13 @@ returnA(struct circuitS *c, void *state, union any result) {
 
     struct elementS *next = curr->next;
     c->current = next;
-    next->run(c, state, result);
+    next->run(c, state, data);
 }
 
 
 void 
-errorA(struct circuitS *c, void *state, union any data, 
-        const char *format, ...) {
+errorA(struct circuitS *c, void *state, void *data, const char *format, 
+        ...) {
     char buff[MELOOP_ERROR_BUFFSIZE]; 
     char *msg;
     va_list args;
@@ -244,29 +244,15 @@ errorA(struct circuitS *c, void *state, union any data,
 
 
 void
-runA(struct circuitS *c, void *state, union any args) {
-    struct pair *p = (struct pair*) (&args);
-    
+runA(struct circuitS *c, void *state, void *data) {
     if (c->current == NULL) {
         c->current = c->nets;
     }
-    c->current->run(c, state, args);
-}
-
-
-int
-meloop_priv_int(struct circuitS *c) {
-    return c->current->priv.sint;
+    c->current->run(c, state, data);
 }
 
 
 void *
 meloop_priv_ptr(struct circuitS *c) {
-    return c->current->priv.ptr;
-}
-
-
-struct stringS
-meloop_priv_string_from_ptr(struct circuitS *c) {
-    return c->current->priv.string;
+    return c->current->priv;
 }

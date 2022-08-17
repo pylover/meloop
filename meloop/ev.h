@@ -2,8 +2,6 @@
 #define MELOOP_EV_H
 
 
-#include "meloop/types.h"
-
 #include <sys/epoll.h>
 
 
@@ -16,7 +14,7 @@ struct bagS {
     int fd;
     struct circuitS *circuit;
     void *state;
-    union any data;
+    void *data;
 };
 
 
@@ -45,7 +43,7 @@ meloop_bags_freeall();
 
 
 struct bagS *
-meloop_bag_new(int fd, struct circuitS *c, void *s, union any data);
+meloop_bag_new(int fd, struct circuitS *c, void *s, void *data);
 
 
 int
