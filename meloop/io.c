@@ -1,6 +1,7 @@
 #include "meloop/arrow.h"
 #include "meloop/io.h"
 #include "meloop/ev.h"
+#include "meloop/logging.h"
 
 #include <err.h>
 #include <errno.h>

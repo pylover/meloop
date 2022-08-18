@@ -1,6 +1,7 @@
 #include <meloop/arrow.h>
 #include <meloop/io.h>
 #include <meloop/random.h>
+#include <meloop/logging.h>
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -12,7 +13,7 @@
 
 
 void 
-randopenA(struct circuitS *c, struct fileS *s, void *data) {
+randopenA(struct circuitS *c, void *s, struct stringS *data) {
     struct randS *r = (struct randS*) meloop_priv_ptr(c);
     int fd = open("/dev/urandom", O_RDONLY | O_NONBLOCK);
     if (fd < 0) {
@@ -25,7 +26,7 @@ randopenA(struct circuitS *c, struct fileS *s, void *data) {
 
 
 void 
-randreadA(struct circuitS *c, struct fileS *s, struct stringS *data) {
+randreadA(struct circuitS *c, void *s, struct stringS *data) {
     struct randS *r = (struct randS*) meloop_priv_ptr(c);
     size_t size;
 
@@ -48,12 +49,12 @@ randreadA(struct circuitS *c, struct fileS *s, struct stringS *data) {
 
 
 void
-randencA(struct circuitS *c, struct fileS *io, struct stringS *data) {
+randencA(struct circuitS *c, void *s, struct stringS *data) {
     int i;
     unsigned int t;
     for (i = 0; i < data->size; i++) {
         t = data->buffer[i];
         data->buffer[i] = (t % 26) + 97;
     }
-    RETURN_A(c, io, data);
+    RETURN_A(c, s, data);
 }

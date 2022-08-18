@@ -9,15 +9,15 @@ struct randS {
 
 
 void 
-randopenA(struct circuitS *c, struct fileS *state, void *data);
+randopenA(struct circuitS *c, void *s, struct stringS *data);
 
 
 void 
-randreadA(struct circuitS *c, struct fileS *state, struct stringS *data);
+randreadA(struct circuitS *c, void *s, struct stringS *data);
 
 
 void
-randencA(struct circuitS *c, struct fileS *io, struct stringS *data);
+randencA(struct circuitS *c, void *s, struct stringS *data);
 
 
 #endif
