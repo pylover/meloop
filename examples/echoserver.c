@@ -19,11 +19,6 @@ static struct sigaction old_action;
 static struct circuitS *worker;
 
 
-struct state {
-    size_t clients;
-};
-
-
 void sighandler(int s) {
     status = EXIT_SUCCESS;
 }
@@ -46,9 +41,11 @@ errorcb(struct circuitS *c, struct tcpserverS *s, void *data,
 
 
 void
-client_error(struct circuitS *c, struct state *state, struct tcpconnS *conn, 
+client_error(struct circuitS *c, unsigned int *clients, struct tcpconnS *conn, 
         const char *error) {
-    INFO("%s, %s", meloop_addr_dump(&(conn->addr)), error);
+    (*clients)--;
+    INFO("[total clients: %u] %s, %s", *clients, 
+            meloop_addr_dump(&(conn->addr)), error);
    
     if (conn->buffer != NULL) {
         free(conn->buffer);
@@ -57,16 +54,17 @@ client_error(struct circuitS *c, struct state *state, struct tcpconnS *conn,
 
 
 void 
-client_connected (struct circuitS *c, struct state *state, int fd, 
+client_connected (struct circuitS *c, unsigned int *clients, int fd, 
         struct sockaddr *addr) {
     
-    INFO("%s", meloop_addr_dump(addr));
+    (*clients)++;
+    INFO("[total clients: %u] %s", *clients, meloop_addr_dump(addr));
 
     /* Will be free at client_error() */
     struct tcpconnS *conn = malloc(sizeof(struct tcpconnS));
     if (conn == NULL) {
         close(fd);
-        ERROR_A(c, state, NULL, "Out of memory");
+        ERROR_A(c, clients, NULL, "Out of memory");
         return;
     }
 
@@ -78,14 +76,15 @@ client_connected (struct circuitS *c, struct state *state, int fd,
     conn->size = 0;
     
     if (conn->buffer == NULL) {
-        ERROR_A(c, state, NULL, "Out of memory");
+        ERROR_A(c, clients, NULL, "Out of memory");
         return;
     }
-    RUN_A(worker, state, conn);
+    RUN_A(worker, clients, conn);
 }
 
 
 int main() {
+    unsigned int clients = 0;
     logging_verbosity = LOGGING_DEBUG;
     catch_signal();
     meloop_io_init(0);
@@ -110,10 +109,6 @@ int main() {
         .fd = -1
     };
 
-    static struct state state = {
-        .clients = 0 
-    };
-
     /* Parse listen address */
     meloop_addr_parse(&(server.bind), "127.0.0.1", 9090);
     
@@ -125,7 +120,7 @@ int main() {
                loopA(acpt);
 
     /* Run server circuitS */
-    RUN_A(circ, &state, &file); 
+    RUN_A(circ, &clients, &file); 
 
     /* Start and wait for event loop */
     if (meloop_io_loop(&status)) {
