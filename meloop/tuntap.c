@@ -46,3 +46,19 @@ tunopenA(struct circuitS *c, void *s, void *data) {
 	INFO("Tunnel interface: %s fd: %d has been opened", priv->name, priv->fd);
     RETURN_A(c, s, data);
 }
+
+
+/* Internet address. */
+struct in_addr {
+	__be32	s_addr;
+};
+
+struct sockaddr_in {
+  __kernel_sa_family_t	sin_family;	/* Address family		*/
+  __be16		sin_port;	/* Port number			*/
+  struct in_addr	sin_addr;	/* Internet address		*/
+
+  /* Pad to size of `struct sockaddr'. */
+  unsigned char		__pad[__SOCK_SIZE__ - sizeof(short int) -
+			sizeof(unsigned short int) - sizeof(struct in_addr)];
+};

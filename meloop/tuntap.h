@@ -13,6 +13,9 @@ struct tunS {
     bool tap;
     int fd;
     char name[IFNAMSIZ];
+    struct in_addr address;
+    struct in_addr network;
+    struct in_addr subnet;
 };
 
 
