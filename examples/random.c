@@ -37,13 +37,13 @@ int main() {
     unsigned int counter = 0;
     meloop_io_init(0);
 
-    char buff[BUFFSIZE] = "\0";
     struct randS rand = {
         .readsize = BUFFSIZE,
         .epollflags = EPOLLET,
         .fd = -1,
     };
     
+    char buff[BUFFSIZE] = "\0";
     struct pipeS pipe = {
         .buffer = buff,
         .size = 0,

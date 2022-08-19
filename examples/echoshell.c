@@ -1,62 +1,71 @@
 #include "meloop/arrow.h"
-#include "meloop/types.h"
 #include "meloop/io.h"
+#include "meloop/pipe.h"
 #include "meloop/logging.h"
 
 #include <err.h>
 #include <errno.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <sys/epoll.h>
 
 
 #define BUFFSIZE 1024
 
 
 void 
-promptA(struct circuitS *c, struct ioS *io, struct stringS buff) {
-    struct stringS s = meloop_priv_string_from_ptr(c);
-    memcpy(buff.data, s.data, s.size);
-    buff.size = s.size;
-    writeA(c, io, buff);
+promptA(struct circuitS *c, unsigned int *counter, struct pipeS *pipe) {
+    const char *s = meloop_priv_ptr(c);
+    (*counter)++;
+    dprintf(pipe->wfd, "%.3u %s", *counter, s);
+    RETURN_A(c, counter, pipe);
 }
 
 
 void 
-echoA(struct circuitS *c, struct ioS *io, struct stringS buff) {
-    if ((buff.size == 1) && (buff.data[0] == '\n')) {
-        buff.size = 0;
+echoA(struct circuitS *c, unsigned int *counter, struct pipeS *pipe) {
+    if ((pipe->size == 1) && (pipe->buffer[0] == '\n')) {
+        pipe->size = 0;
     }
-    RETURN_A(c, io, buff);
+    RETURN_A(c, counter, pipe);
 }
 
 
 void
-errorcb(struct circuitS *c, struct ioS *io, union any, const char *error) {
+errorcb(struct circuitS *c, unsigned int *counter, void *data, 
+        const char *error) {
     ERROR(error);
 }
 
 
 int main() {
+    unsigned int counter = 0;
     logging_verbosity = LOGGING_DEBUG;
     meloop_io_init(0);
 
+    struct ioS io = {
+        .readsize = BUFFSIZE,
+        .epollflags = EPOLLET,
+    };
+
     char buff[BUFFSIZE] = "\0";
-    struct pipeS state = {
+    struct pipeS pipe = {
+        .buffer = buff,
+        .size = 0,
         .wfd = STDOUT_FILENO,
         .rfd = STDIN_FILENO,
-        .readsize = BUFFSIZE,
     };
 
     struct circuitS *c = NEW_C(NULL, errorcb);
 
-    struct elementS *e = APPEND_A(c, promptA, meloop_string("me@loop:~$ "));
-                         APPEND_A(c, readA,   NULL);
-                         APPEND_A(c, echoA,   NULL);
-                         APPEND_A(c, writeA,  NULL);
-    loopA(e);
+    struct elementS *e = APPEND_A(c, promptA, "me@loop:~$ ");
+                         APPEND_A(c, readA,   &io);
+                         APPEND_A(c, echoA,   &io);
+                         APPEND_A(c, writeA,  &io);
+               loopA(e);
 
     /* Run circuitS */
-    RUN_A(c, &state, meloop_string(buff)); 
+    RUN_A(c, &counter, &pipe); 
 
     /* Start and wait for event loop */
     if (meloop_io_loop(NULL)) {
