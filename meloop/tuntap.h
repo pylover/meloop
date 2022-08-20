@@ -15,8 +15,10 @@ struct tunS {
     int fd;
     char name[IFNAMSIZ];
     const char *address;
+    const char *destaddress;
     const char *netmask;
     struct in_addr addressB;
+    struct in_addr destaddressB;
     struct in_addr netmaskB;
 };
 

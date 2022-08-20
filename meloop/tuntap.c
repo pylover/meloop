@@ -11,6 +11,33 @@
 #include <sys/ioctl.h>
 #include <linux/if_tun.h>
 
+// TODO: delete it
+// #if __UAPI_DEF_IF_IFREQ
+// struct ifreq {
+// #define IFHWADDRLEN	6
+// 	union
+// 	{
+// 		char	ifrn_name[IFNAMSIZ];		/* if name, e.g. "en0" */
+// 	} ifr_ifrn;
+// 
+// 	union {
+// 		struct	sockaddr ifru_addr;
+// 		struct	sockaddr ifru_dstaddr;
+// 		struct	sockaddr ifru_broadaddr;
+// 		struct	sockaddr ifru_netmask;
+// 		struct  sockaddr ifru_hwaddr;
+// 		short	ifru_flags;
+// 		int	ifru_ivalue;
+// 		int	ifru_mtu;
+// 		struct  ifmap ifru_map;
+// 		char	ifru_slave[IFNAMSIZ];	/* Just fits the size */
+// 		char	ifru_newname[IFNAMSIZ];
+// 		void __user *	ifru_data;
+// 		struct	if_settings ifru_settings;
+// 	} ifr_ifru;
+// };
+// #endif /* __UAPI_DEF_IF_IFREQ */
+
 
 static int
 _configure_interface(struct tunS *tun) {
@@ -38,6 +65,21 @@ _configure_interface(struct tunS *tun) {
     
     if (ioctl(fd, SIOCSIFADDR, &ifr) == -1) {
         DEBUG("errored: %s", meloop_in_addr_dump(tun->addressB));
+        return ERR;
+    }
+
+    /* Destination Address */
+    tmp = (struct sockaddr_in*) &ifr.ifr_dstaddr;
+    if (!inet_pton(AF_INET, tun->destaddress, &(tmp->sin_addr))) {
+        return ERR;
+    }
+     
+    tmp->sin_family = AF_INET;
+    tmp->sin_port = 0;
+    tun->destaddressB = tmp->sin_addr;
+    
+    if (ioctl(fd, SIOCSIFDSTADDR, &ifr) == -1) {
+        DEBUG("errored: %s", meloop_in_addr_dump(tun->destaddressB));
         return ERR;
     }
 

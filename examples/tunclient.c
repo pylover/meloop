@@ -68,6 +68,7 @@ int main() {
         .tap = false,
         .fd = -1,
         .address = "192.168.11.2",
+        .destaddress = "192.168.11.1",
         .netmask = "255.255.255.0",
     };
 
