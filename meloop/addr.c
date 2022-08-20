@@ -36,12 +36,19 @@ meloop_sockaddr_parse(struct sockaddr *saddr, const char *addr,
 }
 
 
-int
-meloop_in_addr_parse(const char *saddr, struct in_addr *inaddr) {
-    struct sockaddr_in tmp;
-    if (meloop_sockaddr_parse((struct sockaddr*) &tmp, saddr, 0)) {
-        return ERR;
-    }
-    memcpy(inaddr, &tmp.sin_addr, sizeof(struct in_addr));
-    return OK;
+// int
+// meloop_in_addr_parse(const char *saddr, struct in_addr *inaddr) {
+//     struct sockaddr_in tmp;
+//     if (meloop_sockaddr_parse((struct sockaddr*) &tmp, saddr, 0)) {
+//         return ERR;
+//     }
+//     memcpy(inaddr, &tmp.sin_addr, sizeof(struct in_addr));
+//     return OK;
+// }
+// 
+// 
+char *
+meloop_in_addr_dump(struct in_addr addr) {
+    sprintf(addrtemp, "%s", inet_ntoa(addr));
+    return addrtemp;
 }

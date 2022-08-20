@@ -1,8 +1,6 @@
 #include "meloop/io.h"
 #include "meloop/tcp.h"
-#include "meloop/random.h"
-#include "meloop/addr.h"
-#include "meloop/timer.h"
+#include "meloop/tuntap.h"
 #include "meloop/logging.h"
 
 #include <stdio.h>
@@ -15,7 +13,7 @@
 #include <sys/timerfd.h>
 
 
-#define CHUNK_SIZE  32
+#define CHUNK_SIZE  1440 
 #define WORKING 9999
 static volatile int status = WORKING;
 static struct sigaction old_action;
@@ -53,7 +51,7 @@ int main() {
     static struct tcpconnS conn = {
         .size = 0,
         .buffer = b,
-        .fd = -1,
+        .fd = 4,
     };
 
     /* Initialize TCP Client */
@@ -76,19 +74,14 @@ int main() {
     /* Client init -> loop circuitS */
     struct circuitS *circ = NEW_C(NULL, errorcb);
 
-                            APPEND_A(circ, tunopenA,    &tun);
-                            APPEND_A(circ, connectA,    &tcp  );
-                            APPEND_A(circ, randopenA,   &rand );
-    struct elementS *work = APPEND_A(circ, randreadA,   &rand );
-                            APPEND_A(circ, randencA,    &rand );
-                            APPEND_A(circ, newlineA,    NULL  );
-                            APPEND_A(circ, writeA,      &tcp  );
-                            APPEND_A(circ, readA,       &tcp  );
-                            APPEND_A(circ, printA,      NULL  );
+                            APPEND_A(circ, tunopenA, &tun);
+    //                      APPEND_A(circ, connectA, &tcp  );
+    struct elementS *work = APPEND_A(circ, readA,    &tcp  );
+                            APPEND_A(circ, writeA,   &tcp  );
                loopA(work);
 
     /* Run server circuitS */
-    RUN_A(circ, &state, &conn); 
+    RUN_A(circ, NULL, &conn); 
 
     /* Start and wait for event loop */
     if (meloop_io_loop(&status)) {

@@ -4,5 +4,7 @@ echoshell
 echoserver
 echoclient
 tlsclient
+tunclient
+tunserver
 gmon.out
 massif.out.*

@@ -21,4 +21,8 @@ int
 meloop_in_addr_parse(const char *addr, struct in_addr *inaddr);
 
 
+char *
+meloop_in_addr_dump(struct in_addr addr);
+
+
 #endif
