@@ -5,6 +5,7 @@
 #include "meloop/io.h"
 
 #include <stdbool.h>
+#include <netinet/in.h>
 #include <linux/if.h>
 
 
@@ -13,9 +14,10 @@ struct tunS {
     bool tap;
     int fd;
     char name[IFNAMSIZ];
-    struct in_addr address;
-    struct in_addr network;
-    struct in_addr subnet;
+    const char *address;
+    const char *netmask;
+    struct in_addr addressB;
+    struct in_addr netmaskB;
 };
 
 

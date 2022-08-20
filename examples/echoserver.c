@@ -45,7 +45,7 @@ client_error(struct circuitS *c, unsigned int *clients, struct tcpconnS *conn,
         const char *error) {
     (*clients)--;
     INFO("[total clients: %u] %s, %s", *clients, 
-            meloop_addr_dump(&(conn->addr)), error);
+            meloop_sockaddr_dump(&(conn->addr)), error);
    
     if (conn->buffer != NULL) {
         free(conn->buffer);
@@ -58,7 +58,8 @@ client_connected (struct circuitS *c, unsigned int *clients, int fd,
         struct sockaddr *addr) {
     
     (*clients)++;
-    INFO("[total clients: %u] %s", *clients, meloop_addr_dump(addr));
+    INFO("[total clients: %u] %s", *clients, 
+            meloop_sockaddr_dump(addr));
 
     /* Will be free at client_error() */
     struct tcpconnS *conn = malloc(sizeof(struct tcpconnS));
@@ -101,7 +102,11 @@ int main() {
 
     /* Initialize TCP Server */
     static struct tcpserverS server = {
+        .epollflags = EPOLLET,
+        .readsize = CHUNK_SIZE,
         .backlog = 2,
+        .bindaddr = "127.0.0.1",
+        .bindport = 9090,
         .client_connected = (meloop_tcpserver_conn_event)client_connected,
     };
     
@@ -109,9 +114,6 @@ int main() {
         .fd = -1
     };
 
-    /* Parse listen address */
-    meloop_addr_parse(&(server.bind), "127.0.0.1", 9090);
-    
     /* Server init -> loop circuitS */
     struct circuitS *circ = NEW_C(NULL, errorcb);
 

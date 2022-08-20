@@ -9,12 +9,16 @@
 
 
 int
-meloop_addr_parse(struct sockaddr *addr, const char *host, 
+meloop_sockaddr_parse(struct sockaddr *saddr, const char *addr, 
         unsigned short port);
 
 
 char *
-meloop_addr_dump(struct sockaddr *addr);
+meloop_sockaddr_dump(struct sockaddr *addr);
+
+
+int
+meloop_in_addr_parse(const char *addr, struct in_addr *inaddr);
 
 
 #endif

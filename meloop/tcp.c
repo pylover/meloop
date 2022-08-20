@@ -24,6 +24,9 @@ listenA(struct circuitS *c, void *s, struct fileS *f) {
     int res;
     struct sockaddr *addr = &(priv->bind);
     
+    /* Parse listen address */
+    meloop_sockaddr_parse(addr, priv->bindaddr, priv->bindport);
+    
     /* Create socket */
     fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
 
@@ -33,14 +36,15 @@ listenA(struct circuitS *c, void *s, struct fileS *f) {
     /* Bind to tcp port */
     res = bind(fd, addr, sizeof(priv->bind)); 
     if (res) {
-        ERROR_A(c, s, f, "Cannot bind on: %s", meloop_addr_dump(addr));
+        ERROR_A(c, s, f, "Cannot bind on: %s", meloop_sockaddr_dump(addr));
         return;
     }
     
     /* Listen */
     res = listen(fd, priv->backlog); 
+    // INFO("binding on: %s", meloop_sockaddr_dump(addr));
     if (res) {
-        ERROR_A(c, s, f, "Cannot listen on: %s", meloop_addr_dump(addr));
+        ERROR_A(c, s, f, "Cannot listen on: %s", meloop_sockaddr_dump(addr));
         return;
     }
     f->fd = fd;

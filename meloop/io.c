@@ -16,8 +16,7 @@ waitA(struct circuitS *c, void *s, void *data, int fd, int op) {
     struct bagS *bag = meloop_bag_new(fd, c, s, data);
     
     if (meloop_ev_arm(op | priv->epollflags, bag)) {
-        perror("meloop_ev_arm"); 
-        ERROR_A(c, s, data, "_arm");
+        ERROR_A(c, s, data, "meloop_ev_arm");
     }
 }
 

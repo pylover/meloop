@@ -1,5 +1,6 @@
 #include <meloop/arrow.h>
 #include <meloop/ev.h>
+#include <meloop/logging.h>
 
 #include <err.h>
 #include <errno.h>
@@ -113,7 +114,7 @@ meloop_ev_arm(int op, struct bagS *bag) {
     
     ev.events = _epflags | op;
     ev.data.ptr = bag;
-    
+     
     if (epoll_ctl(_epfd, EPOLL_CTL_MOD, bag->fd, &ev) != OK) {
         if (errno == ENOENT) {
             errno = 0;

@@ -29,6 +29,9 @@ struct tcpconnS {
 
 
 struct tcpserverS {
+    struct ioS;
+    const char *bindaddr;
+    unsigned short bindport;
     struct sockaddr bind;
     int backlog;
     meloop_tcpserver_conn_event client_connected;
