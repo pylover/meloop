@@ -23,11 +23,10 @@ tlsreadA(struct circuitS *c, void *s, struct fileS *f) {
     unsigned long sslerr;
     
     size = SSL_read(priv->ssl, f->buffer, priv->readsize);
-    // DEBUG("SSL read: %d bytes", size);
+    // DEBUG("SSL read: %d bytes, errno %d", size, errno);
     if (size <= 0) {
         sslerr = ERR_get_error();
         if (sslerr = SSL_ERROR_WANT_READ) {
-            // DEBUG("ssl want read: %d", sslerr);
             WAIT_A(c, s, f, f->fd, EPOLLIN);
         }
         else {

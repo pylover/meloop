@@ -84,26 +84,22 @@ int main() {
     meloop_io_init(0);
     meloop_tls_init();
 
-    // TODO: move to private params
+    /* Initialize the buffer */
+    static char b[CHUNK_SIZE];
     static struct tcpconnS conn = {
+        .size = 0,
+        .buffer = b,
     };
 
     /* Initialize TCP Client */
     static struct tlsclientS tls = {
         .epollflags = EPOLLET,
         .readsize = CHUNK_SIZE,
-        //.hostname = "google.com",
+        // .hostname = "google.com",
         .hostname = "wttr.in",
         .port = "443",
     };
     
-    /* Initialize the buffer */
-    static char b[CHUNK_SIZE];
-    struct stringS buff = {
-        .size = 0,
-        .buffer = b,
-    };
-
     /* Client init -> loop circuitS */
     struct circuitS *circ = NEW_C(NULL, errorcb);
 

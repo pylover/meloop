@@ -54,7 +54,11 @@ logging_log(
     }
 
     dprintf(logging_fd, CR);
-    fsync(logging_fd);
+    // printf("\nbefore ++errno %d\n", errno);
+    // if (fdatasync(logging_fd)) {
+    //     printf("\nfsync ++errno %d %d fd: %d\n", errno, EBADF, logging_fd);
+
+    // }
 }
 
 
