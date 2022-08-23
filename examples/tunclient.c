@@ -41,17 +41,70 @@ errorcb(struct circuitS *c, void *s, void *data, const char *error) {
 }
 
 
+struct pipesS {
+        size_t lsize;
+        char *lbuffer;
+        int lfd;
+
+        size_t rsize;
+        char *rbuffer;
+        int rfd;
+};
+
+
+void
+rightA(struct circuitS *c, void *s, struct pipesS *pipes) {
+    struct tunS *priv = meloop_priv_ptr(c);
+    pipes->rfd = priv->fd;
+    RETURN_A(c, s, pipes);
+}
+
+
+void
+readpipesA(struct circuitS *c, void *s, struct fileS *f) {
+    struct ioS *priv = meloop_priv_ptr(c);
+    ssize_t size;
+
+    /* Read from the file descriptor */
+    size = read(f->fd, f->buffer, priv->readsize);
+
+    /* Check for EOF */
+    if (size == 0) {
+        ERROR_A(c, s, f, "EOF");
+        return;
+    }
+
+    /* Error | wait */
+    if (size < 0) {
+        if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
+            WAIT_A(c, s, f, f->fd, EPOLLIN);
+        }
+        else {
+            ERROR_A(c, s, f, "read");
+        }
+        return;
+    }
+    f->size = size;
+    RETURN_A(c, s, f);
+}
+
+
 int main() {
     logging_verbosity = LOGGING_DEBUG;
     catch_signal();
     meloop_io_init(0);
     
     /* Initialize the buffer */
-    static char b[CHUNK_SIZE];
-    static struct tcpconnS conn = {
-        .size = 0,
-        .buffer = b,
-        .fd = 4,
+    static char lb[CHUNK_SIZE];
+    static char rb[CHUNK_SIZE];
+    static struct pipesS pipes = {
+        .lsize = 0,
+        .lbuffer = lb,
+        .lfd = -1,
+
+        .rsize = 0,
+        .rbuffer = rb,
+        .rfd = -1,
     };
 
     /* Initialize TCP Client */
@@ -71,18 +124,20 @@ int main() {
         .destaddress = "192.168.11.1",
         .netmask = "255.255.255.0",
     };
-
+    
+    // TODO: make tun nonblock
     /* Client init -> loop circuitS */
     struct circuitS *circ = NEW_C(NULL, errorcb);
 
-                            APPEND_A(circ, tunopenA, &tun);
-    //                      APPEND_A(circ, connectA, &tcp  );
-    struct elementE *work = APPEND_A(circ, readA,    &tcp  );
-                            APPEND_A(circ, writeA,   &tcp  );
-               loopA(work);
+                            APPEND_A(circ, tunopenA,    &tun);
+                            APPEND_A(circ, rightA,      &tcp);
+                            APPEND_A(circ, connectA,    &tcp);
+    // struct elementS *work = APPEND_A(circ, readpipesA,  &tcp);
+    //                         APPEND_A(circ, writepipesA, &tcp);
+    //            loopA(work);
 
     /* Run server circuitS */
-    RUN_A(circ, NULL, &conn); 
+    RUN_A(circ, NULL, &pipes); 
 
     /* Start and wait for event loop */
     if (meloop_io_loop(&status)) {

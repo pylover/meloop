@@ -77,6 +77,7 @@ _configure_interface(struct tunP *tun) {
     tmp->sin_family = AF_INET;
     tmp->sin_port = 0;
     tun->destaddressB = tmp->sin_addr;
+    DEBUG("dest: %s", inet_ntoa(tun->destaddressB));
     
     if (ioctl(fd, SIOCSIFDSTADDR, &ifr) == -1) {
         ERROR("errored: %s", inet_ntoa(tun->destaddressB));
@@ -150,6 +151,8 @@ tunopenA(struct circuitS *c, void *s, void *data, struct tunP *priv) {
         return;
     }
 
-    INFO("Tunnel interface: %s fd: %d has been opened", priv->name, priv->fd);
+    INFO("Tunnel interface: %s %s has been created.", priv->name, 
+            inet_ntoa(priv->addressB));
+    DEBUG("dest: %s", inet_ntoa(priv->destaddressB));
     RETURN_A(c, s, data);
 }
