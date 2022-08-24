@@ -11,19 +11,41 @@
 #define MELOOP_ERROR_BUFFSIZE    1024
 
 
-struct elementS {
-    meloop run;
-    void *priv;
-    bool last;
-    struct elementS *next;
+enum meloop_element_type {
+    MLETSIMPLE = 1,
+    MLERFORK   = 2
 };
 
 
+struct forkE {
+    struct elementE *nextleft;
+    struct elementE *nextright;
+};
+
+
+struct simpleE {
+    struct elementE *next;
+};
+
+
+struct elementE {
+    enum meloop_element_type type;
+    meloop run;
+    void *priv;
+    bool last;
+    union {
+        struct simpleE simple;
+        struct forkE fork;
+    };
+};
+
+
+// TODO: reanme to circuitC
 struct circuitS {
     meloop_okcb ok;
     meloop_errcb err;
-    struct elementS *current;
-    struct elementS *nets;
+    struct elementE *current;
+    struct elementE *nets;
 };
 
 
@@ -43,7 +65,7 @@ newC(meloop_okcb ok, meloop_errcb error) {
 
 
 /** 
-  Make elementS e2 from conputation and bind it to c. returns e2.
+  Make elementE e2 from conputation and bind it to c. returns e2.
 
   c     meloop   result
 
@@ -53,18 +75,19 @@ newC(meloop_okcb ok, meloop_errcb error) {
   |_|           |___|
 
 */
-struct elementS * 
+struct elementE * 
 appendA(struct circuitS *c, meloop f, void *priv) {
-    struct elementS *e2 = malloc(sizeof(struct elementS));
+    struct elementE *e2 = malloc(sizeof(struct elementE));
     if (e2 == NULL) {
         err(EXIT_FAILURE, "Out of memory");
     }
     
-    /* Initialize new elementS */
+    /* Initialize new elementE */
+    e2->type = MLETSIMPLE;
     e2->run = f;
     e2->priv = priv;
     e2->last = true;
-    e2->next = NULL;
+    e2->simple.next = NULL;
     
     if (c->nets == NULL) {
         c->nets = e2;
@@ -78,13 +101,13 @@ appendA(struct circuitS *c, meloop f, void *priv) {
 
 
 static void 
-freeE(struct elementS *e) {
+freeE(struct elementE *e) {
     if (e == NULL) {
         return;
     }
     
     bool last = e->last;
-    struct elementS *next = e->next;
+    struct elementE *next = e->simple.next;
     free(e);
 
     if (last) {
@@ -124,39 +147,40 @@ freeC(struct circuitS *c) {
 
 */
 void 
-bindA(struct elementS *e1, struct elementS *e2) {
-    struct elementS *e1last = e1;
-    struct elementS *e2last = e2;
+bindA(struct elementE *e1, struct elementE *e2) {
+    struct elementE *e1last = e1;
+    struct elementE *e2last = e2;
 
     while (true) {
         /* Open cicuit */
-        if (e1last->next == NULL) {
-            /* e1 Last elementS */
-            e1last->next = e2;
+        if (e1last->simple.next == NULL) {
+            /* e1 Last elementE */
+            e1last->simple.next = e2;
             e1last->last = false;
             return;
         }
 
         /* Closed cicuit */
-        if (e1last->next == e1) {
-            /* It's a closed loop, Inserting e2 before the first elementS. */
-            e1last->next = e2;
+        if (e1last->simple.next == e1) {
+            /* It's a closed loop, Inserting e2 before the first elementE. */
+            e1last->simple.next = e2;
             e1last->last = false;
             while (true) {
-                /* e2 Last elementS */
-                if ((e2last->next == NULL) || (e2last->next == e2)) {
-                    e2last->next = e1;
+                /* e2 Last elementE */
+                if ((e2last->simple.next == NULL) || 
+                        (e2last->simple.next == e2)) {
+                    e2last->simple.next = e1;
                     return;
                 }
             
                 /* Navigate forward */
-                e2last = e2last->next;
+                e2last = e2last->simple.next;
             }
             return;
         }
         
         /* Try next circuitS */
-        e1last = e1last->next;
+        e1last = e1last->simple.next;
     }
 }
 
@@ -164,7 +188,7 @@ bindA(struct elementS *e1, struct elementS *e2) {
 /** 
   Close (Loop) the circuitS c.
 
-  Syntactic sugar for bindA(e2, e1) if e1 is the first elementS in the 
+  Syntactic sugar for bindA(e2, e1) if e1 is the first elementE in the 
   circuitS and e2 is the last one.
     
   If the c1 is already a closed circuitS, then 1 will be returned.
@@ -180,31 +204,31 @@ bindA(struct elementS *e1, struct elementS *e2) {
 
 */
 int 
-loopA(struct elementS *e) {
-    struct elementS *first = e;
-    struct elementS *last = e;
+loopA(struct elementE *e) {
+    struct elementE *first = e;
+    struct elementE *last = e;
     while (true) {
-        if (last->next == NULL) {
-            /* Last elementS */
-            last->next = first;
+        if (last->simple.next == NULL) {
+            /* Last elementE */
+            last->simple.next = first;
             last->last = true;
             return OK;
         }
 
-        if (last->next == first) {
+        if (last->simple.next == first) {
             /* It's already a closed loop, Do nothing. */
             return ERR;
         }
 
-        last = last->next;
+        last = last->simple.next;
     }
 }
 
 
 void 
 returnA(struct circuitS *c, void *state, void *data) {
-    struct elementS *curr = c->current;
-    if (curr->next == NULL) {
+    struct elementE *curr = c->current;
+    if (curr->simple.next == NULL) {
         if (c->ok != NULL) {
             c->ok(c, state, data);
         }
@@ -212,7 +236,7 @@ returnA(struct circuitS *c, void *state, void *data) {
         return;
     }
 
-    struct elementS *next = curr->next;
+    struct elementE *next = curr->simple.next;
     c->current = next;
     next->run(c, state, data);
 }

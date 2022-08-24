@@ -58,7 +58,7 @@ int main() {
 
     struct circuitS *c = NEW_C(NULL, errorcb);
 
-    struct elementS *e = APPEND_A(c, promptA, "me@loop:~$ ");
+    struct elementE *e = APPEND_A(c, promptA, "me@loop:~$ ");
                          APPEND_A(c, readA,   &io);
                          APPEND_A(c, echoA,   &io);
                          APPEND_A(c, writeA,  &io);

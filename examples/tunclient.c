@@ -77,7 +77,7 @@ int main() {
 
                             APPEND_A(circ, tunopenA, &tun);
     //                      APPEND_A(circ, connectA, &tcp  );
-    struct elementS *work = APPEND_A(circ, readA,    &tcp  );
+    struct elementE *work = APPEND_A(circ, readA,    &tcp  );
                             APPEND_A(circ, writeA,   &tcp  );
                loopA(work);
 

@@ -105,9 +105,9 @@ int main() {
 
                             APPEND_A(circ, connectA,  &tls);
                             APPEND_A(circ, tlsA,      &tls);
-    struct elementS *req  = APPEND_A(circ, httpreqA,  &tls);
+    struct elementE *req  = APPEND_A(circ, httpreqA,  &tls);
                             APPEND_A(circ, tlswriteA, &tls);
-    struct elementS *read = APPEND_A(circ, tlsreadA,  &tls);
+    struct elementE *read = APPEND_A(circ, tlsreadA,  &tls);
                             APPEND_A(circ, printA,    NULL);
                loopA(read);
 

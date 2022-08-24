@@ -1,3 +1,4 @@
+- All private structs -> suffix: tcpclientP
 - EpollEt -> default flag
 - Document every function
 - Test for all functions

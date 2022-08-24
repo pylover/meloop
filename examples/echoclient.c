@@ -113,7 +113,7 @@ int main() {
                             APPEND_A(circ, timeropenA,  &timer);
                             APPEND_A(circ, connectA,    &tcp  );
                             APPEND_A(circ, randopenA,   &rand );
-    struct elementS *work = APPEND_A(circ, randreadA,   &rand );
+    struct elementE *work = APPEND_A(circ, randreadA,   &rand );
                             APPEND_A(circ, randencA,    &rand );
                             APPEND_A(circ, newlineA,    NULL  );
                             APPEND_A(circ, writeA,      &tcp  );

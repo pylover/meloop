@@ -54,7 +54,7 @@ int main() {
     struct circuitS *c = NEW_C(successcb, errorcb);
 
                          APPEND_A(c, randopenA,  &rand);
-    struct elementS *e = APPEND_A(c, randreadA,  &rand);
+    struct elementE *e = APPEND_A(c, randreadA,  &rand);
                          APPEND_A(c, randencA,   &rand);
                          APPEND_A(c, countA,     NULL);
                          APPEND_A(c, pipewriteA, &rand);

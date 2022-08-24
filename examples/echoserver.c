@@ -96,7 +96,7 @@ int main() {
         .readsize = CHUNK_SIZE,
     };
     worker = NEW_C(NULL, client_error);
-    struct elementS *e = APPEND_A(worker, readA,  &io);
+    struct elementE *e = APPEND_A(worker, readA,  &io);
                          APPEND_A(worker, writeA, &io);
                loopA(e);
 
@@ -118,7 +118,7 @@ int main() {
     struct circuitS *circ = NEW_C(NULL, errorcb);
 
                             APPEND_A(circ, listenA, &server);
-    struct elementS *acpt = APPEND_A(circ, acceptA, &server);
+    struct elementE *acpt = APPEND_A(circ, acceptA, &server);
                loopA(acpt);
 
     /* Run server circuitS */

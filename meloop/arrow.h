@@ -10,7 +10,7 @@
 #define OK 0
 
 
-struct elementS;
+struct elementE;
 struct circuitS;
 
 
@@ -29,15 +29,15 @@ freeC(struct circuitS *c);
 
 
 void 
-bindA(struct elementS *e1, struct elementS *e2);
+bindA(struct elementE *e1, struct elementE *e2);
 
 
-struct elementS * 
+struct elementE * 
 appendA(struct circuitS *c, meloop f, void *data);
 
 
 int 
-loopA(struct elementS *e);
+loopA(struct elementE *e);
 
 
 void 
@@ -45,8 +45,7 @@ returnA(struct circuitS *c, void *state, void *data);
 
 
 void 
-errorA(struct circuitS *c, void *state, void *data, const char *format, 
-        ...);
+errorA(struct circuitS *c, void *state, void *data, const char *format, ...);
 
 
 void
