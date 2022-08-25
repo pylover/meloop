@@ -63,8 +63,7 @@ make state
 
 ```bash
 cd tests
-make clean all
-./test_<name>
+make clean runall
 ```
 
 ## Profiling

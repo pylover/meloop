@@ -15,10 +15,13 @@ objects = $(patsubst %.c,%.o,$(wildcard $(SRC)/*.c))
 execs = \
 	test_circuit_simple \
 	test_circuit_loop
-
+run_execs = $(patsubst %,run-%,$(execs))
 
 all: $(execs)
+runall: $(run_execs)
 
+run-%: %
+	./$^
 
 # Implicit rule for meloop modules
 $(SRC)/%.o: $(SRC)/%.c $(SRC)/%.h
