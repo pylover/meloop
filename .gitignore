@@ -1,2 +1,4 @@
+*.gcda
+*.gcno
 .*.sw[op]
 *.o
