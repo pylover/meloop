@@ -36,20 +36,17 @@ void catch_signal() {
 }
 
 
-struct state {
-};
-
-
 void
-newlineA(struct circuitS *c, struct state *state, struct stringS *data) {
+newlineA(struct circuitS *c, int *state, struct stringS *data) {
+    (*state)++;
     data->buffer[data->size - 1] = '\n';
     RETURN_A(c, state, data);
 }
 
 
 void
-printA(struct circuitS *c, struct state *state, struct stringS *data) {
-    printf("%.*s", (int)data->size, data->buffer);
+printA(struct circuitS *c, int *state, struct stringS *data) {
+    printf("%03d %.*s", *state, (int)data->size, data->buffer);
     RETURN_A(c, state, data);
 }
 
@@ -65,10 +62,8 @@ int main() {
     logging_verbosity = LOGGING_DEBUG;
     catch_signal();
     meloop_io_init(0);
+    int state = 0;
     
-    static struct state state = {
-    };
-
     /* Initialize the buffer */
     static char b[CHUNK_SIZE];
     static struct tcpconnS conn = {
