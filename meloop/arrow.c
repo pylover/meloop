@@ -1,4 +1,5 @@
 #include "meloop/arrow.h"
+#include "meloop/logging.h"
 
 #include <stdio.h>
 #include <stdlib.h>

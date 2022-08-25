@@ -13,7 +13,8 @@ LDFLAGS = `pkg-config --libs openssl`
 
 objects = $(patsubst %.c,%.o,$(wildcard $(SRC)/*.c))
 execs = \
-	test_circuit_simple
+	test_circuit_simple \
+	test_circuit_loop
 
 
 all: $(execs)
@@ -32,7 +33,7 @@ $(execs):%: %.c $(objects)
 clean:: 
 	- rm *.gcov *.gcda *.gcno
 	- rm *.o
-	- rm test_circuit_simple 
+	- rm $(execs) 
 	- rm massif.out.*
 	- rm gmon.out
 	cd ..; make clean

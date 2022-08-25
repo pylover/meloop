@@ -1,10 +1,5 @@
-state
-random
-echoshell
-echoserver
-echoclient
-tlsclient
-tunclient
-tunserver
+*
+!*.c
+~Makefile
 gmon.out
 massif.out.*
