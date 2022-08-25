@@ -277,7 +277,7 @@ runA(struct circuitS *c, void *state, void *data) {
 }
 
 
-// void *
-// meloop_priv_ptr(struct circuitS *c) {
-//     return c->current->priv;
-// }
+void *
+meloop_priv_ptr(struct circuitS *c) {
+    return c->current->priv;
+}

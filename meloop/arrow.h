@@ -53,8 +53,8 @@ void
 runA(struct circuitS *c, void *global, void *data);
 
 
-// void *
-// meloop_priv_ptr(struct circuitS *c);
+void *
+meloop_priv_ptr(struct circuitS *c);
 
 
 /* Helper macros */

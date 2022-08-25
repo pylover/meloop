@@ -64,7 +64,7 @@ _configure_interface(struct tunP *tun) {
     tun->addressB = tmp->sin_addr;
     
     if (ioctl(fd, SIOCSIFADDR, &ifr) == -1) {
-        ERROR("errored: %s", meloop_in_addr_dump(tun->addressB));
+        ERROR("errored: %s", inet_ntoa(tun->addressB));
         return ERR;
     }
 
@@ -79,7 +79,7 @@ _configure_interface(struct tunP *tun) {
     tun->destaddressB = tmp->sin_addr;
     
     if (ioctl(fd, SIOCSIFDSTADDR, &ifr) == -1) {
-        ERROR("errored: %s", meloop_in_addr_dump(tun->destaddressB));
+        ERROR("errored: %s", inet_ntoa(tun->destaddressB));
         return ERR;
     }
 
@@ -97,7 +97,7 @@ _configure_interface(struct tunP *tun) {
     strncpy(ifr.ifr_name, tun->name, IFNAMSIZ-1);
     
     if (ioctl(fd, SIOCSIFNETMASK, &ifr) == -1) {
-        ERROR("errored: %s", meloop_in_addr_dump(tun->netmaskB));
+        ERROR("errored: %s", inet_ntoa(tun->netmaskB));
         return ERR;
     }
 
