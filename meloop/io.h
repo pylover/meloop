@@ -20,22 +20,22 @@ struct fileS {
 };
 
 
-struct ioS {
+struct ioP {
     int epollflags;
     size_t readsize;
 };
 
 
 void 
-waitA(struct circuitS *c, void *s, void *data, int fd, int op);
+waitA(struct circuitS *c, void *s, void *data, int fd, int op, int flags);
 
 
 void
-writeA(struct circuitS *c, void *s, struct fileS *f);
+writeA(struct circuitS *c, void *s, struct fileS *f, struct ioP *priv);
 
 
 void
-readA(struct circuitS *c, void *s, struct fileS *f);
+readA(struct circuitS *c, void *s, struct fileS *f, struct ioP *priv);
 
 
 void meloop_io_init(int flags);
@@ -49,8 +49,8 @@ meloop_io_loop(volatile int *status);
 
 
 /* Helper macros */
-#define WAIT_A(c, s, d, f, op) \
-    waitA(c, (struct fileS*)(s), (void*)(d), f, op);
+#define WAIT_A(c, s, d, f, op, fl) \
+    waitA(c, (struct fileS*)(s), (void*)(d), f, op, fl);
 
 
 #endif

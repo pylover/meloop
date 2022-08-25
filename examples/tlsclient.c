@@ -38,8 +38,8 @@ void catch_signal() {
 
 
 void
-httpreqA(struct circuitS *c, void *s, struct stringS *data) {
-    struct tlsclientS *priv = meloop_priv_ptr(c);
+httpreqA(struct circuitS *c, void *s, struct stringS *data, 
+        struct tlsclientP *priv) {
     char *b = data->buffer;
     size_t l = 0;
     #define HCR "\r\n"
@@ -92,7 +92,7 @@ int main() {
     };
 
     /* Initialize TCP Client */
-    static struct tlsclientS tls = {
+    static struct tlsclientP tls = {
         .epollflags = EPOLLET,
         .readsize = CHUNK_SIZE,
         // .hostname = "google.com",

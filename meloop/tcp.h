@@ -10,8 +10,8 @@
 #include <netinet/ip.h> 
 
 
-struct tcpserverS;
-struct tcpclientS;
+struct tcpserverP;
+struct tcpclientP;
 
 
 typedef void (*meloop_tcpserver_conn_event) (struct circuitS*, 
@@ -28,8 +28,8 @@ struct tcpconnS {
 };
 
 
-struct tcpserverS {
-    struct ioS;
+struct tcpserverP {
+    struct ioP;
     const char *bindaddr;
     unsigned short bindport;
     struct sockaddr bind;
@@ -38,8 +38,8 @@ struct tcpserverS {
 };
 
 
-struct tcpclientS {
-    struct ioS;
+struct tcpclientP {
+    struct ioP;
     const char *hostname;
     const char *port;
     struct sockaddr hostaddr;
@@ -49,15 +49,18 @@ struct tcpclientS {
 
 
 void 
-listenA(struct circuitS *c, void *s, struct fileS *f);
+listenA(struct circuitS *c, void *s, struct fileS *f,
+        struct tcpserverP *priv);
 
 
 void 
-acceptA(struct circuitS *c, void *s, struct fileS *f);
+acceptA(struct circuitS *c, void *s, struct fileS *f,
+        struct tcpserverP *priv);
 
 
 void 
-connectA(struct circuitS *c, void *s, struct fileS *f);
+connectA(struct circuitS *c, void *s, struct fileS *f, 
+        struct tcpclientP *priv);
 
 
 #endif

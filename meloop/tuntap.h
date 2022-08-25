@@ -9,8 +9,8 @@
 #include <linux/if.h>
 
 
-struct tunS {
-    struct ioS;
+struct tunP {
+    struct ioP;
     bool tap;
     int fd;
     char name[IFNAMSIZ];
@@ -24,7 +24,7 @@ struct tunS {
 
 
 void 
-tunopenA(struct circuitS *c, void *s, void *data);
+tunopenA(struct circuitS *c, void *s, void *data, struct tunP *priv);
 
 
 // void 

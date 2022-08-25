@@ -11,24 +11,23 @@
 
 
 void 
-waitA(struct circuitS *c, void *s, void *data, int fd, int op) {
-    struct ioS *priv = meloop_priv_ptr(c);
+waitA(struct circuitS *c, void *s, void *data, int fd, int op, int flags) {
     struct bagS *bag = meloop_bag_new(fd, c, s, data);
     
-    if (meloop_ev_arm(op | priv->epollflags, bag)) {
+    if (meloop_ev_arm(op | flags, bag)) {
         ERROR_A(c, s, data, "meloop_ev_arm");
     }
 }
 
 
 void
-writeA(struct circuitS *c, void *s, struct fileS *f) {
+writeA(struct circuitS *c, void *s, struct fileS *f, struct ioP *priv) {
     ssize_t size;
     
     size = write(f->fd, f->buffer, f->size);
     if (size < 0) {
         if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
-            WAIT_A(c, s, f, f->fd, EPOLLOUT);
+            WAIT_A(c, s, f, f->fd, EPOLLOUT, priv->epollflags);
         }
         else {
             ERROR_A(c, s, f, "write");
@@ -40,8 +39,7 @@ writeA(struct circuitS *c, void *s, struct fileS *f) {
 
 
 void
-readA(struct circuitS *c, void *s, struct fileS *f) {
-    struct ioS *priv = meloop_priv_ptr(c);
+readA(struct circuitS *c, void *s, struct fileS *f, struct ioP *priv) {
     ssize_t size;
 
     /* Read from the file descriptor */
@@ -56,7 +54,7 @@ readA(struct circuitS *c, void *s, struct fileS *f) {
     /* Error | wait */
     if (size < 0) {
         if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
-            WAIT_A(c, s, f, f->fd, EPOLLIN);
+            WAIT_A(c, s, f, f->fd, EPOLLIN, priv->epollflags);
         }
         else {
             ERROR_A(c, s, f, "read");

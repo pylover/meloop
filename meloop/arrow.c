@@ -239,7 +239,7 @@ returnA(struct circuitS *c, void *state, void *data) {
 
     struct elementE *next = curr->simple.next;
     c->current = next;
-    next->run(c, state, data, curr->priv);
+    next->run(c, state, data, next->priv);
 }
 
 
@@ -277,7 +277,7 @@ runA(struct circuitS *c, void *state, void *data) {
 }
 
 
-void *
-meloop_priv_ptr(struct circuitS *c) {
-    return c->current->priv;
-}
+// void *
+// meloop_priv_ptr(struct circuitS *c) {
+//     return c->current->priv;
+// }

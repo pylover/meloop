@@ -14,10 +14,10 @@ struct elementE;
 struct circuitS;
 
 
-typedef void (*meloop_task) (struct circuitS *c, void* state, void *data, 
+typedef void (*meloop_task) (struct circuitS *c, void* global, void *data, 
         void *priv);
-typedef void (*meloop_okcb) (struct circuitS *c, void* state, void *data);
-typedef void (*meloop_errcb) (struct circuitS *c, void* state, void *data, 
+typedef void (*meloop_okcb) (struct circuitS *c, void* global, void *data);
+typedef void (*meloop_errcb) (struct circuitS *c, void* global, void *data, 
         const char *msg);
 
 
@@ -42,19 +42,19 @@ loopA(struct elementE *e);
 
 
 void 
-returnA(struct circuitS *c, void *state, void *data);
+returnA(struct circuitS *c, void *global, void *data);
 
 
 void 
-errorA(struct circuitS *c, void *state, void *data, const char *format, ...);
+errorA(struct circuitS *c, void *global, void *data, const char *format, ...);
 
 
 void
-runA(struct circuitS *c, void *state, void *data);
+runA(struct circuitS *c, void *global, void *data);
 
 
-void *
-meloop_priv_ptr(struct circuitS *c);
+// void *
+// meloop_priv_ptr(struct circuitS *c);
 
 
 /* Helper macros */

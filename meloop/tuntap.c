@@ -40,7 +40,7 @@
 
 
 static int
-_configure_interface(struct tunS *tun) {
+_configure_interface(struct tunP *tun) {
     struct ifreq ifr;
     struct sockaddr_in *tmp = (struct sockaddr_in*) &ifr.ifr_addr;
     memset(&ifr, 0, sizeof(struct ifreq));
@@ -64,7 +64,7 @@ _configure_interface(struct tunS *tun) {
     tun->addressB = tmp->sin_addr;
     
     if (ioctl(fd, SIOCSIFADDR, &ifr) == -1) {
-        DEBUG("errored: %s", meloop_in_addr_dump(tun->addressB));
+        ERROR("errored: %s", meloop_in_addr_dump(tun->addressB));
         return ERR;
     }
 
@@ -79,7 +79,7 @@ _configure_interface(struct tunS *tun) {
     tun->destaddressB = tmp->sin_addr;
     
     if (ioctl(fd, SIOCSIFDSTADDR, &ifr) == -1) {
-        DEBUG("errored: %s", meloop_in_addr_dump(tun->destaddressB));
+        ERROR("errored: %s", meloop_in_addr_dump(tun->destaddressB));
         return ERR;
     }
 
@@ -97,7 +97,7 @@ _configure_interface(struct tunS *tun) {
     strncpy(ifr.ifr_name, tun->name, IFNAMSIZ-1);
     
     if (ioctl(fd, SIOCSIFNETMASK, &ifr) == -1) {
-        DEBUG("errored: %s", meloop_in_addr_dump(tun->netmaskB));
+        ERROR("errored: %s", meloop_in_addr_dump(tun->netmaskB));
         return ERR;
     }
 
@@ -106,8 +106,7 @@ _configure_interface(struct tunS *tun) {
 
 
 void 
-tunopenA(struct circuitS *c, void *s, void *data) {
-    struct tunS *priv = meloop_priv_ptr(c);
+tunopenA(struct circuitS *c, void *s, void *data, struct tunP *priv) {
     struct ifreq ifr;
     int fd; 
     int err;

@@ -13,11 +13,13 @@ struct pipeS {
 
 
 void
-pipereadA(struct circuitS *c, void *state, struct pipeS *pipe);
+pipereadA(struct circuitS *c, void *state, struct pipeS *pipe, 
+        struct ioP *priv);
 
 
 void
-pipewriteA(struct circuitS *c, void *state, struct pipeS *pipe);
+pipewriteA(struct circuitS *c, void *state, struct pipeS *pipe, 
+        struct ioP *priv);
 
 
 #endif

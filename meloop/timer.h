@@ -5,7 +5,8 @@
 #include "meloop/io.h"
 
 
-struct timerS {
+struct timerP {
+    int epollflags;
     int fd;
     int clockid;
     int flags;
@@ -15,11 +16,13 @@ struct timerS {
 
 
 void
-timeropenA(struct circuitS *c, struct fileS *io, void *data);
+timeropenA(struct circuitS *c, void *global, void *data, 
+        struct timerP *priv);
 
 
 void 
-timersleepA(struct circuitS *c, struct fileS *s, void *data);
+timersleepA(struct circuitS *c, void *global, void *data,
+        struct timerP *priv);
 
 
 #endif

@@ -33,7 +33,7 @@ void catch_signal() {
 
 
 void
-errorcb(struct circuitS *c, struct tcpserverS *s, void *data, 
+errorcb(struct circuitS *c, struct tcpserverP *s, void *data, 
         const char *error) {
     ERROR("%s", error);
     status = EXIT_FAILURE;
@@ -91,7 +91,7 @@ int main() {
     meloop_io_init(0);
 
     /* A circuitS to run for each new connection */
-    struct ioS io = {
+    struct ioP io = {
         .epollflags = EPOLLET,
         .readsize = CHUNK_SIZE,
     };
@@ -101,7 +101,7 @@ int main() {
                loopA(e);
 
     /* Initialize TCP Server */
-    static struct tcpserverS server = {
+    static struct tcpserverP server = {
         .epollflags = EPOLLET,
         .readsize = CHUNK_SIZE,
         .backlog = 2,

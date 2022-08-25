@@ -17,8 +17,8 @@ static SSL_CTX *ctx;
 
 
 void
-tlsreadA(struct circuitS *c, void *s, struct fileS *f) {
-    struct tlsclientS *priv = meloop_priv_ptr(c);
+tlsreadA(struct circuitS *c, void *s, struct fileS *f, 
+        struct tlsclientP *priv) {
     int size;
     unsigned long sslerr;
     
@@ -27,7 +27,7 @@ tlsreadA(struct circuitS *c, void *s, struct fileS *f) {
     if (size <= 0) {
         sslerr = ERR_get_error();
         if (sslerr = SSL_ERROR_WANT_READ) {
-            WAIT_A(c, s, f, f->fd, EPOLLIN);
+            WAIT_A(c, s, f, f->fd, EPOLLIN, priv->epollflags);
         }
         else {
             ERROR_A(c, s, f, OPENSSL_REASON(ERR_get_error()));
@@ -40,8 +40,8 @@ tlsreadA(struct circuitS *c, void *s, struct fileS *f) {
 
 
 void
-tlswriteA(struct circuitS *c, void *s, struct fileS *f) {
-    struct tlsclientS *priv = meloop_priv_ptr(c);
+tlswriteA(struct circuitS *c, void *s, struct fileS *f, 
+        struct tlsclientP *priv) {
     int size;
     unsigned long sslerr;
     
@@ -56,7 +56,7 @@ tlswriteA(struct circuitS *c, void *s, struct fileS *f) {
         sslerr = ERR_get_error();
         if (sslerr = SSL_ERROR_WANT_WRITE) {
             // DEBUG("ssl want write: %d", sslerr);
-            WAIT_A(c, s, f, f->fd, EPOLLOUT);
+            WAIT_A(c, s, f, f->fd, EPOLLOUT, priv->epollflags);
         }
         else {
             ERROR_A(c, s, f, OPENSSL_REASON(ERR_get_error()));
@@ -68,8 +68,7 @@ tlswriteA(struct circuitS *c, void *s, struct fileS *f) {
 
 
 void 
-tlsA(struct circuitS *c, void *s, struct fileS *f) {
-    struct tlsclientS *priv = meloop_priv_ptr(c);
+tlsA(struct circuitS *c, void *s, struct fileS *f, struct tlsclientP *priv) {
     int res;
     openssl_err sslerr;
     
@@ -95,10 +94,10 @@ tlsA(struct circuitS *c, void *s, struct fileS *f) {
                 INFO("SSL OK");
                 break;
             case SSL_ERROR_WANT_READ:
-                WAIT_A(c, s, f, f->fd, EPOLLIN);
+                WAIT_A(c, s, f, f->fd, EPOLLIN, priv->epollflags);
                 return;
             case SSL_ERROR_WANT_WRITE:
-                WAIT_A(c, s, f, f->fd, EPOLLOUT);
+                WAIT_A(c, s, f, f->fd, EPOLLOUT, priv->epollflags);
                 return;
             case SSL_ERROR_WANT_X509_LOOKUP:
                 // TODO: use timerfd_create(2) to retry

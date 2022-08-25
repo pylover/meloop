@@ -61,11 +61,6 @@ errorcb(struct circuitS *c, struct fileS *s, void *data, const char *error) {
 }
 
 
-// struct state {
-//     unsigned int lines;
-// };
-
-
 int main() {
     logging_verbosity = LOGGING_DEBUG;
     catch_signal();
@@ -83,7 +78,7 @@ int main() {
     };
 
     /* Initialize TCP Client */
-    static struct tcpclientS tcp = {
+    static struct tcpclientP tcp = {
         .epollflags = EPOLLET,
         .readsize = CHUNK_SIZE,
         .hostname = "127.0.0.1",
@@ -91,7 +86,7 @@ int main() {
     };
     
     /* Initialize random settings. */
-    static struct randS rand = {
+    static struct randP rand = {
         .epollflags = EPOLLET,
         .readsize = CHUNK_SIZE,
         .fd = -1
@@ -100,7 +95,8 @@ int main() {
     /* Initialize timer settings. */
     #define S  ((long)1000000000)
     #define MS ((long)1000000)
-    static struct timerS timer = {
+    static struct timerP timer = {
+        .epollflags = EPOLLET,
         .clockid = CLOCK_REALTIME,
         .flags = 0,
         .fd = -1,

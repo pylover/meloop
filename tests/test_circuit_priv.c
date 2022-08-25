@@ -33,14 +33,6 @@ fooA(struct circuitS *c, struct state *s, int *data, struct fooP *priv) {
 
 
 void
-barA(struct circuitS *c, struct state *s, int *data) {
-    s->bar++;
-    (*data)++;
-    RETURN_A(c, s, data);
-}
-
-
-void
 oops(struct circuitS *c, struct state *s, int *data, const char *error) {
     strcpy(s->error, error);
 }
@@ -53,7 +45,7 @@ ok(struct circuitS *c, struct state *s, void *data) {
 
 
 void
-test_foo_loop() {
+test_foo_priv() {
     static char b[CHUNK_SIZE];
     int data = 0;
     struct fooP priv = {0};
@@ -71,29 +63,8 @@ test_foo_loop() {
 }
 
 
-void
-test_foobar_loop() {
-    static char b[CHUNK_SIZE];
-    struct state state = {0, 0, false, ""};
-    int data = 0;
-    struct circuitS *c = NEW_C(ok, oops);
-    struct elementE *e = APPEND_A(c, fooA, NULL);
-                         APPEND_A(c, barA, NULL);
-               loopA(e); 
-    
-    RUN_A(c, &state, &data);
-    eqint(11, data);
-    eqint(state.ok, false);
-    eqint(6, state.foo);
-    eqint(5, state.bar);
-    eqstr(state.error, "All done");
-    freeC(c);
-}
-
-
 void main() {
-    test_foo_loop();
-    test_foobar_loop();
+    test_foo_priv();
     // TODO: test private
     // TODO: test fork
 }

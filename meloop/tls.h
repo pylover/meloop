@@ -8,8 +8,8 @@
 #include <openssl/ssl.h>
 
 
-struct tlsclientS {
-    struct tcpclientS;
+struct tlsclientP {
+    struct tcpclientP;
     SSL *ssl;
     int tlsstatus;
 };
@@ -24,15 +24,17 @@ meloop_tls_deinit();
 
 
 void 
-tlsA(struct circuitS *c, void *s, struct fileS *f);
+tlsA(struct circuitS *c, void *s, struct fileS *f, struct tlsclientP *priv);
 
 
 void
-tlswriteA(struct circuitS *c, void *s, struct fileS *f);
+tlswriteA(struct circuitS *c, void *s, struct fileS *f, 
+        struct tlsclientP *priv);
 
 
 void
-tlsreadA(struct circuitS *c, void *s, struct fileS *f);
+tlsreadA(struct circuitS *c, void *s, struct fileS *f, 
+        struct tlsclientP *priv);
 
 
 #endif

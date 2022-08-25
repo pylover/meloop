@@ -2,18 +2,20 @@
 #define MELOOP_RANDOM_H
 
 
-struct randS {
-    struct ioS;
+struct randP {
+    struct ioP;
     int fd;
 };
 
 
 void 
-randopenA(struct circuitS *c, void *s, struct stringS *data);
+randopenA(struct circuitS *c, void *s, struct stringS *data, 
+        struct randP *priv);
 
 
 void 
-randreadA(struct circuitS *c, void *s, struct stringS *data);
+randreadA(struct circuitS *c, void *s, struct stringS *data,
+        struct randP *priv);
 
 
 void

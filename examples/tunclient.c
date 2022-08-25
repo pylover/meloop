@@ -55,14 +55,14 @@ int main() {
     };
 
     /* Initialize TCP Client */
-    static struct tcpclientS tcp = {
+    static struct tcpclientP tcp = {
         .epollflags = EPOLLET,
         .readsize = CHUNK_SIZE,
         .hostname = "127.0.0.1",
         .port = "9090"
     };
     
-    static struct tunS tun = {
+    static struct tunP tun = {
         .epollflags = EPOLLET,
         .readsize = CHUNK_SIZE,
         .tap = false,

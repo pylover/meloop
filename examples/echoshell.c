@@ -14,10 +14,10 @@
 
 
 void 
-promptA(struct circuitS *c, unsigned int *counter, struct pipeS *pipe) {
-    const char *s = meloop_priv_ptr(c);
+promptA(struct circuitS *c, unsigned int *counter, struct pipeS *pipe, 
+        const char *priv) {
     (*counter)++;
-    dprintf(pipe->wfd, "%.3u %s", *counter, s);
+    dprintf(pipe->wfd, "%.3u %s", *counter, priv);
     RETURN_A(c, counter, pipe);
 }
 
@@ -43,7 +43,7 @@ int main() {
     logging_verbosity = LOGGING_DEBUG;
     meloop_io_init(0);
 
-    struct ioS io = {
+    struct ioP io = {
         .readsize = BUFFSIZE,
         .epollflags = EPOLLET,
     };

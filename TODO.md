@@ -1,4 +1,5 @@
-- All private structs -> suffix: tcpclientP
+- rename all state(s) to global(s)
+- Try to remove (void *global)
 - EpollEt -> default flag
 - Document every function
 - Test for all functions

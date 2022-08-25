@@ -17,8 +17,8 @@
 
 
 void 
-listenA(struct circuitS *c, void *s, struct fileS *f) {
-    struct tcpserverS *priv = meloop_priv_ptr(c);
+listenA(struct circuitS *c, void *s, struct fileS *f,
+        struct tcpserverP *priv) {
     int fd;
     int option = 1;
     int res;
@@ -53,8 +53,8 @@ listenA(struct circuitS *c, void *s, struct fileS *f) {
 
 
 void 
-acceptA(struct circuitS *c, void *s, struct fileS *f) {
-    struct tcpserverS *priv = meloop_priv_ptr(c);
+acceptA(struct circuitS *c, void *s, struct fileS *f,
+        struct tcpserverP *priv) {
     int fd;
     socklen_t addrlen = sizeof(struct sockaddr);
     struct sockaddr addr; 
@@ -62,7 +62,7 @@ acceptA(struct circuitS *c, void *s, struct fileS *f) {
     fd = accept4(f->fd, &addr, &addrlen, SOCK_NONBLOCK);
     if (fd == -1) {
         if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
-            WAIT_A(c, s, f, f->fd, EPOLLIN);
+            WAIT_A(c, s, f, f->fd, EPOLLIN, priv->epollflags);
         }
         else {
             ERROR_A(c, s, f, "accept4");
@@ -84,14 +84,14 @@ acceptA(struct circuitS *c, void *s, struct fileS *f) {
 
 
 static void
-_connect_continue(struct circuitS *c, void *s, struct fileS *f) {
+_connect_continue(struct circuitS *c, void *s, struct fileS *f, 
+        struct tcpclientP *priv) {
     /* After epoll(2) indicates writability, use getsockopt(2) to read the
        SO_ERROR option at level SOL_SOCKET to determine whether connect()
        completed successfully (SO_ERROR is zero) or unsuccessfully
        (SO_ERROR is one of the usual error codes listed here,
        explaining the reason for the failure).
     */
-    struct tcpclientS *priv = meloop_priv_ptr(c);
     int err;
     int l = 4;
     if (getsockopt(f->fd, SOL_SOCKET, SO_ERROR, &err, &l) != OK) {
@@ -115,13 +115,12 @@ _connect_continue(struct circuitS *c, void *s, struct fileS *f) {
 
 
 void 
-connectA(struct circuitS *c, void *s, struct fileS *f) {
-    struct tcpclientS *priv = meloop_priv_ptr(c);
+connectA(struct circuitS *c, void *s, struct fileS *f, 
+        struct tcpclientP *priv) {
     if (priv->status == _CONNECTING) {
-        _connect_continue(c, s, f);
+        _connect_continue(c, s, f, priv);
         return;
     }
-
     int fd;
     struct addrinfo hints;
     struct addrinfo *result;
@@ -188,7 +187,7 @@ connectA(struct circuitS *c, void *s, struct fileS *f) {
            completion by selecting the socket for writing.
         */
         priv->status = _CONNECTING;
-        WAIT_A(c, s, f, f->fd, EPOLLOUT);
+        WAIT_A(c, s, f, f->fd, EPOLLOUT, priv->epollflags);
         return;
     }
 
