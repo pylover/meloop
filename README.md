@@ -59,6 +59,14 @@ make state
 ```
 
 
+## Running Tests
+
+```bash
+cd tests
+make clean all
+./test_<name>
+```
+
 ## Profiling
 
 

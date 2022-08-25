@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 
@@ -132,6 +133,22 @@ equalint(int expected, int given) {
 }
 
 
+void 
+equalbool(bool expected, bool given) {
+    SUCCESS(given == expected);
+
+    /* Error */
+    FAILED();
+    EXPECTED();
+    pdataln("%s", expected?"true":"false");
+
+    GIVEN();
+    pdataln("%s", given?"true":"false");
+
+    exit(EXIT_FAILURE);
+}
+
+
 /* Asserts */
 
 #define assert(f, ...) \
@@ -143,6 +160,9 @@ equalint(int expected, int given) {
 #define eqstr(...) assert(equalstr, __VA_ARGS__)
 #define eqnstr(...) assert(equalnstr, __VA_ARGS__)
 #define eqint(...) assert(equalint, __VA_ARGS__)
+#define eqbool(...) assert(equalbool, __VA_ARGS__)
+#define istrue(e) assert(equalbool, true, (e))
+#define isfalse(e) assert(equalbool, false, (e))
 #define eqbin(e, g, l) \
     assert(equalbin, (unsigned char*)g, (unsigned char*)e, l)
 

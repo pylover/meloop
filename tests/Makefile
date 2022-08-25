@@ -3,9 +3,9 @@ CFLAGS = \
 	-I.. \
 	-g \
 	-fms-extensions \
-	-fprofile-arcs \
-	-ftest-coverage \
 	-D_GNU_SOURCE=1
+	# -fprofile-arcs \
+	# -ftest-coverage \
 
 
 LDFLAGS = `pkg-config --libs openssl`
