@@ -14,7 +14,8 @@ LDFLAGS = `pkg-config --libs openssl`
 objects = $(patsubst %.c,%.o,$(wildcard $(SRC)/*.c))
 execs = \
 	test_circuit_simple \
-	test_circuit_loop
+	test_circuit_loop \
+	test_circuit_priv
 run_execs = $(patsubst %,run-%,$(execs))
 
 all: $(execs)

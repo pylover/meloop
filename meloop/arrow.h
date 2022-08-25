@@ -14,7 +14,8 @@ struct elementE;
 struct circuitS;
 
 
-typedef void (*meloop) (struct circuitS *c, void* state, void *data);
+typedef void (*meloop_task) (struct circuitS *c, void* state, void *data, 
+        void *priv);
 typedef void (*meloop_okcb) (struct circuitS *c, void* state, void *data);
 typedef void (*meloop_errcb) (struct circuitS *c, void* state, void *data, 
         const char *msg);
@@ -33,7 +34,7 @@ bindA(struct elementE *e1, struct elementE *e2);
 
 
 struct elementE * 
-appendA(struct circuitS *c, meloop f, void *data);
+appendA(struct circuitS *c, meloop_task f, void *data);
 
 
 int 
@@ -58,7 +59,7 @@ meloop_priv_ptr(struct circuitS *c);
 
 /* Helper macros */
 #define NEW_C(ok, e) newC((meloop_okcb)(ok), (meloop_errcb)(e))
-#define APPEND_A(c, a, v) appendA(c, (meloop)(a), (void*)(v))
+#define APPEND_A(c, a, v) appendA(c, (meloop_task)(a), (void*)(v))
 #define RETURN_A(c, s, r) returnA(c, s, (void*)(r))
 #define ERROR_A(c, s, r, ...) errorA(c, s, (void*)(r), __VA_ARGS__)
 #define RUN_A(c, s, d) runA(c, s, (void*)(d))

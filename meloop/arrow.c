@@ -31,7 +31,7 @@ struct simpleE {
 
 struct elementE {
     enum meloop_element_type type;
-    meloop run;
+    meloop_task run;
     void *priv;
     bool last;
     union {
@@ -77,7 +77,7 @@ newC(meloop_okcb ok, meloop_errcb error) {
 
 */
 struct elementE * 
-appendA(struct circuitS *c, meloop f, void *priv) {
+appendA(struct circuitS *c, meloop_task f, void *priv) {
     struct elementE *e2 = malloc(sizeof(struct elementE));
     if (e2 == NULL) {
         err(EXIT_FAILURE, "Out of memory");
@@ -239,7 +239,7 @@ returnA(struct circuitS *c, void *state, void *data) {
 
     struct elementE *next = curr->simple.next;
     c->current = next;
-    next->run(c, state, data);
+    next->run(c, state, data, curr->priv);
 }
 
 
@@ -273,7 +273,7 @@ runA(struct circuitS *c, void *state, void *data) {
     if (c->current == NULL) {
         c->current = c->nets;
     }
-    c->current->run(c, state, data);
+    c->current->run(c, state, data, c->current->priv);
 }
 
 
