@@ -1,4 +1,5 @@
 - Add ptr to stringS and all other dataS.
+- rename circuitS to circuitC
 - rename all state(s) to global(s)
 - EpollEt -> default flag
 - Document every function

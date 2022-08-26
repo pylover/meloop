@@ -1,5 +1,6 @@
 #include "meloop/io.h"
 #include "meloop/tcp.h"
+#include "meloop/pipe.h"
 #include "meloop/tuntap.h"
 #include "meloop/logging.h"
 
@@ -17,7 +18,12 @@
 #define WORKING 9999
 static volatile int status = WORKING;
 static struct sigaction old_action;
-static struct circuitS *worker;
+static struct circuitS *iot = NULL;
+static struct circuitS *ios = NULL;
+static char bt[CHUNK_SIZE] = "\0";
+static char bs[CHUNK_SIZE] = "\0";
+static struct pipeS pipet = {bt, 0, -1, -1};
+static struct pipeS pipes = {bs, 0, -1, -1};
 
 
 void sighandler(int s) {
@@ -35,57 +41,24 @@ void catch_signal() {
 
 
 void
+inittunA(struct circuitS *c, void *s, void *d, struct tunP *priv) {
+    pipet.rfd = priv->fd;
+    pipes.wfd = priv->fd;
+    RETURN_A(c, s, d);
+}
+
+
+void
 errorcb(struct circuitS *c, void *s, void *data, const char *error) {
     ERROR("%s", error);
     status = EXIT_FAILURE;
 }
 
 
-struct pipesS {
-        size_t lsize;
-        char *lbuffer;
-        int lfd;
-
-        size_t rsize;
-        char *rbuffer;
-        int rfd;
-};
-
-
 void
-rightA(struct circuitS *c, void *s, struct pipesS *pipes) {
-    struct tunS *priv = meloop_priv_ptr(c);
-    pipes->rfd = priv->fd;
-    RETURN_A(c, s, pipes);
-}
-
-
-void
-readpipesA(struct circuitS *c, void *s, struct fileS *f) {
-    struct ioS *priv = meloop_priv_ptr(c);
-    ssize_t size;
-
-    /* Read from the file descriptor */
-    size = read(f->fd, f->buffer, priv->readsize);
-
-    /* Check for EOF */
-    if (size == 0) {
-        ERROR_A(c, s, f, "EOF");
-        return;
-    }
-
-    /* Error | wait */
-    if (size < 0) {
-        if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
-            WAIT_A(c, s, f, f->fd, EPOLLIN);
-        }
-        else {
-            ERROR_A(c, s, f, "read");
-        }
-        return;
-    }
-    f->size = size;
-    RETURN_A(c, s, f);
+initcb(struct circuitS *c, void *s, void *d) {
+    RUN_A(iot, NULL, &pipet); 
+    RUN_A(ios, NULL, &pipes); 
 }
 
 
@@ -94,19 +67,6 @@ int main() {
     catch_signal();
     meloop_io_init(0);
     
-    /* Initialize the buffer */
-    static char lb[CHUNK_SIZE];
-    static char rb[CHUNK_SIZE];
-    static struct pipesS pipes = {
-        .lsize = 0,
-        .lbuffer = lb,
-        .lfd = -1,
-
-        .rsize = 0,
-        .rbuffer = rb,
-        .rfd = -1,
-    };
-
     /* Initialize TCP Client */
     static struct tcpclientP tcp = {
         .epollflags = EPOLLET,
@@ -126,18 +86,27 @@ int main() {
     };
     
     // TODO: make tun nonblock
-    /* Client init -> loop circuitS */
-    struct circuitS *circ = NEW_C(NULL, errorcb);
+    /* Client init circuitS */
+    struct circuitS *init = NEW_C(initcb, errorcb);
+            APPEND_A(init, connectA, &tcp);
+            APPEND_A(init, tunopenA, &tun);
+            APPEND_A(init, inittunA, &tcp);
 
-                            APPEND_A(circ, tunopenA,    &tun);
-                            APPEND_A(circ, rightA,      &tcp);
-                            APPEND_A(circ, connectA,    &tcp);
-    // struct elementS *work = APPEND_A(circ, readpipesA,  &tcp);
-    //                         APPEND_A(circ, writepipesA, &tcp);
-    //            loopA(work);
+    /* io tun reader circuiteS */
+    struct ioP iop = {EPOLLET, CHUNK_SIZE};
+                                   iot = NEW_C(NULL, NULL);
+    struct elementE *et = APPEND_A(iot, pipereadA,  &iop);
+                          APPEND_A(iot, pipewriteA, &iop);
+               loopA(et);
 
-    /* Run server circuitS */
-    RUN_A(circ, NULL, &pipes); 
+    /* io socket reader circuiteS */
+                                   ios = NEW_C(NULL, NULL);
+    struct elementE *es = APPEND_A(ios, pipereadA,  &iop);
+                          APPEND_A(ios, pipewriteA, &iop);
+               loopA(es);
+
+    /* Run client circuitS */
+    RUN_A(init, NULL, &pipes); 
 
     /* Start and wait for event loop */
     if (meloop_io_loop(&status)) {
@@ -149,6 +118,8 @@ int main() {
     }
     
     meloop_io_deinit();
-    freeC(circ);
+    freeC(init);
+    freeC(iot);
+    freeC(ios);
     return status;
 }

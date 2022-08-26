@@ -19,7 +19,6 @@
 #define WORKING 9999
 static volatile int status = WORKING;
 static struct sigaction old_action;
-static struct circuitS *worker;
 
 
 void sighandler(int s) {
