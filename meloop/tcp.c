@@ -84,7 +84,7 @@ acceptA(struct circuitS *c, void *s, struct fileS *f,
 
 
 static void
-_connect_continue(struct circuitS *c, void *s, struct fileS *f, 
+_connect_continue(struct circuitS *c, void *s, struct tcpconnS *conn, 
         struct tcpclientP *priv) {
     /* After epoll(2) indicates writability, use getsockopt(2) to read the
        SO_ERROR option at level SOL_SOCKET to determine whether connect()
@@ -94,31 +94,39 @@ _connect_continue(struct circuitS *c, void *s, struct fileS *f,
     */
     int err;
     int l = 4;
-    if (getsockopt(f->fd, SOL_SOCKET, SO_ERROR, &err, &l) != OK) {
-        priv->status = _FAILED;
-        ERROR_A(c, s, f, "getsockopt");
-        return;
-    }
-    if (err != OK) {
-        priv->status = _FAILED;
-        errno = err;
-        ERROR_A(c, s, f, "TCP connect");
-        meloop_ev_dearm(f->fd);
-        close(f->fd);
-        return;
+    if (priv->status == _CONNECTING) {
+        if (getsockopt(conn->fd, SOL_SOCKET, SO_ERROR, &err, &l) != OK) {
+            priv->status = _FAILED;
+            ERROR_A(c, s, conn, "getsockopt");
+            return;
+        }
+        if (err != OK) {
+            priv->status = _FAILED;
+            errno = err;
+            ERROR_A(c, s, conn, "TCP connect");
+            meloop_ev_dearm(conn->fd);
+            close(conn->fd);
+            return;
+        }
+        /* Hooray, Connected! */
+        priv->status = _CONNECTED;
     }
 
-    /* Hooray, Connected! */
-    priv->status = _CONNECTED;
-    RETURN_A(c, s, f);
+    /* Already, Connected */
+    socklen_t socksize = sizeof(conn->localaddr);
+    if (getsockname(conn->fd, &(conn->localaddr), &socksize)) {
+        ERROR_A(c, s, conn, "getsockname");
+        return;
+    }
+    RETURN_A(c, s, conn);
 }
 
 
 void 
-connectA(struct circuitS *c, void *s, struct fileS *f, 
+connectA(struct circuitS *c, void *s, struct tcpconnS *conn, 
         struct tcpclientP *priv) {
     if (priv->status == _CONNECTING) {
-        _connect_continue(c, s, f, priv);
+        _connect_continue(c, s, conn, priv);
         return;
     }
     int fd;
@@ -135,7 +143,7 @@ connectA(struct circuitS *c, void *s, struct fileS *f,
     hints.ai_flags = AI_NUMERICSERV;
     hints.ai_protocol = 0;
     if (getaddrinfo(priv->hostname, priv->port, &hints, &result) != 0) {
-        ERROR_A(c, s, f, "Name resolution failed.");
+        ERROR_A(c, s, conn, "Name resolution failed.");
         return;
     }
 
@@ -170,14 +178,15 @@ connectA(struct circuitS *c, void *s, struct fileS *f,
 
     if (fd < 0) {
         freeaddrinfo(result);
-        ERROR_A(c, s, f, "TCP connect");
+        ERROR_A(c, s, conn, "TCP connect");
         return;
     }
 
     /* Connection success */
     /* Update state */
-    memcpy(&(priv->hostaddr), try->ai_addr, sizeof(struct sockaddr));
-    f->fd = fd;
+    memcpy(&(conn->remoteaddr), try->ai_addr, sizeof(struct sockaddr));
+    
+    conn->fd = fd;
     freeaddrinfo(result);
 
     if (errno == EINPROGRESS) {
@@ -187,11 +196,12 @@ connectA(struct circuitS *c, void *s, struct fileS *f,
            completion by selecting the socket for writing.
         */
         priv->status = _CONNECTING;
-        WAIT_A(c, s, f, f->fd, EPOLLOUT, priv->epollflags);
+        WAIT_A(c, s, conn, conn->fd, EPOLLOUT, priv->epollflags);
         return;
     }
 
     /* Seems everything is ok. */
     priv->status = _CONNECTED;
-    RETURN_A(c, s, f);
+    _connect_continue(c, s, conn, priv);
+    RETURN_A(c, s, conn);
 }

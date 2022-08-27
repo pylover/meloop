@@ -45,6 +45,16 @@ newlineA(struct circuitS *c, int *state, struct stringS *data) {
 
 
 void
+greetingA(struct circuitS *c, int *state, struct tcpconnS *conn) {
+    struct sockaddr *la = &(conn->localaddr);
+    struct sockaddr *ra = &(conn->remoteaddr);
+    printf("Successfully connected from %s", meloop_sockaddr_dump(la));
+    printf(" to %s.\n", meloop_sockaddr_dump(ra));
+    RETURN_A(c, state, conn);
+}
+
+
+void
 printA(struct circuitS *c, int *state, struct stringS *data) {
     printf("%03d %.*s", *state, (int)data->size, data->buffer);
     RETURN_A(c, state, data);
@@ -104,6 +114,7 @@ int main() {
                             APPEND_A(circ, timeropenA,  &timer);
                             APPEND_A(circ, connectA,    &tcp  );
                             APPEND_A(circ, randopenA,   &rand );
+                            APPEND_A(circ, greetingA,   &tcp  );
     struct elementE *work = APPEND_A(circ, randreadA,   &rand );
                             APPEND_A(circ, randencA,    &rand );
                             APPEND_A(circ, newlineA,    NULL  );

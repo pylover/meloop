@@ -24,7 +24,8 @@ typedef void (*meloop_tcpclient_conn_event) (struct circuitS*,
 
 struct tcpconnS {
     struct fileS;
-    struct sockaddr addr;
+    struct sockaddr localaddr;
+    struct sockaddr remoteaddr;
 };
 
 
@@ -42,7 +43,6 @@ struct tcpclientP {
     struct ioP;
     const char *hostname;
     const char *port;
-    struct sockaddr hostaddr;
     meloop_tcpclient_conn_event connected;
     int status;
 };
@@ -59,7 +59,7 @@ acceptA(struct circuitS *c, void *s, struct fileS *f,
 
 
 void 
-connectA(struct circuitS *c, void *s, struct fileS *f, 
+connectA(struct circuitS *c, void *s, struct tcpconnS *conn, 
         struct tcpclientP *priv);
 
 
