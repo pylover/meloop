@@ -41,6 +41,14 @@ void catch_signal() {
 
 
 void
+inittcpA(struct circuitS *c, void *s, void *d, struct tcpclientP *priv) {
+    pipet.wfd = priv->fd;
+    pipes.rfd = priv->fd;
+    RETURN_A(c, s, d);
+}
+
+
+void
 inittunA(struct circuitS *c, void *s, void *d, struct tunP *priv) {
     pipet.rfd = priv->fd;
     pipes.wfd = priv->fd;
@@ -85,12 +93,12 @@ int main() {
         .netmask = "255.255.255.0",
     };
     
-    // TODO: make tun nonblock
     /* Client init circuitS */
     struct circuitS *init = NEW_C(initcb, errorcb);
             APPEND_A(init, connectA, &tcp);
             APPEND_A(init, tunopenA, &tun);
-            APPEND_A(init, inittunA, &tcp);
+            APPEND_A(init, inittcpA, &tun);
+            APPEND_A(init, inittunA, &tun);
 
     /* io tun reader circuiteS */
     struct ioP iop = {EPOLLET, CHUNK_SIZE};
