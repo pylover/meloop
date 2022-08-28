@@ -1,3 +1,4 @@
+- Add ptr to stringS and all other dataS.
 - rename all state(s) to global(s)
 - EpollEt -> default flag
 - Document every function
