@@ -108,7 +108,7 @@ int main() {
     };
 
     /* Client init -> loop circuitS */
-    struct circuitS *circ = NEW_C(NULL, errorcb);
+    struct circuitS *circ = NEW_C(errorcb);
 
                             APPEND_A(circ, timeropenA,  &timer);
                             APPEND_A(circ, connectA,    &tcp  );

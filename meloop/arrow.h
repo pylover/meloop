@@ -22,7 +22,7 @@ typedef void (*meloop_errcb) (struct circuitS *c, void* global, void *data,
 
 
 struct circuitS * 
-newC(meloop_okcb ok, meloop_errcb cb);
+newC(meloop_errcb errcb);
 
 
 void 
@@ -58,7 +58,7 @@ meloop_priv_ptr(struct circuitS *c);
 
 
 /* Helper macros */
-#define NEW_C(ok, e) newC((meloop_okcb)(ok), (meloop_errcb)(e))
+#define NEW_C(e) newC((meloop_errcb)(e))
 #define APPEND_A(c, a, v) appendA(c, (meloop_task)(a), (void*)(v))
 #define RETURN_A(c, s, r) returnA(c, s, (void*)(r))
 #define ERROR_A(c, s, r, ...) errorA(c, s, (void*)(r), __VA_ARGS__)

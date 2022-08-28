@@ -56,7 +56,7 @@ int main() {
         .rfd = STDIN_FILENO,
     };
 
-    struct circuitS *c = NEW_C(NULL, errorcb);
+    struct circuitS *c = NEW_C(errorcb);
 
     struct elementE *e = APPEND_A(c, promptA, "me@loop:~$ ");
                          APPEND_A(c, readA,   &io);

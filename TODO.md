@@ -1,5 +1,4 @@
 - Add ptr to stringS and all other dataS.
-- Remove success callback
 - rename circuitS to circuitC
 - rename all state(s) to global(s)
 - EpollEt -> default flag

@@ -95,7 +95,7 @@ int main() {
         .epollflags = EPOLLET,
         .readsize = CHUNK_SIZE,
     };
-    worker = NEW_C(NULL, client_error);
+    worker = NEW_C(client_error);
     struct elementE *e = APPEND_A(worker, readA,  &io);
                          APPEND_A(worker, writeA, &io);
                loopA(e);
@@ -115,7 +115,7 @@ int main() {
     };
 
     /* Server init -> loop circuitS */
-    struct circuitS *circ = NEW_C(NULL, errorcb);
+    struct circuitS *circ = NEW_C(errorcb);
 
                             APPEND_A(circ, listenA, &server);
     struct elementE *acpt = APPEND_A(circ, acceptA, &server);

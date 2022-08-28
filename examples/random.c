@@ -27,12 +27,6 @@ errorcb(struct circuitS *c, struct fileS *io, struct stringS d, const char *e) {
 }
 
 
-void
-successcb(struct circuitS *c, struct fileS *io, int out) {
-    printf("Out: %d\n", out);
-}
-
-
 int main() {
     unsigned int counter = 0;
     meloop_io_init(0);
@@ -51,7 +45,7 @@ int main() {
         .wfd = STDOUT_FILENO,
     };
 
-    struct circuitS *c = NEW_C(successcb, errorcb);
+    struct circuitS *c = NEW_C(errorcb);
 
                          APPEND_A(c, randopenA,  &rand);
     struct elementE *e = APPEND_A(c, randreadA,  &rand);

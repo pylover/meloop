@@ -41,10 +41,10 @@ void catch_signal() {
 
 
 void
-inittcpA(struct circuitS *c, void *s, void *d, struct tcpclientP *priv) {
-    pipet.wfd = priv->fd;
-    pipes.rfd = priv->fd;
-    RETURN_A(c, s, d);
+inittcpA(struct circuitS *c, void *s, tcpconnS *conn, struct tcpclientP *priv) {
+    pipet.wfd = conn->fd;
+    pipes.rfd = conn->fd;
+    RETURN_A(c, s, conn->ptr);
 }
 
 
@@ -64,9 +64,10 @@ errorcb(struct circuitS *c, void *s, void *data, const char *error) {
 
 
 void
-initcb(struct circuitS *c, void *s, void *d) {
+forkA(struct circuitS *c, void *s, void *d) {
     RUN_A(iot, NULL, &pipet); 
     RUN_A(ios, NULL, &pipes); 
+    RETURN_A(c, s, d);
 }
 
 
@@ -92,29 +93,34 @@ int main() {
         .destaddress = "192.168.11.1",
         .netmask = "255.255.255.0",
     };
+
+    static struct tcpconnS conn = {
+        .fd = -1;
+    };
     
     /* Client init circuitS */
-    struct circuitS *init = NEW_C(initcb, errorcb);
+    struct circuitS *init = NEW_C(errorcb);
             APPEND_A(init, connectA, &tcp);
-            APPEND_A(init, tunopenA, &tun);
             APPEND_A(init, inittcpA, &tun);
+            APPEND_A(init, tunopenA, &tun);
             APPEND_A(init, inittunA, &tun);
+            APPEND_A(init, forkA,    &tun);
 
     /* io tun reader circuiteS */
     struct ioP iop = {EPOLLET, CHUNK_SIZE};
-                                   iot = NEW_C(NULL, NULL);
+                                   iot = NEW_C(NULL);
     struct elementE *et = APPEND_A(iot, pipereadA,  &iop);
                           APPEND_A(iot, pipewriteA, &iop);
                loopA(et);
 
     /* io socket reader circuiteS */
-                                   ios = NEW_C(NULL, NULL);
+                                   ios = NEW_C(NULL);
     struct elementE *es = APPEND_A(ios, pipereadA,  &iop);
                           APPEND_A(ios, pipewriteA, &iop);
                loopA(es);
 
     /* Run client circuitS */
-    RUN_A(init, NULL, &pipes); 
+    RUN_A(init, NULL, &conn); 
 
     /* Start and wait for event loop */
     if (meloop_io_loop(&status)) {

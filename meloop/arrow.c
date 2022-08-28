@@ -43,7 +43,6 @@ struct elementE {
 
 // TODO: reanme to circuitC
 struct circuitS {
-    meloop_okcb ok;
     meloop_errcb err;
     struct elementE *current;
     struct elementE *nets;
@@ -51,13 +50,12 @@ struct circuitS {
 
 
 struct circuitS * 
-newC(meloop_okcb ok, meloop_errcb error) {
+newC(meloop_errcb error) {
     struct circuitS *c = malloc(sizeof(struct circuitS));
     if (c == NULL) {
         err(EXIT_FAILURE, "Out of memory");
     }
     
-    c->ok = ok;
     c->err = error;
     c->current = NULL;
     c->nets = NULL;
@@ -230,9 +228,6 @@ void
 returnA(struct circuitS *c, void *state, void *data) {
     struct elementE *curr = c->current;
     if (curr->simple.next == NULL) {
-        if (c->ok != NULL) {
-            c->ok(c, state, data);
-        }
         c->current = NULL;
         return;
     }
