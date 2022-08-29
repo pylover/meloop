@@ -38,9 +38,9 @@ void catch_signal() {
 
 
 void
-httpreqA(struct circuitS *c, void *s, struct stringS *data, 
+httpreqA(struct circuitS *c, void *s, struct fileS *f, 
         struct tlsclientP *priv) {
-    char *b = data->buffer;
+    char *b = f->data->blob;
     size_t l = 0;
     #define HCR "\r\n"
     l += sprintf(b + l, "GET / HTTP/1.1"HCR);
@@ -50,23 +50,23 @@ httpreqA(struct circuitS *c, void *s, struct stringS *data,
     l += sprintf(b + l, "Content-Length: 0"HCR);
     l += sprintf(b + l, "Accept: */*"HCR);
     l += sprintf(b + l, HCR);
-    data->size = l;
-    RETURN_A(c, s, data);
+    f->data->size = l;
+    RETURN_A(c, s, f);
 }
 
 
 void
-newlineA(struct circuitS *c, void *s, struct stringS *data) {
-    data->buffer[data->size - 1] = '\n';
-    RETURN_A(c, s, data);
+newlineA(struct circuitS *c, void *s, struct fileS *f) {
+    f->data->blob[f->data->size - 1] = '\n';
+    RETURN_A(c, s, f);
 }
 
 
 void
-printA(struct circuitS *c, void *s, struct stringS *data) {
-    printf("%.*s", (int)data->size, data->buffer);
-    data->size = 0;
-    RETURN_A(c, s, data);
+printA(struct circuitS *c, void *s, struct fileS *f) {
+    printf("%.*s", (int)f->data->size, f->data->blob);
+    f->data->size = 0;
+    RETURN_A(c, s, f);
 }
 
 
@@ -86,9 +86,13 @@ int main() {
 
     /* Initialize the buffer */
     static char b[CHUNK_SIZE];
-    static struct tcpconnS conn = {
+    static struct stringS data = {
+        .blob = b,
         .size = 0,
-        .buffer = b,
+    };
+
+    static struct tcpconnS conn = {
+        .data = &data,
     };
 
     /* Initialize TCP Client */

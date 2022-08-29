@@ -36,10 +36,10 @@ void catch_signal() {
 
 
 void
-newlineA(struct circuitS *c, int *state, struct stringS *data) {
+newlineA(struct circuitS *c, int *state, struct fileS *f) {
     (*state)++;
-    data->buffer[data->size - 1] = '\n';
-    RETURN_A(c, state, data);
+    f->data->blob[f->data->size - 1] = '\n';
+    RETURN_A(c, state, f);
 }
 
 
@@ -54,9 +54,9 @@ greetingA(struct circuitS *c, int *state, struct tcpconnS *conn) {
 
 
 void
-printA(struct circuitS *c, int *state, struct stringS *data) {
-    printf("%03d %.*s", *state, (int)data->size, data->buffer);
-    RETURN_A(c, state, data);
+printA(struct circuitS *c, int *state, struct fileS *f) {
+    printf("%03d %.*s", *state, (int)f->data->size, f->data->blob);
+    RETURN_A(c, state, f);
 }
 
 
@@ -75,9 +75,13 @@ int main() {
     
     /* Initialize the buffer */
     static char b[CHUNK_SIZE];
-    static struct tcpconnS conn = {
+    static struct stringS data = {
+        .blob = b,
         .size = 0,
-        .buffer = b,
+    };
+
+    static struct tcpconnS conn = {
+        .data = &data,
         .fd = -1,
     };
 
@@ -90,10 +94,9 @@ int main() {
     };
     
     /* Initialize random settings. */
-    static struct randP rand = {
+    static struct ioP rand = {
         .epollflags = EPOLLET,
         .readsize = CHUNK_SIZE,
-        .fd = -1
     };
 
     /* Initialize timer settings. */

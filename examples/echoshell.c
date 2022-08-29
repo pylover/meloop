@@ -24,8 +24,8 @@ promptA(struct circuitS *c, unsigned int *counter, struct pipeS *pipe,
 
 void 
 echoA(struct circuitS *c, unsigned int *counter, struct pipeS *pipe) {
-    if ((pipe->size == 1) && (pipe->buffer[0] == '\n')) {
-        pipe->size = 0;
+    if ((pipe->data->size == 1) && (pipe->data->blob[0] == '\n')) {
+        pipe->data->size = 0;
     }
     RETURN_A(c, counter, pipe);
 }
@@ -49,9 +49,13 @@ int main() {
     };
 
     char buff[BUFFSIZE] = "\0";
-    struct pipeS pipe = {
-        .buffer = buff,
+    struct stringS data = {
+        .blob = buff,
         .size = 0,
+    };
+
+    struct pipeS pipe = {
+        .data = &data,
         .wfd = STDOUT_FILENO,
         .rfd = STDIN_FILENO,
     };

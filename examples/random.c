@@ -2,6 +2,7 @@
 #include "meloop/io.h"
 #include "meloop/pipe.h"
 #include "meloop/random.h"
+#include "meloop/logging.h"
 
 #include <err.h>
 #include <errno.h>
@@ -13,6 +14,30 @@
 #define BUFFSIZE 32
 
 
+struct ctx {
+    struct fileS *rand;
+    struct pipeS *pipe;
+};
+
+
+void
+randA(struct circuitS *c, unsigned int *counter, struct ctx *ctx) {
+    RETURN_A(c, counter, ctx->rand);
+}
+
+
+void
+pipeA(struct circuitS *c, unsigned int *counter, struct ctx *ctx) {
+    RETURN_A(c, counter, ctx->pipe);
+}
+
+
+void
+ctxA(struct circuitS *c, unsigned int *counter, struct fileS *file) {
+    RETURN_A(c, counter, file->ptr);
+}
+
+
 void
 countA(struct circuitS *c, unsigned int *counter, struct pipeS *pipe) {
     (*counter)++;
@@ -22,42 +47,60 @@ countA(struct circuitS *c, unsigned int *counter, struct pipeS *pipe) {
 
 
 void
-errorcb(struct circuitS *c, struct fileS *io, struct stringS d, const char *e) {
+errorcb(struct circuitS *c, unsigned int *counter, struct pipeS *d, 
+        const char *e) {
     perror(e);
 }
 
 
 int main() {
+    struct ctx ctx;
     unsigned int counter = 0;
     meloop_io_init(0);
 
-    struct randP rand = {
+    struct ioP io = {
         .readsize = BUFFSIZE,
         .epollflags = EPOLLET,
-        .fd = -1,
     };
     
     char buff[BUFFSIZE] = "\0";
-    struct pipeS pipe = {
-        .buffer = buff,
+    struct stringS data = {
+        .blob = buff,
         .size = 0,
+    };
+
+    struct fileS rand = {
+        .data = &data,
+        .fd = -1,
+        .ptr = &ctx,
+    };
+    struct pipeS pipe = {
+        .data = &data,
         .rfd = STDIN_FILENO,
         .wfd = STDOUT_FILENO,
+        .ptr = &ctx,
     };
+    ctx.rand = &rand;
+    ctx.pipe = &pipe;
 
     struct circuitS *c = NEW_C(errorcb);
 
-                         APPEND_A(c, randopenA,  &rand);
-    struct elementE *e = APPEND_A(c, randreadA,  &rand);
-                         APPEND_A(c, randencA,   &rand);
+                         APPEND_A(c, randA,      NULL);
+                         APPEND_A(c, randopenA,  &io );
+    struct elementE *e = APPEND_A(c, randreadA,  &io );
+                         APPEND_A(c, randencA,   &io );
+                         APPEND_A(c, ctxA,       NULL);
+                         APPEND_A(c, pipeA,      NULL);
                          APPEND_A(c, countA,     NULL);
-                         APPEND_A(c, pipewriteA, &rand);
-                         APPEND_A(c, pipereadA,  &rand);
+                         APPEND_A(c, pipewriteA, &io );
+                         APPEND_A(c, pipereadA,  &io );
+                         APPEND_A(c, ctxA,       NULL);
+                         APPEND_A(c, randA,      NULL);
                loopA(e);
 
     /* Run circuitS */
     // TODO: Use state for counter
-    RUN_A(c, &counter, &pipe); 
+    RUN_A(c, &counter, &ctx); 
 
     /* Start and wait for event loop */
     if (meloop_io_loop(NULL)) {
