@@ -9,7 +9,6 @@
 struct state {
     int foo;
     int bar;
-    bool ok;
     char error[CHUNK_SIZE];
 };
 
@@ -39,24 +38,17 @@ oops(struct circuitS *c, struct state *s, int *data, const char *error) {
 
 
 void
-ok(struct circuitS *c, struct state *s, void *data) {
-    s->ok = true;
-}
-
-
-void
 test_foo_priv() {
     static char b[CHUNK_SIZE];
     int data = 0;
     struct fooP priv = {0};
-    struct state state = {0, 0, false, ""};
-    struct circuitS *c = NEW_C(ok, oops);
+    struct state state = {0, 0, false, '\0'};
+    struct circuitS *c = NEW_C(oops);
     struct elementE *e = APPEND_A(c, fooA, &priv);
     
     RUN_A(c, &state, &data);
     eqint(data, 1);
     eqint(priv.qux, 1);
-    eqint(state.ok, true);
     eqint(state.foo, 1);
     eqstr(state.error, "");
     freeC(c);

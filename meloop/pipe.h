@@ -6,7 +6,7 @@
 
 
 struct pipeS {
-    struct stringS;
+    struct stringS *data;
     int rfd;
     int wfd;
 };

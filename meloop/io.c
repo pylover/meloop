@@ -24,7 +24,7 @@ void
 writeA(struct circuitS *c, void *s, struct fileS *f, struct ioP *priv) {
     ssize_t size;
     
-    size = write(f->fd, f->buffer, f->size);
+    size = write(f->fd, f->data->blob, f->data->size);
     if (size < 0) {
         if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
             WAIT_A(c, s, f, f->fd, EPOLLOUT, priv->epollflags);
@@ -43,7 +43,7 @@ readA(struct circuitS *c, void *s, struct fileS *f, struct ioP *priv) {
     ssize_t size;
 
     /* Read from the file descriptor */
-    size = read(f->fd, f->buffer, priv->readsize);
+    size = read(f->fd, f->data->blob, priv->readsize);
 
     /* Check for EOF */
     if (size == 0) {
@@ -61,7 +61,7 @@ readA(struct circuitS *c, void *s, struct fileS *f, struct ioP *priv) {
         }
         return;
     }
-    f->size = size;
+    f->data->size = size;
     RETURN_A(c, s, f);
 }
 

@@ -22,7 +22,7 @@ tlsreadA(struct circuitS *c, void *s, struct fileS *f,
     int size;
     unsigned long sslerr;
     
-    size = SSL_read(priv->ssl, f->buffer, priv->readsize);
+    size = SSL_read(priv->ssl, f->data->blob, priv->readsize);
     // DEBUG("SSL read: %d bytes, errno %d", size, errno);
     if (size <= 0) {
         sslerr = ERR_get_error();
@@ -34,7 +34,7 @@ tlsreadA(struct circuitS *c, void *s, struct fileS *f,
         }
         return;
     }
-    f->size = size;
+    f->data->size = size;
     RETURN_A(c, s, f);
 }
 
@@ -45,12 +45,12 @@ tlswriteA(struct circuitS *c, void *s, struct fileS *f,
     int size;
     unsigned long sslerr;
     
-    if (f->size == 0) {
+    if (f->data->size == 0) {
         ERROR_A(c, s, f, "Nothing to write");
         return;
     }
     
-    size = SSL_write(priv->ssl, f->buffer, f->size);
+    size = SSL_write(priv->ssl, f->data->blob, f->data->size);
     // DEBUG("SSL write: %d bytes", size);
     if (size <= 0) {
         sslerr = ERR_get_error();

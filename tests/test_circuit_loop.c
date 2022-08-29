@@ -9,7 +9,6 @@
 struct state {
     int foo;
     int bar;
-    bool ok;
     char error[CHUNK_SIZE];
 };
 
@@ -41,23 +40,16 @@ oops(struct circuitS *c, struct state *s, int *data, const char *error) {
 
 
 void
-ok(struct circuitS *c, struct state *s, void *data) {
-    s->ok = true;
-}
-
-
-void
 test_foo_loop() {
     static char b[CHUNK_SIZE];
-    struct state state = {0, 0, false, ""};
+    struct state state = {0, 0, false, '\0'};
     int data = 0;
-    struct circuitS *c = NEW_C(ok, oops);
+    struct circuitS *c = NEW_C(oops);
     struct elementE *e = APPEND_A(c, fooA, NULL);
                loopA(e); 
     
     RUN_A(c, &state, &data);
     eqint(data, 10);
-    eqint(state.ok, false);
     eqint(state.foo, 10);
     eqstr(state.error, "All done");
     freeC(c);
@@ -67,16 +59,15 @@ test_foo_loop() {
 void
 test_foobar_loop() {
     static char b[CHUNK_SIZE];
-    struct state state = {0, 0, false, ""};
+    struct state state = {0, 0, false, '\0'};
     int data = 0;
-    struct circuitS *c = NEW_C(ok, oops);
+    struct circuitS *c = NEW_C(oops);
     struct elementE *e = APPEND_A(c, fooA, NULL);
                          APPEND_A(c, barA, NULL);
                loopA(e); 
     
     RUN_A(c, &state, &data);
     eqint(11, data);
-    eqint(state.ok, false);
     eqint(6, state.foo);
     eqint(5, state.bar);
     eqstr(state.error, "All done");

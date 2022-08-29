@@ -9,14 +9,15 @@
 
 
 struct stringS {
-    char *buffer;
+    char *blob;
     size_t size;
 };
 
 
 struct fileS {
-    struct stringS;
+    struct stringS *data;
     int fd;
+    void *ptr;
 };
 
 
@@ -38,10 +39,12 @@ void
 readA(struct circuitS *c, void *s, struct fileS *f, struct ioP *priv);
 
 
-void meloop_io_init(int flags);
+void 
+meloop_io_init(int flags);
 
 
-void meloop_io_deinit();
+void 
+meloop_io_deinit();
 
 
 int 

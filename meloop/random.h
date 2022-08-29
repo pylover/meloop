@@ -2,24 +2,19 @@
 #define MELOOP_RANDOM_H
 
 
-struct randP {
-    struct ioP;
-    int fd;
-};
+#include "meloop/io.h"
 
 
 void 
-randopenA(struct circuitS *c, void *s, struct stringS *data, 
-        struct randP *priv);
+randopenA(struct circuitS *c, void *s, struct fileS *f);
 
 
 void 
-randreadA(struct circuitS *c, void *s, struct stringS *data,
-        struct randP *priv);
+randreadA(struct circuitS *c, void *s, struct fileS *f, struct ioP *priv);
 
 
 void
-randencA(struct circuitS *c, void *s, struct stringS *data);
+randencA(struct circuitS *c, void *s, struct fileS *f);
 
 
 #endif

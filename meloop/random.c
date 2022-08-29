@@ -13,48 +13,46 @@
 
 
 void 
-randopenA(struct circuitS *c, void *s, struct stringS *data, 
-        struct randP *priv) {
+randopenA(struct circuitS *c, void *s, struct fileS *f) {
     int fd = open("/dev/urandom", O_RDONLY | O_NONBLOCK);
     if (fd < 0) {
-        ERROR_A(c, s, data, "open urandom");
+        ERROR_A(c, s, f, "open urandom");
         return;
     }
-    priv->fd = fd;
-    RETURN_A(c, s, data);
+    f->fd = fd;
+    RETURN_A(c, s, f);
 }
 
 
 void 
-randreadA(struct circuitS *c, void *s, struct stringS *data,
-        struct randP *priv) {
+randreadA(struct circuitS *c, void *s, struct fileS *f, struct ioP *priv) {
     size_t size;
 
     /* Read from the file descriptor */
-    size = read(priv->fd, data->buffer, priv->readsize);
+    size = read(f->fd, f->data->blob, priv->readsize);
 
     /* Check for error */
     if (size < 0) {
         if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
-            WAIT_A(c, s, data, priv->fd, EPOLLIN, priv->epollflags);
+            WAIT_A(c, s, f, f->fd, EPOLLIN, priv->epollflags);
         }
         else {
-            ERROR_A(c, s, data, "read urandom");
+            ERROR_A(c, s, f, "read urandom");
         }
         return;
     }
-    data->size = size;
-    RETURN_A(c, s, data);
+    f->data->size = size;
+    RETURN_A(c, s, f);
 }
 
 
 void
-randencA(struct circuitS *c, void *s, struct stringS *data) {
+randencA(struct circuitS *c, void *s, struct fileS *f) {
     int i;
     unsigned int t;
-    for (i = 0; i < data->size; i++) {
-        t = data->buffer[i];
-        data->buffer[i] = (t % 26) + 97;
+    for (i = 0; i < f->data->size; i++) {
+        t = f->data->blob[i];
+        f->data->blob[i] = (t % 26) + 97;
     }
-    RETURN_A(c, s, data);
+    RETURN_A(c, s, f);
 }
