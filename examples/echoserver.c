@@ -47,8 +47,11 @@ client_error(struct circuitS *c, unsigned int *clients, struct tcpconnS *conn,
     INFO("[total clients: %u] %s, %s", *clients, 
             meloop_sockaddr_dump(&(conn->remoteaddr)), error);
    
-    if (conn->data->blob != NULL) {
-        free(conn->data->blob);
+    if (conn->data != NULL) {
+        if (conn->data->blob != NULL) {
+            free(conn->data->blob);
+        }
+        free(conn->data);
     }
 }
 
@@ -73,6 +76,7 @@ client_connected (struct circuitS *c, unsigned int *clients, int fd,
     memcpy(&(conn->remoteaddr), addr, sizeof(struct sockaddr));
 
     /* Will be free at tcp.c: client_free() */
+    conn->data = malloc(sizeof(struct stringS));
     conn->data->blob = malloc(CHUNK_SIZE);
     conn->data->size = 0;
     

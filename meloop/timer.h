@@ -7,21 +7,26 @@
 
 struct timerP {
     int epollflags;
-    int fd;
     int clockid;
     int flags;
-    int status;
     long interval_ns;
 };
 
 
+struct timerS {
+    void *ptr;
+    int fd;
+    int status;
+};
+
+
 void
-timeropenA(struct circuitS *c, void *global, void *data, 
+timeropenA(struct circuitS *c, void *global, struct timerS *t, 
         struct timerP *priv);
 
 
 void 
-timersleepA(struct circuitS *c, void *global, void *data,
+timersleepA(struct circuitS *c, void *global, struct timerS *t,
         struct timerP *priv);
 
 

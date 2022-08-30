@@ -14,7 +14,7 @@
 
 
 void
-timeropenA(struct circuitS *c, void *global, void *data, 
+timeropenA(struct circuitS *c, void *global, struct timerS *t, 
         struct timerP *priv) {
     struct itimerspec ispec;
     time_t sec = priv->interval_ns / NS;
@@ -22,11 +22,11 @@ timeropenA(struct circuitS *c, void *global, void *data,
     int fd = timerfd_create(priv->clockid, priv->flags | TFD_NONBLOCK);
 
     if (fd < 0) {
-        ERROR_A(c, global, data, "timerfd_create");
+        ERROR_A(c, global, t, "timerfd_create");
         return;
     }
     
-    priv->fd = fd;
+    t->fd = fd;
     ispec.it_interval.tv_sec = sec; 
     ispec.it_interval.tv_nsec = nsec; 
     ispec.it_value.tv_sec = sec; 
@@ -34,45 +34,45 @@ timeropenA(struct circuitS *c, void *global, void *data,
 
     if (timerfd_settime(fd, 0, &ispec, NULL)) {
         close(fd);
-        ERROR_A(c, global, data, "timerfd_settime");
+        ERROR_A(c, global, t, "timerfd_settime");
         return;
     }
-    priv->status = IDLE;        
-    RETURN_A(c, global, data);
+    t->status = IDLE;        
+    RETURN_A(c, global, t);
 }
 
 
 void 
-timersleepA(struct circuitS *c, void *global, void *data, 
+timersleepA(struct circuitS *c, void *global, struct timerS *t, 
         struct timerP *priv) {
     ssize_t size;
     uint64_t res;
 
-    if (priv->status == IDLE) {
-        WAIT_A(c, global, data, priv->fd, EPOLLIN, priv->epollflags);
-        priv->status = WAITING;
+    if (t->status == IDLE) {
+        WAIT_A(c, global, t, t->fd, EPOLLIN, priv->epollflags);
+        t->status = WAITING;
         return;
     }
 
     /* Read from the file descriptor */
-    size = read(priv->fd, &res, sizeof(res));
+    size = read(t->fd, &res, sizeof(res));
     //printf("timer: readed: %lu %lu\n", size, res);
 
     /* Check for EOF */
     if (size == 0) {
-        ERROR_A(c, global, data, "EOF");
+        ERROR_A(c, global, t, "EOF");
         return;
     }
 
     /* Error | wait */
     if (size < 0) {
         if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
-            WAIT_A(c, global, data, priv->fd, EPOLLIN, priv->epollflags);
+            WAIT_A(c, global, t, t->fd, EPOLLIN, priv->epollflags);
         }
         else {
-            ERROR_A(c, global, data, "read timerfd");
+            ERROR_A(c, global, t, "read timerfd");
         }
         return;
     }
-    RETURN_A(c, global, data);
+    RETURN_A(c, global, t);
 }

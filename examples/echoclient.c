@@ -21,6 +21,13 @@ static volatile int status = WORKING;
 static struct sigaction old_action;
 
 
+struct ctx {
+    struct timerS *timer;
+    struct tcpconnS *conn;
+    struct fileS *rand;
+};
+
+
 void sighandler(int s) {
     PRINTE(CR);
     status = EXIT_SUCCESS;
@@ -32,6 +39,30 @@ void catch_signal() {
     if (sigaction(SIGINT, &new_action, &old_action) != 0) {
         err(EXIT_FAILURE, NULL);
     }
+}
+
+
+void
+randA(struct circuitS *c, unsigned int *state, struct ctx *ctx) {
+    RETURN_A(c, state, ctx->rand);
+}
+
+
+void
+timerA(struct circuitS *c, unsigned int *state, struct ctx *ctx) {
+    RETURN_A(c, state, ctx->timer);
+}
+
+
+void
+connA(struct circuitS *c, unsigned int *state, struct ctx *ctx) {
+    RETURN_A(c, state, ctx->conn);
+}
+
+
+void
+ctxA(struct circuitS *c, unsigned int *state, struct fileS *file) {
+    RETURN_A(c, state, file->ptr);
 }
 
 
@@ -69,6 +100,7 @@ errorcb(struct circuitS *c, struct fileS *s, void *data, const char *error) {
 
 int main() {
     logging_verbosity = LOGGING_DEBUG;
+    static struct ctx ctx;
     catch_signal();
     meloop_io_init(0);
     int state = 0;
@@ -83,7 +115,22 @@ int main() {
     static struct tcpconnS conn = {
         .data = &data,
         .fd = -1,
+        .ptr = &ctx,
     };
+    ctx.conn = &conn;
+
+    static struct timerS tmr = {
+        .fd = -1,
+        .ptr = &ctx,
+    };
+    ctx.timer = &tmr;
+
+    static struct fileS rnd = {
+        .fd = -1,
+        .data = &data,
+        .ptr = &ctx,
+    };
+    ctx.rand = &rnd;
 
     /* Initialize TCP Client */
     static struct tcpclientP tcp = {
@@ -106,28 +153,44 @@ int main() {
         .epollflags = EPOLLET,
         .clockid = CLOCK_REALTIME,
         .flags = 0,
-        .fd = -1,
         .interval_ns = S,
     };
+
 
     /* Client init -> loop circuitS */
     struct circuitS *circ = NEW_C(errorcb);
 
+                            APPEND_A(circ, timerA,      &timer);
                             APPEND_A(circ, timeropenA,  &timer);
+
+                            APPEND_A(circ, ctxA,        NULL  );
+                            APPEND_A(circ, connA,       NULL  );
                             APPEND_A(circ, connectA,    &tcp  );
-                            APPEND_A(circ, randopenA,   &rand );
                             APPEND_A(circ, greetingA,   &tcp  );
+
+                            APPEND_A(circ, ctxA,        NULL  );
+                            APPEND_A(circ, randA,       NULL  );
+                            APPEND_A(circ, randopenA,   &rand );
     struct elementE *work = APPEND_A(circ, randreadA,   &rand );
                             APPEND_A(circ, randencA,    &rand );
                             APPEND_A(circ, newlineA,    NULL  );
+
+                            APPEND_A(circ, ctxA,        NULL  );
+                            APPEND_A(circ, connA,       NULL  );
                             APPEND_A(circ, writeA,      &tcp  );
                             APPEND_A(circ, readA,       &tcp  );
                             APPEND_A(circ, printA,      NULL  );
+
+                            APPEND_A(circ, ctxA,        NULL  );
+                            APPEND_A(circ, timerA,      &timer);
                             APPEND_A(circ, timersleepA, &timer);
+
+                            APPEND_A(circ, ctxA,        NULL  );
+                            APPEND_A(circ, randA,       NULL  );
                loopA(work);
 
     /* Run server circuitS */
-    RUN_A(circ, &state, &conn); 
+    RUN_A(circ, &state, &ctx); 
 
     /* Start and wait for event loop */
     if (meloop_io_loop(&status)) {
