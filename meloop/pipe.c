@@ -9,9 +9,31 @@
 
 
 void
-pipereadA(struct circuitS *c, void *state, struct pipeS *pipe, 
+pipereadA(struct circuitS *c, void *s, struct pipeS *pipe, 
         struct ioP *priv) {
-    readA(c, state, (struct fileS*)pipe, priv);
+    ssize_t size;
+
+    /* Read from the file descriptor */
+    size = read(pipe->rfd, pipe->data->blob, priv->readsize);
+
+    /* Check for EOF */
+    if (size == 0) {
+        ERROR_A(c, s, pipe, "EOF");
+        return;
+    }
+
+    /* Error | wait */
+    if (size < 0) {
+        if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
+            WAIT_A(c, s, pipe, pipe->rfd, EPOLLIN, priv->epollflags);
+        }
+        else {
+            ERROR_A(c, s, pipe, "read");
+        }
+        return;
+    }
+    pipe->data->size = size;
+    RETURN_A(c, s, pipe);
 }
 
 

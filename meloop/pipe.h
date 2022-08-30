@@ -6,8 +6,8 @@
 
 
 struct pipeS {
-    struct stringS *data;
     void *ptr;
+    struct stringS *data;
     int rfd;
     int wfd;
 };

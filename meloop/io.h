@@ -16,8 +16,8 @@ struct stringS {
 
 struct fileS {
     void *ptr;
-    int fd;
     struct stringS *data;
+    int fd;
 };
 
 
