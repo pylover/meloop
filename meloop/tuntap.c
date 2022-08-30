@@ -40,7 +40,7 @@
 
 
 static int
-_configure_interface(struct tunP *tun) {
+_configure_interface(struct tunS *tun) {
     struct ifreq ifr;
     struct sockaddr_in *tmp = (struct sockaddr_in*) &ifr.ifr_addr;
     memset(&ifr, 0, sizeof(struct ifreq));
@@ -107,13 +107,13 @@ _configure_interface(struct tunP *tun) {
 
 
 void 
-tunopenA(struct circuitS *c, void *s, void *data, struct tunP *priv) {
+tunopenA(struct circuitS *c, void *s, struct tunS *t, struct tunP *priv) {
     struct ifreq ifr;
     int fd; 
     int err;
 
     if( (fd = open("/dev/net/tun", O_RDWR | O_NONBLOCK)) < 0 ) {
-        ERROR_A(c, s, data, "Cannot open: /dev/net/tun");
+        ERROR_A(c, s, t, "Cannot open: /dev/net/tun");
         return;
     }
     
@@ -132,27 +132,27 @@ tunopenA(struct circuitS *c, void *s, void *data, struct tunP *priv) {
     }
 
     ifr.ifr_flags += IFF_NO_PI; 
-    if (priv->name[0]) {
-        strncpy(ifr.ifr_name, priv->name, IFNAMSIZ);
+    if (t->name[0]) {
+        strncpy(ifr.ifr_name, t->name, IFNAMSIZ);
     }
 
     if ((err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0) {
         close(fd);
-        ERROR_A(c, s, data, "Cannot set tun options");
+        ERROR_A(c, s, t, "Cannot set tun options");
         return;
     }
 
-    priv->fd = fd;    
-    strcpy(priv->name, ifr.ifr_name);
+    t->fd = fd;    
+    strcpy(t->name, ifr.ifr_name);
     
-    if (_configure_interface(priv)) {
+    if (_configure_interface(t)) {
         close(fd);
-        ERROR_A(c, s, data, "Cannot configure (set address) tun device.");
+        ERROR_A(c, s, t, "Cannot configure (set address) tun device.");
         return;
     }
 
-    INFO("Tunnel interface: %s %s has been created.", priv->name, 
-            inet_ntoa(priv->addressB));
-    DEBUG("dest: %s", inet_ntoa(priv->destaddressB));
-    RETURN_A(c, s, data);
+    INFO("Tunnel interface: %s %s has been created.", t->name, 
+            inet_ntoa(t->addressB));
+    DEBUG("dest: %s", inet_ntoa(t->destaddressB));
+    RETURN_A(c, s, t);
 }

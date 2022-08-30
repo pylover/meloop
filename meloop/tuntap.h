@@ -12,7 +12,11 @@
 struct tunP {
     struct ioP;
     bool tap;
-    int fd;
+};
+
+
+struct tunS {
+    struct fileS;
     char name[IFNAMSIZ];
     const char *address;
     const char *destaddress;
@@ -24,7 +28,7 @@ struct tunP {
 
 
 void 
-tunopenA(struct circuitS *c, void *s, void *data, struct tunP *priv);
+tunopenA(struct circuitS *c, void *s, struct tunS *t, struct tunP *priv);
 
 
 // void 

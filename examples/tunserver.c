@@ -46,14 +46,15 @@ void
 client_error(struct circuitS *c, unsigned int *clients, struct pipeS *p, 
         const char *error) {
     (*clients)--;
-    INFO("[total clients: %u] %s, %s", *clients, 
-            meloop_sockaddr_dump(&(conn->addr)), error);
+    // preserve address
+    // INFO("[total clients: %u] %s, %s", *clients, 
+    //         meloop_sockaddr_dump(&(conn->addr)), error);
    
-    if (p != NULL) {
-        if (p->buffer != NULL) {
-            free(p->buffer);
+    if (p->data != NULL) {
+        if (p->data->blob != NULL) {
+            free(p->data->blob);
         }
-        free(p);
+        free(p->data);
     }
 }
 
@@ -67,40 +68,22 @@ client_connected (struct circuitS *c, unsigned int *clients, int fd,
             meloop_sockaddr_dump(addr));
 
     /* Will be free at client_error() */
+    struct stringS *datat = malloc(sizeof(struct stringS));
+    datat->blob = malloc(CHUNK_SIZE);
+    datat->size = 0;
     struct pipeS *pipet = malloc(sizeof(struct pipeS));
-    if (pipet == NULL) {
-        close(fd);
-        ERROR_A(c, clients, NULL, "Out of memory");
-        return;
-    }
-
-    struct pipeS *pipes = malloc(sizeof(struct pipeS));
-    if (pipes == NULL) {
-        close(fd);
-        ERROR_A(c, clients, NULL, "Out of memory");
-        return;
-    }
-
+    pipet->data = datat; 
     pipet->wfd = fd; 
+
+    struct stringS *datas = malloc(sizeof(struct stringS));
+    datas->blob = malloc(CHUNK_SIZE);
+    datas->size = 0;
+    struct pipeS *pipes = malloc(sizeof(struct pipeS));
+    pipes->data = datas; 
     pipes->rfd = fd; 
-
-    pipet->buffer = malloc(CHUNK_SIZE);
-    pipet->size = 0;
-
-    pipes->buffer = malloc(CHUNK_SIZE);
-    pipes->size = 0;
     
     // TODO: preserve ip address
     // memcpy(&(conn->addr), addr, sizeof(struct sockaddr));
-    if (pipet->buffer == NULL) {
-        ERROR_A(c, clients, NULL, "Out of memory");
-        return;
-    }
-
-    if (pipes->buffer == NULL) {
-        ERROR_A(c, clients, NULL, "Out of memory");
-        return;
-    }
     RUN_A(iot, clients, &pipet); 
     RUN_A(ios, clients, &pipes); 
 }
@@ -114,13 +97,13 @@ int main() {
 
     /* io tun reader circuiteS */
     struct ioP iop = {EPOLLET, CHUNK_SIZE};
-                                   iot = NEW_C(NULL, client_error);
+                                   iot = NEW_C(client_error);
     struct elementE *et = APPEND_A(iot, pipereadA,  &iop);
                           APPEND_A(iot, pipewriteA, &iop);
                loopA(et);
 
     /* io socket reader circuiteS */
-                                   ios = NEW_C(NULL, client_error);
+                                   ios = NEW_C(client_error);
     struct elementE *es = APPEND_A(ios, pipereadA,  &iop);
                           APPEND_A(ios, pipewriteA, &iop);
                loopA(es);
@@ -140,7 +123,7 @@ int main() {
     };
 
     /* Server init -> loop circuitS */
-    struct circuitS *circ = NEW_C(NULL, errorcb);
+    struct circuitS *circ = NEW_C(errorcb);
 
                             APPEND_A(circ, listenA, &server);
     struct elementE *acpt = APPEND_A(circ, acceptA, &server);
