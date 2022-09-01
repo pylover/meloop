@@ -21,6 +21,15 @@ typedef void (*meloop_errcb) (struct circuitS *c, void* global, void *data,
         const char *msg);
 
 
+// TODO: reanme to circuitC
+struct circuitS {
+    meloop_errcb err;
+    struct elementE *current;
+    struct elementE *nets;
+    void *ptr;
+};
+
+
 struct circuitS * 
 newC(meloop_errcb errcb);
 

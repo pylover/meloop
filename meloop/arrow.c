@@ -41,14 +41,6 @@ struct elementE {
 };
 
 
-// TODO: reanme to circuitC
-struct circuitS {
-    meloop_errcb err;
-    struct elementE *current;
-    struct elementE *nets;
-};
-
-
 struct circuitS * 
 newC(meloop_errcb error) {
     struct circuitS *c = malloc(sizeof(struct circuitS));

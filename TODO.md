@@ -1,3 +1,4 @@
+- Move c->current to a new struct named runcontext
 - Add ptr to stringS and all other dataS.
 - rename circuitS to circuitC
 - rename all state(s) to global(s)
