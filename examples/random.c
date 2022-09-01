@@ -20,20 +20,20 @@ struct ctx {
 };
 
 
-void
-randA(struct circuitS *c, unsigned int *counter, struct ctx *ctx) {
+static void
+_randA(struct circuitS *c, unsigned int *counter, struct ctx *ctx) {
     RETURN_A(c, counter, ctx->rand);
 }
 
 
-void
-pipeA(struct circuitS *c, unsigned int *counter, struct ctx *ctx) {
+static void
+_pipeA(struct circuitS *c, unsigned int *counter, struct ctx *ctx) {
     RETURN_A(c, counter, ctx->pipe);
 }
 
 
-void
-ctxA(struct circuitS *c, unsigned int *counter, struct fileS *file) {
+static void
+_ctxA(struct circuitS *c, unsigned int *counter, struct fileS *file) {
     RETURN_A(c, counter, file->ptr);
 }
 
@@ -85,17 +85,17 @@ int main() {
 
     struct circuitS *c = NEW_C(errorcb);
 
-                         APPEND_A(c, randA,      NULL);
+                         APPEND_A(c, _randA,     NULL);
                          APPEND_A(c, randopenA,  &io );
     struct elementE *e = APPEND_A(c, randreadA,  &io );
                          APPEND_A(c, randencA,   &io );
-                         APPEND_A(c, ctxA,       NULL);
-                         APPEND_A(c, pipeA,      NULL);
+                         APPEND_A(c, _ctxA,      NULL);
+                         APPEND_A(c, _pipeA,     NULL);
                          APPEND_A(c, countA,     NULL);
                          APPEND_A(c, pipewriteA, &io );
                          APPEND_A(c, pipereadA,  &io );
-                         APPEND_A(c, ctxA,       NULL);
-                         APPEND_A(c, randA,      NULL);
+                         APPEND_A(c, _ctxA,      NULL);
+                         APPEND_A(c, _randA,     NULL);
                loopA(e);
 
     /* Run circuitS */
