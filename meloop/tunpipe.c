@@ -1,4 +1,9 @@
+#include "meloop/logging.h"
 #include "meloop/tunpipe.h"
+
+#include <sys/epoll.h>
+#include <unistd.h>
+#include <errno.h>
 
     
 struct tuntcpctx {
@@ -26,16 +31,70 @@ tt_ctxA(struct circuitS *c, void *state, struct fileS *file) {
 
 
 void
-read2A(struct circuitS *c, void *state, struct tuntcpctx *ctx) {
+read2A(struct circuitS *c, void *s, struct tuntcpctx *ctx, struct ioP *priv) {
+    bool any = false;
+    ssize_t size;
+    struct tunS *tun = ctx->tun;
+    struct tcpconnS *conn = ctx->conn;
 
-    RETURN_A(c, state, ctx);
+    /* Read from the tun descriptor */
+    size = read(tun->fd, conn->data->blob, priv->readsize);
+
+    /* Check for EOF */
+    if (size == 0) {
+        ERROR_A(c, s, ctx, "EOF");
+        return;
+    }
+
+    /* Error | wait */
+    if (size < 0) {
+        if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
+            WAIT_A(c, s, ctx, tun->fd, EPOLLIN, priv->epollflags);
+        }
+        else {
+            ERROR_A(c, s, ctx, "tun read");
+            return;
+        }
+    }
+    else {
+        any = true;
+        conn->data->size = size;
+    }
+
+    /* Read from the socket descriptor */
+    size = read(conn->fd, tun->data->blob, priv->readsize);
+
+    /* Check for EOF */
+    if (size == 0) {
+        ERROR_A(c, s, ctx, "EOF");
+        return;
+    }
+
+    /* Error | wait */
+    if (size < 0) {
+        if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
+            WAIT_A(c, s, ctx, conn->fd, EPOLLIN, priv->epollflags);
+        }
+        else {
+            ERROR_A(c, s, ctx, "socket read");
+            return;
+        }
+    }
+    else {
+        any = true;
+        tun->data->size = size;
+    }
+
+    if (any) {
+        RETURN_A(c, s, ctx);
+    }
 }
 
 
 void
-write2A(struct circuitS *c, void *state, struct tuntcpctx *ctx) {
-
-    RETURN_A(c, state, ctx);
+write2A(struct circuitS *c, void *s, struct tuntcpctx *ctx) {
+    DEBUG("write %p", ctx);
+    RETURN_A(c, s, ctx);
 }
 
 

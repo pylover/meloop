@@ -23,7 +23,7 @@ tt_ctxA(struct circuitS *c, void *state, struct fileS *file);
 
 
 void
-read2A(struct circuitS *c, void *state, struct tuntcpctx *ctx);
+read2A(struct circuitS *c, void *s, struct tuntcpctx *ctx, struct ioP *priv);
 
 
 void
