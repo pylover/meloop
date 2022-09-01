@@ -92,9 +92,48 @@ read2A(struct circuitS *c, void *s, struct tuntcpctx *ctx, struct ioP *priv) {
 
 
 void
-write2A(struct circuitS *c, void *s, struct tuntcpctx *ctx) {
-    DEBUG("write %p", ctx);
-    RETURN_A(c, s, ctx);
+write2A(struct circuitS *c, void *s, struct tuntcpctx *ctx, 
+        struct ioP *priv) {
+    bool any = false;
+    ssize_t size;
+    struct tunS *tun = ctx->tun;
+    struct tcpconnS *conn = ctx->conn;
+    
+    if (tun->data->size) {
+        size = write(tun->fd, tun->data->blob, tun->data->size);
+        if (size < 0) {
+            if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
+                WAIT_A(c, s, ctx, tun->fd, EPOLLOUT, priv->epollflags);
+            }
+            else {
+                ERROR_A(c, s, ctx, "write");
+                return;
+            }
+        }
+        else {
+            any = true;
+        }
+    }
+
+    if (conn->data->size) {
+        size = write(conn->fd, conn->data->blob, conn->data->size);
+        if (size < 0) {
+            if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
+                WAIT_A(c, s, ctx, conn->fd, EPOLLOUT, priv->epollflags);
+            }
+            else {
+                ERROR_A(c, s, ctx, "write");
+                return;
+            }
+        }
+        else {
+            any = true;
+        }
+    }
+
+    if (any) {
+        RETURN_A(c, s, ctx);
+    }
 }
 
 

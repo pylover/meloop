@@ -27,7 +27,8 @@ read2A(struct circuitS *c, void *s, struct tuntcpctx *ctx, struct ioP *priv);
 
 
 void
-write2A(struct circuitS *c, void *state, struct tuntcpctx *ctx);
+write2A(struct circuitS *c, void *s, struct tuntcpctx *ctx, 
+        struct ioP *priv);
 
 
 struct elementE *
