@@ -15,9 +15,7 @@ execs = \
 	echoshell \
 	echoserver \
 	echoclient \
-	tlsclient \
-	tunclient \
-	tunserver
+	tlsclient
 
 
 all: $(execs)
